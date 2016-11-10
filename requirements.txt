@@ -1,0 +1,1 @@
+-e git+https://github.com/google/protobuf.git#egg=protobuf&subdirectory=python

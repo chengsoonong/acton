@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package acton.predictors;
+
+/**
+ * Input to predictors.
+ */
+message Labels {
+    /**
+     * An instance and its label.
+     */
+    message LabelledInstance {
+        // The ID of the instance that we are labelling.
+        string id = 1;
+
+        // Labels are a T x D array, where
+        // - T is the number of labellers, and
+        // - D is the dimensionality of the labels.
+        repeated double label = 2;
+    }
+
+    // Labelled instances for training.
+    repeated LabelledInstance instance = 1;
+
+    // Number of labellers.
+    int32 n_labellers = 2;
+
+    // Dimensionality of the labels.
+    int32 n_label_dimensions = 3;
+
+    // Data type of the labels.
+    string dtype = 4;
+}
+
+/**
+ * Output of predictors.
+ */
+message Predictions {
+    /**
+     * Predictions for a single instance.
+     */
+    message Prediction {
+        // The ID of the instance that we are predicting.
+        string id = 1;
+
+        // Predictions are a T x D array, where
+        // - T is the number of predictors, and
+        // - D is the dimensionality of the prediction.
+        repeated double prediction = 2;
+    }
+
+    // Predictions for instances.
+    repeated Prediction prediction = 1;
+    
+    // By having the data type and shape of the predictions outside the
+    // Prediction itself, we force all predictions to be the same shape, but
+    // also save space.
+
+    // Number of predictors.
+    int32 n_predictors = 2;
+
+    // Dimensionality of the predictions.
+    int32 n_prediction_dimensions = 3;
+
+    // Type of the predictions.
+    string dtype = 4;
+
+    // Predictor used to generate these predictions.
+    string predictor = 5;
+}

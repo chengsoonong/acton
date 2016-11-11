@@ -1,17 +1,31 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
-python: 3.5
 
-env:
-  - TOXENV=py35
-  - TOXENV=py34
-  - TOXENV=pypy
+cache: pip
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox
+python:
+  - "3.4"
+  - "3.5"
 
-# command to run tests, e.g. python setup.py test
-script: tox -e ${TOXENV}
+notifications:
+  email: false
 
+before_install:
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a # for debugging
 
+install:
+  - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite
+  - source activate testenv
+  - pip install -r requirements.txt
+  - python setup.py install
+
+script:
+  - python setup.py test"

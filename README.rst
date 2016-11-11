@@ -13,6 +13,10 @@ located.
 .. image:: https://travis-ci.org/chengsoonong/acton.svg?branch=master
     :target: https://travis-ci.org/chengsoonong/acton
 
+.. image:: http://readthedocs.org/projects/acton/badge/?version=latest
+    :target: http://acton.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Software tools
 --------------
 

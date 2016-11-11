@@ -1,7 +1,7 @@
 """Predictor classes."""
 
-import numpy.ndarray
-import proto.predictors_pb2 as predictors_pb
+import acton.proto.predictors_pb2 as predictors_pb
+from numpy import ndarray
 
 
 class Predictor(object):
@@ -14,7 +14,7 @@ class Predictor(object):
     def __init__(self):
         raise NotImplementedError('Cannot instantiate base class: Predictor.')
 
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, features: ndarray, labels: ndarray):
         """Fits the predictor to labelled data.
 
         Parameters
@@ -26,7 +26,7 @@ class Predictor(object):
         """
         pass
 
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, features: ndarray) -> ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -42,7 +42,7 @@ class Predictor(object):
 
         Returns
         -------
-        numpy.ndarray
+        ndarray
             An N x 1 array of corresponding predictions.
         """
         pass

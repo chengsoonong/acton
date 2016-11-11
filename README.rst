@@ -10,6 +10,9 @@ learning, bandits and experimental design for suggesting items to label.
 is a suburb in Canberra, where Australian National University is
 located.
 
+.. image:: https://travis-ci.org/chengsoonong/acton.svg?branch=master
+    :target: https://travis-ci.org/chengsoonong/acton
+
 Software tools
 --------------
 

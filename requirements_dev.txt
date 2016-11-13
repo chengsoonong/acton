@@ -6,4 +6,4 @@ flake8==2.6.0
 coverage==4.1
 Sphinx==1.4.8
 typing>=3.5.2
-
+numpydoc==0.6.0

@@ -345,7 +345,7 @@ texinfo_documents = [
 
 def run_apidoc(_):
     from sphinx.apidoc import main
-    module = 'acton'
+    module = os.path.abspath('../../acton')
     output_path = os.path.abspath('.')
     main(['-e', '-o', output_path, module, '--force'])
 

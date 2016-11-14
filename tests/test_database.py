@@ -40,63 +40,26 @@ class TestHDF5Database(unittest.TestCase):
         """
         return os.path.join(self.tempdir.name, filename)
 
-    def test_write_features(self):
-        """Features can be written to a new database."""
-        path = self.temp_path('test_write_features.h5')
+    def test_io_features(self):
+        """Features can be written to and read out from an HDF5Database."""
+        path = self.temp_path('test_io_features.h5')
         # Make some testing data.
         n_instances = 20
         n_dimensions = 15
         ids = [str(i).encode('ascii') for i in range(n_instances)]
         numpy.random.shuffle(ids)
-        features = numpy.random.random(size=(n_instances, n_dimensions))
-        # Store the testing data in the database.
-        with database.HDF5Database(path) as db:
-            db.write_features(ids, features)
-        # Check that the testing data was stored.
-        with database.HDF5Database(path) as db:
-            self.assertTrue(numpy.allclose(
-                db._h5_file['features'].value,
-                features))
-            self.assertEqual([i for i in db._h5_file['ids']],
-                             ids)
+        features = numpy.random.random(size=(n_instances, n_dimensions)).astype(
+            'float32')
 
-    def test_update_features(self):
-        """Features in an HDF5Database can be updated."""
-        path = self.temp_path('test_update_features.h5')
-        # Make some testing data.
-        n_instances = 20
-        n_dimensions = 15
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
-        numpy.random.shuffle(ids)
-        features = numpy.random.random(size=(n_instances, n_dimensions))
-        # Store the testing data in the database.
-        with database.HDF5Database(path) as db:
-            db.write_features(ids, features)
-        # Change some features.
-        changed_ids_int = [i for i in range(0, n_instances, 2)]
-        changed_ids = [ids[i] for i in changed_ids_int]
-        new_features = features.copy()
-        new_features[changed_ids_int] = numpy.random.random(
-            size=(len(changed_ids), n_dimensions))
-        with database.HDF5Database(path) as db:
-            db.write_features(changed_ids, new_features[changed_ids_int])
-            self.assertTrue(numpy.allclose(
-                db._h5_file['features'].value,
-                new_features))
-
-    def test_update_and_write_features(self):
-        """Features can be updated/written to an HDF5Database simultaneously."""
-        path = self.temp_path('test_update_and_write_features.h5')
-        # Make some testing data.
-        n_instances = 20
-        n_dimensions = 15
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
-        numpy.random.shuffle(ids)
-        features = numpy.random.random(size=(n_instances, n_dimensions))
         # Store half the testing data in the database.
         with database.HDF5Database(path) as db:
             db.write_features(ids[:n_instances // 2],
                               features[:n_instances // 2])
+        with database.HDF5Database(path) as db:
+            self.assertTrue(numpy.allclose(
+                features[:n_instances // 2],
+                db.read_features(ids[:n_instances // 2])))
+
         # Change some features.
         changed_ids_int = [i for i in range(0, n_instances, 2)]
         changed_ids = [ids[i] for i in changed_ids_int]
@@ -107,49 +70,45 @@ class TestHDF5Database(unittest.TestCase):
         # Update the database and extend it by including all features.
         with database.HDF5Database(path) as db:
             db.write_features(ids, new_features)
+        with database.HDF5Database(path) as db:
             self.assertTrue(numpy.allclose(
-                db._h5_file['features'].value,
-                new_features))
+                new_features,
+                db.read_features(ids)))
 
-    def test_read_features(self):
-        """Features can be read from an HDF5Database."""
-        path = self.temp_path('test_read_features.h5')
+    def test_read_write_labels(self):
+        """Labels can be written to and read from an HDF5Database."""
+        path = self.temp_path('test_read_write_labels.h5')
         # Make some testing data.
-        n_instances = 20
-        n_dimensions = 15
+        n_instances = 5
+        n_dimensions = 1
+        n_labellers = 1
         ids = [str(i).encode('ascii') for i in range(n_instances)]
+        labeller_ids = [str(i).encode('ascii') for i in range(n_labellers)]
         numpy.random.shuffle(ids)
-        features = numpy.random.random(size=(n_instances, n_dimensions))
-        # Store the testing data in the database.
+        labels = numpy.random.random(
+            size=(n_labellers, n_instances, n_dimensions)).astype('float32')
+        # Store half the testing data in the database.
         with database.HDF5Database(path) as db:
-            db.write_features(ids, features)
-        # Read it back from the database.
+            db.write_labels(labeller_ids[:n_labellers // 2],
+                            ids[:n_instances // 2],
+                            labels[:n_labellers // 2, :n_instances // 2])
         with database.HDF5Database(path) as db:
-            read_features = db.read_features(ids)
-            self.assertTrue(numpy.allclose(
-                features,
-                read_features))
+            exp_labels = labels[:n_labellers // 2, :n_instances // 2]
+            act_labels = db.read_labels(labeller_ids[:n_labellers // 2],
+                                        ids[:n_instances // 2])
+            self.assertTrue(numpy.allclose(exp_labels, act_labels),
+                            msg='delta {}'.format(exp_labels - act_labels))
+        # Change some labels.
+        changed_ids_int = [i for i in range(0, n_instances, 2)]
+        changed_ids = [ids[i] for i in changed_ids_int]
+        new_labels = labels.copy()
+        new_labels[:, changed_ids_int] = numpy.random.random(
+            size=(n_labellers, len(changed_ids), n_dimensions))
 
-
-    def test_read_features_unordered(self):
-        """Features can be read from an HDF5Database independently of ID order.
-        """
-        path = self.temp_path('test_read_features_unordered.h5')
-        # Make some testing data.
-        n_instances = 20
-        n_dimensions = 15
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
-        numpy.random.shuffle(ids)
-        features = numpy.random.random(size=(n_instances, n_dimensions))
-        # Store the testing data in the database.
+        # Update the database and extend it by including all labels.
         with database.HDF5Database(path) as db:
-            db.write_features(ids, features)
-        # Read it back from the database in random order.
-        ids_int = list(range(n_instances))
-        numpy.random.shuffle(ids_int)
-        ids = [ids[i] for i in ids_int]
+            db.write_labels(labeller_ids, ids, new_labels)
         with database.HDF5Database(path) as db:
-            read_features = db.read_features(ids)
             self.assertTrue(numpy.allclose(
-                features[ids_int],
-                read_features))
+                new_labels,
+                db.read_labels(labeller_ids, ids)))

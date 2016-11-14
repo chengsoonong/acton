@@ -94,8 +94,16 @@ class HDF5Database(Database):
     ----------
     path : str
         Path to HDF5 file.
+    label_dtype : str
+        Data type of labels.
+    feature_dtype : str
+        Data type of features.
+    max_id_length : int
+        Maximum length of ID strings.
     _h5_file : h5py.File
         Opened HDF5 file.
+    _sync_attrs : List[str]
+        List of instance attributes to sync with the HDF5 file's attributes.
     """
 
     def __init__(self, path: str, label_dtype: str=None,

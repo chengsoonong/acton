@@ -30,6 +30,12 @@ message Labels {
 
     // Data type of the labels.
     string dtype = 4;
+
+    // Path to database.
+    string db_path = 5;
+
+    // Class of database.
+    string db_class = 6;
 }
 
 /**
@@ -67,4 +73,10 @@ message Predictions {
 
     // Predictor used to generate these predictions.
     string predictor = 5;
+
+    // Path to database.
+    string db_path = 6;
+
+    // Class of database.
+    string db_class = 7;
 }

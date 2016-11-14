@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='predictors.proto',
   package='acton.predictors',
   syntax='proto3',
-  serialized_pb=_b('\n\x10predictors.proto\x12\x10\x61\x63ton.predictors\"\xb4\x01\n\x06Labels\x12;\n\x08instance\x18\x01 \x03(\x0b\x32).acton.predictors.Labels.LabelledInstance\x12\x13\n\x0bn_labellers\x18\x02 \x01(\x05\x12\x1a\n\x12n_label_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x1a-\n\x10LabelledInstance\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x03(\x01\"\xd2\x01\n\x0bPredictions\x12<\n\nprediction\x18\x01 \x03(\x0b\x32(.acton.predictors.Predictions.Prediction\x12\x14\n\x0cn_predictors\x18\x02 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x11\n\tpredictor\x18\x05 \x01(\t\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nprediction\x18\x02 \x03(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x10predictors.proto\x12\x10\x61\x63ton.predictors\"\xd7\x01\n\x06Labels\x12;\n\x08instance\x18\x01 \x03(\x0b\x32).acton.predictors.Labels.LabelledInstance\x12\x13\n\x0bn_labellers\x18\x02 \x01(\x05\x12\x1a\n\x12n_label_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x0f\n\x07\x64\x62_path\x18\x05 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x06 \x01(\t\x1a-\n\x10LabelledInstance\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x03(\x01\"\xf5\x01\n\x0bPredictions\x12<\n\nprediction\x18\x01 \x03(\x0b\x32(.acton.predictors.Predictions.Prediction\x12\x14\n\x0cn_predictors\x18\x02 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x0f\n\x07\x64\x62_path\x18\x06 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x07 \x01(\t\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nprediction\x18\x02 \x03(\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -59,8 +59,8 @@ _LABELS_LABELLEDINSTANCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=174,
-  serialized_end=219,
+  serialized_start=209,
+  serialized_end=254,
 )
 
 _LABELS = _descriptor.Descriptor(
@@ -98,6 +98,20 @@ _LABELS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='db_path', full_name='acton.predictors.Labels.db_path', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='db_class', full_name='acton.predictors.Labels.db_class', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -111,7 +125,7 @@ _LABELS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=39,
-  serialized_end=219,
+  serialized_end=254,
 )
 
 
@@ -148,8 +162,8 @@ _PREDICTIONS_PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=388,
-  serialized_end=432,
+  serialized_start=458,
+  serialized_end=502,
 )
 
 _PREDICTIONS = _descriptor.Descriptor(
@@ -194,6 +208,20 @@ _PREDICTIONS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='db_path', full_name='acton.predictors.Predictions.db_path', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='db_class', full_name='acton.predictors.Predictions.db_class', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -206,8 +234,8 @@ _PREDICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=222,
-  serialized_end=432,
+  serialized_start=257,
+  serialized_end=502,
 )
 
 _LABELS_LABELLEDINSTANCE.containing_type = _LABELS

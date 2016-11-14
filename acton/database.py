@@ -128,9 +128,9 @@ class HDF5Database(Database):
             does not exist then a default value of 128 will be used.
         """
         self.path = path
-        self.label_dtype = None
+        self.label_dtype = label_dtype
         self._default_label_dtype = 'float32'
-        self.feature_dtype = None
+        self.feature_dtype = feature_dtype
         self._default_feature_dtype = 'float32'
         self.max_id_length = max_id_length
         self._default_max_id_length = 128
@@ -467,3 +467,9 @@ class HDF5Database(Database):
             if self._h5_file.attrs[attr] != getattr(self, attr):
                 raise ValueError('Incompatible {}: expected {}, got {}'.format(
                     attr, getattr(self, attr), self._h5_file.attrs[attr]))
+
+
+# For safe string-based access to database classes.
+DATABASES = {
+    'HDF5Database': HDF5Database,
+}

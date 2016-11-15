@@ -26,7 +26,7 @@ before_install:
 
 install:
   # Install scientific Python
-  - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite
+  - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite scipy
   - source activate testenv
   # Install other requirements
   - pip install -r requirements.txt

@@ -22,8 +22,15 @@ before_install:
   - conda info -a # for debugging
 
 install:
+  # Install scientific Python
   - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite
   - source activate testenv
+  # Install protobuf
+  - set -ex
+  - wget https://github.com/google/protobuf/archive/v3.1.0.tar.gz
+  - tar -xzvf v3.1.0.tar.gz
+  - cd v3.1.0 && ./configure --prefix=/usr && make && sudo make install
+  # Install other requirements
   - pip install -r requirements.txt
   - python setup.py install
 

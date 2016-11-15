@@ -30,7 +30,7 @@ install:
   - source activate testenv
   # Install other requirements
   - pip install -r requirements.txt
-  - python setup.py install
+  - python -v setup.py install
 
 script:
   - python setup.py test

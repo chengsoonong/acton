@@ -1,3 +1,4 @@
 h5py
 protobuf>=3.1.0
+scikit-learn==0.17.1
 typing>=3.5.2

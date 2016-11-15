@@ -33,4 +33,4 @@ install:
   - python -v setup.py install
 
 script:
-  - python setup.py test
+  - python -v setup.py test

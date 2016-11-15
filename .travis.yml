@@ -28,7 +28,7 @@ install:
   # Install protobuf
   - wget https://github.com/google/protobuf/archive/v3.1.0.tar.gz
   - tar -xzvf v3.1.0.tar.gz
-  - pushd v3.1.0 && ./configure --prefix=/usr && make && sudo make install && popd
+  - pushd protobuf-3.1.0/ && ./configure --prefix=/usr && make && sudo make install && popd
   # Install other requirements
   - pip install -r requirements.txt
   - python setup.py install

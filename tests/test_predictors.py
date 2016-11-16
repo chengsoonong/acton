@@ -15,6 +15,7 @@ import unittest.mock
 
 import acton.database
 import acton.predictors
+import acton.proto.wrappers
 from acton.proto.predictors_pb2 import Labels
 import numpy
 
@@ -43,7 +44,7 @@ class TestPredictorInput(unittest.TestCase):
 
     def test_labels(self):
         """PredictorInput gives a label array."""
-        predictor_input = acton.predictors.PredictorInput(self.path)
+        predictor_input = acton.proto.wrappers.PredictorInput(self.path)
         self.assertTrue(numpy.all(
             predictor_input.labels == numpy.array([[[0]], [[1]]])))  # T x N x F
         self.assertTrue(numpy.all(
@@ -61,7 +62,7 @@ class TestPredictorInput(unittest.TestCase):
             db = DB().__enter__.return_value
             db.read_features.return_value = self.features
 
-        predictor_input = acton.predictors.PredictorInput(self.path)
+        predictor_input = acton.proto.wrappers.PredictorInput(self.path)
         self.assertTrue(numpy.allclose(
             self.features,
             predictor_input.features))
@@ -106,7 +107,7 @@ class TestIntegrationLogisticRegressionCommittee(unittest.TestCase):
 
     def testAll(self):
         """LogisticRegressionCommittee can be used with PredictorInput."""
-        pred_input = acton.predictors.PredictorInput(self.labels)
+        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
         lrc = acton.predictors.LogisticRegressionCommittee(n_classifiers=10)
         lrc.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
         probs = lrc.predict(pred_input.features)

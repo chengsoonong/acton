@@ -28,6 +28,11 @@ install:
   # Install scientific Python
   - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite scipy
   - source activate testenv
+  # Install protobuf
+  - wget https://github.com/google/protobuf/archive/v3.1.0.tar.gz
+  - tar -xzvf v3.1.0.tar.gz
+  - pushd protobuf-3.1.0/ && ./autogen.sh && ./configure --prefix=/usr && make && make install && popd
+  - pushd protobuf-3.1.0/python && python setup.py build && sudo python setup.py install && popd
   # Install other requirements
   - pip install -r requirements.txt
   - python -v setup.py install

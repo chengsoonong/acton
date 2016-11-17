@@ -27,3 +27,22 @@ class Recommender(ABC):
         bytes
             ID of the instance to label.
         """
+
+
+class RandomRecommender(Recommender):
+    """Recommends instances at random."""
+
+    def recommend(self, ids: Iterable[bytes]) -> bytes:
+        """Recommends an instance to label.
+
+        Parameters
+        ----------
+        ids
+            Iterable of IDs in the unlabelled data pool.
+
+        Returns
+        -------
+        bytes
+            ID of the instance to label.
+        """
+        return numpy.random.choice(list(ids))

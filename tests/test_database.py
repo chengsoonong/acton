@@ -8,7 +8,6 @@ Tests for `database` module.
 """
 
 import os.path
-import sys
 import tempfile
 import unittest
 

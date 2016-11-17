@@ -100,7 +100,7 @@ class TestIntegrationLogisticRegressionCommittee(unittest.TestCase):
                 self.labels.db_path, label_dtype=self.labels.dtype,
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
-                                   self.features)
+                              self.features)
 
     def tearDown(self):
         self.tempdir.cleanup()

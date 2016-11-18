@@ -4,7 +4,7 @@ from google.protobuf.reflection import GeneratedProtocolMessageType
 import numpy
 
 
-def read_proto(path: str, Proto: GeneratedProtocolMessageType):
+def read_proto(path: str, Proto: GeneratedProtocolMessageType) -> GeneratedProtocolMessageType():
     """Reads a protobuf from a .proto file.
 
     Parameters

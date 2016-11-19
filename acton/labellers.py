@@ -75,3 +75,9 @@ class ASCIITableLabeller(Labeller):
             if row[self.id_col].encode('ascii') == id_:
                 return row[self.label_col].reshape((1, 1))
         raise KeyError('Unknown id: {}'.format(self.id_))
+
+
+# For safe string-based access to labeller classes.
+LABELLERS = {
+    'ASCIITableLabeller': ASCIITableLabeller,
+}

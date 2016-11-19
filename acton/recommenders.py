@@ -46,3 +46,9 @@ class RandomRecommender(Recommender):
             ID of the instance to label.
         """
         return numpy.random.choice(list(ids))
+
+
+# For safe string-based access to recommender classes.
+RECOMMENDERS = {
+    'RandomRecommender': RandomRecommender,
+}

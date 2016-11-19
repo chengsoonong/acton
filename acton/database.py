@@ -5,6 +5,7 @@ from inspect import Traceback
 from typing import Iterable, List
 import warnings
 
+import astropy.io.ascii
 import h5py
 import numpy
 

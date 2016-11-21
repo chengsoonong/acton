@@ -39,4 +39,4 @@ install:
 
 script:
   - python setup.py test
-  - pyflakes acton
+  - flake8 acton --exclude *_pb2.py

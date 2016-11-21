@@ -46,7 +46,8 @@ def simulate_active_learning(
         n_initial_labels: int=10,
         n_epochs: int=10,
         test_size: int=0.2,
-        predictor='LogisticRegression'):
+        predictor='LogisticRegression',
+        recommender='RandomRecommender'):
     """Simulates an active learning task.
 
     arguments
@@ -62,13 +63,19 @@ def simulate_active_learning(
     test_size
         Percentage size of testing set.
     predictor
-        Predictor to use.
+        Name of predictor to make predictions.
+    recommender
+        Name of recommender to make recommendations.
     """
     # Validation.
     if predictor not in acton.predictors.PREDICTORS:
         raise ValueError('Unknown predictor: {}. Predictors are one of '
                          '{}.'.format(predictor,
                                       acton.predictors.PREDICTORS.keys()))
+    if recommender not in acton.recommenders.RECOMMENDERS:
+        raise ValueError('Unknown recommender: {}. Recommenders are one of '
+                         '{}.'.format(recommender,
+                                      acton.recommenders.RECOMMENDERS.keys()))
 
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
@@ -82,7 +89,7 @@ def simulate_active_learning(
         acton.predictors.PREDICTORS[predictor]()
     )
     labeller = acton.labellers.DatabaseLabeller(db)
-    recommender = acton.recommenders.RandomRecommender()
+    recommender = acton.recommenders.RECOMMENDERS[recommender]()
 
     # Draw some initial labels.
     recommendations = draw(n_initial_labels, train_ids, replace=False)
@@ -123,7 +130,8 @@ def simulate_active_learning(
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
          id_col: str=None, n_epochs: int=10,
-         predictor: str='LogisticRegression'):
+         predictor: str='LogisticRegression',
+         recommender: str='RandomRecommender'):
     """
     Arguments
     ---------
@@ -140,7 +148,9 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     n_epochs
         Number of epochs to run.
     predictor
-        Predictor to use.
+        Name of predictor to make predictions.
+    recommender
+        Name of recommender to make recommendations.
     """
     # Read in the features, labels, and IDs.
     data = io_ascii.read(data_path)
@@ -179,4 +189,5 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
 
             # Simulate the active learning task.
             simulate_active_learning(ids, db, n_epochs=n_epochs,
-                                     predictor=predictor)
+                                     predictor=predictor,
+                                     recommender=recommender)

@@ -174,3 +174,9 @@ class LogisticRegressionCommittee(Predictor):
             axis=1)
         assert predictions.shape == (features.shape[0], self.n_classifiers)
         return predictions
+
+
+PREDICTORS = {
+    'LogisticRegression': LogisticRegression,
+    'LogisticRegressionCommittee': 'LogisticRegressionCommittee',
+}

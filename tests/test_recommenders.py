@@ -24,5 +24,5 @@ class TestRandomRecommender(unittest.TestCase):
         """RandomRecommender recommends an instance."""
         ids = {str(a).encode('ascii') for a in range(1000)}
         rr = acton.recommenders.RandomRecommender()
-        id_ = rr.recommend(ids)
+        id_ = rr.recommend(ids, predictions=None)
         self.assertIn(id_, ids)

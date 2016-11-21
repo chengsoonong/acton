@@ -70,13 +70,14 @@ def main(
         recommender: str,
         verbose: bool,
 ):
-    logging.warning('Not implemented: output, feature, diversity, '
+    logging.warning('Not implemented: output, diversity, '
                     'recommendation_count, labeller_accuracy, predictor, '
                     'recommender')
     if verbose:
         logging.root.setLevel(logging.DEBUG)
     return acton.acton.main(
         data_path=data,
+        feature_cols=feature,
         label_col=label,
         id_col=id,
         n_epochs=epochs)

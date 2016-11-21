@@ -109,12 +109,16 @@ def simulate_active_learning(
     plt.show()
 
 
-def main(data_path: str, label_col: str, id_col: str=None, n_epochs: int=10):
+def main(data_path: str, feature_cols: List[str], label_col: str,
+         id_col: str=None, n_epochs: int=10):
     """
     Arguments
     ---------
     data_path
         Path to data file.
+    feature_cols
+        List of column names of the features. If empty, all non-label and non-ID
+        columns will be used.
     label_col
         Column name of the labels.
     id_col
@@ -126,8 +130,8 @@ def main(data_path: str, label_col: str, id_col: str=None, n_epochs: int=10):
     # Read in the features, labels, and IDs.
     data = io_ascii.read(data_path)
     columns = data.keys()
-    feature_cols = [c for c in columns if c != label_col]
-
+    if not feature_cols:
+        feature_cols = [c for c in columns if c != label_col and c != id_col]
     # This converts the features from a table to an array.
     features = data[feature_cols].as_array()
     features = features.view(numpy.float64).reshape(features.shape + (-1,))

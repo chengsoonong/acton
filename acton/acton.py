@@ -45,7 +45,8 @@ def simulate_active_learning(
         db: acton.database.Database,
         n_initial_labels: int=10,
         n_epochs: int=10,
-        test_size: int=0.2):
+        test_size: int=0.2,
+        predictor='LogisticRegression'):
     """Simulates an active learning task.
 
     arguments
@@ -60,7 +61,15 @@ def simulate_active_learning(
         Number of epochs.
     test_size
         Percentage size of testing set.
+    predictor
+        Predictor to use.
     """
+    # Validation.
+    if predictor not in acton.predictors.PREDICTORS:
+        raise ValueError('Unknown predictor: {}. Predictors are one of '
+                         '{}.'.format(predictor,
+                                      acton.predictors.PREDICTORS.keys()))
+
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
@@ -68,7 +77,10 @@ def simulate_active_learning(
     test_labels = db.read_labels([b'0'], test_ids)
 
     # Set up predictor, labeller, and recommender.
-    predictor = acton.predictors.LogisticRegression()
+    # TODO(MatthewJA): Handle multiple labellers better than just averaging.
+    predictor = acton.predictors.AveragePredictions(
+        acton.predictors.PREDICTORS[predictor]()
+    )
     labeller = acton.labellers.DatabaseLabeller(db)
     recommender = acton.recommenders.RandomRecommender()
 
@@ -110,7 +122,8 @@ def simulate_active_learning(
 
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
-         id_col: str=None, n_epochs: int=10):
+         id_col: str=None, n_epochs: int=10,
+         predictor: str='LogisticRegression'):
     """
     Arguments
     ---------
@@ -126,6 +139,8 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         assigned.
     n_epochs
         Number of epochs to run.
+    predictor
+        Predictor to use.
     """
     # Read in the features, labels, and IDs.
     data = io_ascii.read(data_path)
@@ -163,4 +178,5 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
             db.write_labels(labeller_ids, ids, labels)
 
             # Simulate the active learning task.
-            simulate_active_learning(ids, db, n_epochs=n_epochs)
+            simulate_active_learning(ids, db, n_epochs=n_epochs,
+                                     predictor=predictor)

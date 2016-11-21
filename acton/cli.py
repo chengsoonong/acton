@@ -71,7 +71,7 @@ def main(
         verbose: bool,
 ):
     logging.warning('Not implemented: output, diversity, '
-                    'recommendation_count, labeller_accuracy, predictor, '
+                    'recommendation_count, labeller_accuracy, '
                     'recommender')
     if verbose:
         logging.root.setLevel(logging.DEBUG)
@@ -80,7 +80,8 @@ def main(
         feature_cols=feature,
         label_col=label,
         id_col=id,
-        n_epochs=epochs)
+        n_epochs=epochs,
+        predictor=predictor)
 
 
 if __name__ == '__main__':

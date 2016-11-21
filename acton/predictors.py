@@ -43,7 +43,7 @@ class Predictor(ABC):
         Returns
         -------
         numpy.ndarray
-            An N x 1 array of corresponding predictions.
+            An N x T array of corresponding predictions.
         """
 
 
@@ -176,7 +176,35 @@ class LogisticRegressionCommittee(Predictor):
         return predictions
 
 
+def AveragePredictions(predictor: Predictor) -> Predictor:
+    """Wrapper for a predictor that averages predicted probabilities.
+
+    Notes
+    -----
+    This effectively reduces the number of predictors to 1.
+
+    Arguments
+    ---------
+    predictor
+        Predictor to wrap.
+
+    Returns
+    -------
+    Predictor
+        Predictor with averaged predictions.
+    """
+    predictor.predict_ = predictor.predict
+
+    def predict(features: numpy.ndarray) -> numpy.ndarray:
+        predictions = predictor.predict_(features)
+        return predictions.mean(axis=1).reshape((-1, 1))
+
+    predictor.predict = predict
+
+    return predictor
+
+
 PREDICTORS = {
     'LogisticRegression': LogisticRegression,
-    'LogisticRegressionCommittee': 'LogisticRegressionCommittee',
+    'LogisticRegressionCommittee': LogisticRegressionCommittee,
 }

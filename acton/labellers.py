@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+import acton.database
 import astropy.io.ascii
 import numpy
 
@@ -77,7 +78,41 @@ class ASCIITableLabeller(Labeller):
         raise KeyError('Unknown id: {}'.format(self.id_))
 
 
+class DatabaseLabeller(Labeller):
+    """Labeller that obtains labels from a Database.
+
+    Attributes
+    ----------
+    _db : acton.database.Database
+        Database with labels.
+    """
+
+    def __init__(self, db: acton.database.Database):
+        """
+        db
+            Database with labels to read from.
+        """
+        self._db = db
+
+    def query(self, id_: bytes) -> numpy.ndarray:
+        """Queries the labeller.
+
+        Parameters
+        ----------
+        id_
+            ID of instance to label.
+
+        Returns
+        -------
+        numpy.ndarray
+            1 x 1 label array.
+        """
+        assert isinstance(id_, bytes)
+        return self._db.read_labels([b'0'], [id_]).reshape((1, 1))
+
+
 # For safe string-based access to labeller classes.
 LABELLERS = {
     'ASCIITableLabeller': ASCIITableLabeller,
+    'DatabaseLabeller': DatabaseLabeller,
 }

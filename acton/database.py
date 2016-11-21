@@ -22,7 +22,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def read_features(self, ids: Iterable[str]) -> numpy.ndarray:
+    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -38,8 +38,8 @@ class Database(ABC):
 
     @abstractmethod
     def read_labels(self,
-                    labeller_ids: Iterable[str],
-                    instance_ids: Iterable[str]) -> numpy.ndarray:
+                    labeller_ids: Iterable[bytes],
+                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -56,7 +56,7 @@ class Database(ABC):
         """
 
     @abstractmethod
-    def write_features(self, ids: Iterable[str], features: numpy.ndarray):
+    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
         """Writes feature vectors to the database.
 
         Parameters
@@ -70,8 +70,8 @@ class Database(ABC):
 
     @abstractmethod
     def write_labels(self,
-                     labeller_ids: Iterable[str],
-                     instance_ids: Iterable[str],
+                     labeller_ids: Iterable[bytes],
+                     instance_ids: Iterable[bytes],
                      labels: numpy.ndarray):
         """Writes label vectors to the database.
 
@@ -168,7 +168,7 @@ class HDF5Database(Database):
         self._h5_file.close()
         delattr(self, '_h5_file')
 
-    def write_features(self, ids: Iterable[str], features: numpy.ndarray):
+    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
         """Writes feature vectors to the database.
 
         Parameters
@@ -253,8 +253,8 @@ class HDF5Database(Database):
         return features
 
     def write_labels(self,
-                     labeller_ids: Iterable[str],
-                     instance_ids: Iterable[str],
+                     labeller_ids: Iterable[bytes],
+                     instance_ids: Iterable[bytes],
                      labels: numpy.ndarray):
         """Writes label vectors to the database.
 
@@ -322,10 +322,11 @@ class HDF5Database(Database):
                             if i not in known_instance_ids]
         n_new_instance_ids = len(new_instance_ids)
         n_old_instance_ids = self._h5_file['instance_ids'].shape[0]
-        self._h5_file['instance_ids'].resize(
-            (n_old_instance_ids + n_new_instance_ids,))
-        self._h5_file['instance_ids'][-n_new_instance_ids:] = numpy.array(
-            new_instance_ids, dtype='<S{}'.format(self.max_id_length))
+        if n_new_instance_ids:
+            self._h5_file['instance_ids'].resize(
+                (n_old_instance_ids + n_new_instance_ids,))
+            self._h5_file['instance_ids'][-n_new_instance_ids:] = numpy.array(
+                new_instance_ids, dtype='<S{}'.format(self.max_id_length))
 
         # Add the labeller IDs to the database.
         known_labeller_ids = set(self.get_known_labeller_ids())
@@ -333,14 +334,15 @@ class HDF5Database(Database):
                             if i not in known_labeller_ids]
         n_new_labeller_ids = len(new_labeller_ids)
         n_old_labeller_ids = self._h5_file['labeller_ids'].shape[0]
-        self._h5_file['labeller_ids'].resize(
-            (n_old_labeller_ids + n_new_labeller_ids,))
-        self._h5_file['labeller_ids'][-n_new_labeller_ids:] = numpy.array(
-            new_labeller_ids, dtype='<S{}'.format(self.max_id_length))
+        if n_new_labeller_ids:
+            self._h5_file['labeller_ids'].resize(
+                (n_old_labeller_ids + n_new_labeller_ids,))
+            self._h5_file['labeller_ids'][-n_new_labeller_ids:] = numpy.array(
+                new_labeller_ids, dtype='<S{}'.format(self.max_id_length))
 
     def read_labels(self,
-                    labeller_ids: Iterable[str],
-                    instance_ids: Iterable[str]) -> numpy.ndarray:
+                    labeller_ids: Iterable[bytes],
+                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters

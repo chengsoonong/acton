@@ -9,9 +9,6 @@ import acton.recommenders
 import click
 
 
-logging.root.setLevel(logging.DEBUG)
-
-
 @click.command()
 @click.option('--data',
               type=click.Path(exists=True, dir_okay=False),
@@ -56,6 +53,9 @@ logging.root.setLevel(logging.DEBUG)
               type=click.Choice(acton.recommenders.RECOMMENDERS.keys()),
               default='RandomRecommender',
               help='Recommender to use')
+@click.option('-v', '--verbose',
+              is_flag=True,
+              help='Verbose output')
 def main(
         data: str,
         label: str,
@@ -68,10 +68,13 @@ def main(
         labeller_accuracy: float,
         predictor: str,
         recommender: str,
+        verbose: bool,
 ):
     logging.warning('Not implemented: output, feature, diversity, '
                     'recommendation_count, labeller_accuracy, predictor, '
                     'recommender')
+    if verbose:
+        logging.root.setLevel(logging.DEBUG)
     return acton.acton.main(
         data_path=data,
         label_col=label,

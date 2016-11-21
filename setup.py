@@ -22,7 +22,7 @@ requirements = [
     'bumpversion==0.5.3',
     'wheel==0.29.0',
     'watchdog==0.8.3',
-    'flake8==2.6.0',
+    'flake8==3.2.0',
     'coverage==4.1',
     'Sphinx==1.4.8',
     'typing>=3.5.2',

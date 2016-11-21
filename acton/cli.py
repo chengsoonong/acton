@@ -1,6 +1,7 @@
 """Command-line interface for Acton."""
 
 import logging
+import sys
 
 import acton.acton
 import acton.predictors
@@ -71,7 +72,7 @@ def main(
     logging.warning('Not implemented: output, feature, diversity, '
                     'recommendation_count, labeller_accuracy, predictor, '
                     'recommender')
-    acton.acton.main(
+    return acton.acton.main(
         data_path=data,
         label_col=label,
         id_col=id,
@@ -79,4 +80,4 @@ def main(
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

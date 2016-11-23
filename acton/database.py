@@ -86,6 +86,26 @@ class Database(ABC):
             jth instance ID in `instance_ids`.
         """
 
+    @abstractmethod
+    def get_known_instance_ids(self) -> List[bytes]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+
+    @abstractmethod
+    def get_known_labeller_ids(self) -> List[bytes]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+
 
 class HDF5Database(Database):
     """Database using an HDF5 file.

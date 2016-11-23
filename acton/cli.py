@@ -45,6 +45,10 @@ import click
               type=float,
               help='Accuracy of simulated labellers',
               default=1.0)
+@click.option('--initial-count',
+              type=int,
+              help='Number of random instances to label initially',
+              default=10)
 @click.option('--predictor',
               type=click.Choice(acton.predictors.PREDICTORS.keys()),
               default='LogisticRegression',
@@ -66,6 +70,7 @@ def main(
         diversity: float,
         recommendation_count: int,
         labeller_accuracy: float,
+        initial_count: int,
         predictor: str,
         recommender: str,
         verbose: bool,
@@ -80,6 +85,7 @@ def main(
         label_col=label,
         id_col=id,
         n_epochs=epochs,
+        initial_count=initial_count,
         predictor=predictor,
         recommender=recommender)
 

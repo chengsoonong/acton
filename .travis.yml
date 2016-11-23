@@ -28,9 +28,12 @@ install:
   # Install scientific Python
   - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite scipy
   - source activate testenv
+  # Install protobuf
+  - ./install_protobuf.sh
   # Install other requirements
   - pip install -r requirements.txt
-  - python -v setup.py install
+  - python setup.py install
 
 script:
-  - python -v setup.py test
+  - python setup.py test
+  - flake8 acton --exclude *_pb2.py --max-line-length=80

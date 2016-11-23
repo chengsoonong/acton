@@ -11,10 +11,11 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'Click>=6.0',
 ]
 
 test_requirements = [
+    'flake8==3.2.0',
+    'pyflakes>=1.3.0',
 ]
 
 setup(

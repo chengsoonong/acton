@@ -14,13 +14,16 @@ class Recommender(ABC):
     """
 
     @abstractmethod
-    def recommend(self, ids: Iterable[bytes]) -> bytes:
+    def recommend(self, ids: Iterable[bytes],
+                  predictions: numpy.ndarray) -> bytes:
         """Recommends an instance to label.
 
         Parameters
         ----------
         ids
             Iterable of IDs in the unlabelled data pool.
+        predictions
+            N x 1 array of predictions.
 
         Returns
         -------
@@ -32,13 +35,16 @@ class Recommender(ABC):
 class RandomRecommender(Recommender):
     """Recommends instances at random."""
 
-    def recommend(self, ids: Iterable[bytes]) -> bytes:
+    def recommend(self, ids: Iterable[bytes],
+                  predictions: numpy.ndarray) -> bytes:
         """Recommends an instance to label.
 
         Parameters
         ----------
         ids
             Iterable of IDs in the unlabelled data pool.
+        predictions
+            N x 1 array of predictions.
 
         Returns
         -------
@@ -46,3 +52,9 @@ class RandomRecommender(Recommender):
             ID of the instance to label.
         """
         return numpy.random.choice(list(ids))
+
+
+# For safe string-based access to recommender classes.
+RECOMMENDERS = {
+    'RandomRecommender': RandomRecommender,
+}

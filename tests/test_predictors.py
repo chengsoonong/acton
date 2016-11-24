@@ -102,6 +102,10 @@ class TestIntegrationCommittee(unittest.TestCase):
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
                               self.features)
+            labels = numpy.array([i.label for i in self.labels.instance]
+                ).reshape((1, -1, 1))
+            db.write_labels([b'0'], [self.instance_1.id, self.instance_2.id],
+                            labels)
 
     def tearDown(self):
         self.tempdir.cleanup()
@@ -109,13 +113,15 @@ class TestIntegrationCommittee(unittest.TestCase):
     def testAll(self):
         """Committee can be used with PredictorInput."""
         pred_input = acton.proto.wrappers.PredictorInput(self.labels)
-        lrc = acton.predictors.Committee(
-            acton.predictors.from_class(
-                sklearn.linear_model.LogisticRegression),
-            n_classifiers=10)
-        lrc.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
-        probs = lrc.predict(pred_input.features)
-        self.assertEqual((self.n_instances, 10), probs.shape)
+        with pred_input.DB() as db:
+            lrc = acton.predictors.Committee(
+                acton.predictors.from_class(
+                    sklearn.linear_model.LogisticRegression), db,
+                n_classifiers=10)
+            ids = pred_input.ids
+            lrc.fit(ids)
+            probs = lrc.predict(ids)
+            self.assertEqual((self.n_instances, 10), probs.shape)
 
 
 class TestSklearnWrapper(unittest.TestCase):
@@ -151,6 +157,10 @@ class TestSklearnWrapper(unittest.TestCase):
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
                               self.features)
+            labels = numpy.array([i.label for i in self.labels.instance]
+                ).reshape((1, -1, 1))
+            db.write_labels([b'0'], [self.instance_1.id, self.instance_2.id],
+                            labels)
 
     def tearDown(self):
         self.tempdir.cleanup()
@@ -160,18 +170,24 @@ class TestSklearnWrapper(unittest.TestCase):
         # The main point of this test is to check nothing crashes.
         classifier = sklearn.linear_model.LogisticRegression()
         pred_input = acton.proto.wrappers.PredictorInput(self.labels)
-        predictor = acton.predictors.from_instance(classifier)
-        predictor.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
-        probs = predictor.predict(pred_input.features)
-        self.assertEqual((2, 1), probs.shape)
+
+        with pred_input.DB() as db:
+            predictor = acton.predictors.from_instance(classifier, db)
+            ids = pred_input.ids
+            predictor.fit(ids)
+            probs = predictor.predict(ids)
+            self.assertEqual((2, 1), probs.shape)
 
     def testFromClass(self):
         """from_class wraps a scikit-learn classifier."""
         # The main point of this test is to check nothing crashes.
         Classifier = sklearn.linear_model.LogisticRegression
         pred_input = acton.proto.wrappers.PredictorInput(self.labels)
-        Predictor = acton.predictors.from_class(Classifier)
-        predictor = Predictor(C=50.0)
-        predictor.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
-        probs = predictor.predict(pred_input.features)
-        self.assertEqual((2, 1), probs.shape)
+
+        with pred_input.DB() as db:
+            Predictor = acton.predictors.from_class(Classifier)
+            predictor = Predictor(db, C=50.0)
+            ids = pred_input.ids
+            predictor.fit(ids)
+            probs = predictor.predict(ids)
+            self.assertEqual((2, 1), probs.shape)

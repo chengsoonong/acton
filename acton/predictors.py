@@ -1,7 +1,9 @@
 """Predictor classes."""
 
 from abc import ABC, abstractmethod
+from typing import List
 
+import acton.database
 import numpy
 import sklearn.base
 
@@ -14,19 +16,17 @@ class Predictor(ABC):
     """
 
     @abstractmethod
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
 
     @abstractmethod
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -37,8 +37,8 @@ class Predictor(ABC):
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
@@ -52,32 +52,38 @@ class _InstancePredictor(Predictor):
 
     Attributes
     ----------
+    _db : acton.database.Database
+        Database storing features and labels.
     _instance : sklearn.base.BaseEstimator
         scikit-learn predictor instance.
     """
 
-    def __init__(self, instance: sklearn.base.BaseEstimator):
+    def __init__(self, instance: sklearn.base.BaseEstimator,
+                 db: acton.database.Database):
         """
         Arguments
         ---------
         instance
             scikit-learn predictor instance.
+        db
+            Database storing features and labels.
         """
+        self._db = db
         self._instance = instance
 
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
+        features = self._db.read_features(ids)
+        labels = self._db.read_labels([b'0'], ids)
         self._instance.fit(features, labels.ravel())
 
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -88,31 +94,35 @@ class _InstancePredictor(Predictor):
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
         numpy.ndarray
             An N x T array of corresponding predictions.
         """
+        features = self._db.read_features(ids)
         return self._instance.predict_proba(features)[:, 1:]
 
 
-def from_instance(predictor: sklearn.base.BaseEstimator) -> Predictor:
+def from_instance(predictor: sklearn.base.BaseEstimator,
+                  db: acton.database.Database) -> Predictor:
     """Converts a scikit-learn predictor instance into a Predictor instance.
 
     Arguments
     ---------
     predictor
         scikit-learn predictor.
+    db
+        Database storing features and labels.
 
     Returns
     -------
     Predictor
         Predictor instance wrapping the scikit-learn predictor.
     """
-    return _InstancePredictor(predictor)
+    return _InstancePredictor(predictor, db)
 
 
 def from_class(Predictor: type) -> type:
@@ -130,8 +140,8 @@ def from_class(Predictor: type) -> type:
     """
     class Predictor_(_InstancePredictor):
 
-        def __init__(self, **kwargs):
-            super().__init__(instance=None)
+        def __init__(self, db, **kwargs):
+            super().__init__(instance=None, db=db)
             self._instance = Predictor(**kwargs)
 
     return Predictor_
@@ -144,54 +154,56 @@ class Committee(Predictor):
     ----------
     n_classifiers : int
         Number of logistic regression classifiers in the committee.
+    _db : acton.database.Database
+        Database storing features and labels.
     _committee : List[sklearn.linear_model.LogisticRegression]
         Underlying committee of logistic regression classifiers.
     """
 
-    def __init__(self, Predictor: type, n_classifiers: int=10,
-                 **kwargs: dict):
+    def __init__(self, Predictor: type, db: acton.database.Database,
+                 n_classifiers: int=10, **kwargs: dict):
         """
         Parameters
         ----------
         Predictor
             Predictor to use in the committee.
+        db
+            Database storing features and labels.
         n_classifiers
             Number of logistic regression classifiers in the committee.
         kwargs
             Keyword arguments passed to the underlying Predictor.
         """
-        self._committee = [Predictor(**kwargs)
-                           for _ in range(n_classifiers)]
         self.n_classifiers = n_classifiers
+        self._db = db
+        self._committee = [Predictor(db=db, **kwargs)
+                           for _ in range(n_classifiers)]
 
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
         # TODO(MatthewJA): Introduce committee variety.
-        assert labels.shape[1] == 1 and len(labels.shape) == 2
         for classifier in self._committee:
-            classifier.fit(features, labels)
+            classifier.fit(ids)
 
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
         -----
             Unlike in scikit-learn, predictions are always real-valued.
-            Predicted labels for the classification problem are represented by
+            Predicted labels for a classification problem are represented by
             predicted probabilities of the positive class.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
@@ -199,10 +211,9 @@ class Committee(Predictor):
             An N x T array of corresponding predictions.
         """
         predictions = numpy.concatenate(
-            [classifier.predict(features)
+            [classifier.predict(ids)
              for classifier in self._committee],
             axis=1)
-        assert predictions.shape == (features.shape[0], self.n_classifiers)
         return predictions
 
 

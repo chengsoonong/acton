@@ -268,9 +268,9 @@ def db_from_hdf5(
             # vectors).
             batch_length = None
             for feature_idx, feature_col in enumerate(feature_cols):
+                feature_batch = data[feature_col][idx:idx + batch_size]
                 batch_length = batch_length or feature_batch.shape[0]
                 assert batch_length == feature_batch.shape[0]
-                feature_batch = data[feature_col][idx:idx + batch_size]
                 features_batch[:batch_length, :] = feature_batch
             label_batch = data[label_col][idx:idx + batch_size]
             id_batch = ids[idx:idx + batch_size]

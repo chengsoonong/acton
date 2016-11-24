@@ -105,12 +105,8 @@ class LogisticRegression(Predictor):
         return self._lr.predict_proba(features)[:, 1:]
 
 
-class LogisticRegressionCommittee(Predictor):
-    """Logistic regression committee-based predictor.
-
-    Notes
-    -----
-    This predictor wraps sklearn.linear_model.LogisticRegression.
+class Committee(Predictor):
+    """A predictor using a committee of other predictors.
 
     Attributes
     ----------
@@ -120,17 +116,19 @@ class LogisticRegressionCommittee(Predictor):
         Underlying committee of logistic regression classifiers.
     """
 
-    def __init__(self, n_classifiers: int=10, **kwargs: dict):
+    def __init__(self, Predictor: type, n_classifiers: int=10,
+                 **kwargs: dict):
         """
         Parameters
         ----------
+        Predictor
+            Predictor to use in the committee.
         n_classifiers
             Number of logistic regression classifiers in the committee.
         kwargs
-            Keyword arguments passed to the underlying
-            sklearn.linear_model.LogisticRegression object.
+            Keyword arguments passed to the underlying Predictor.
         """
-        self._committee = [sklearn.linear_model.LogisticRegression(**kwargs)
+        self._committee = [Predictor(**kwargs)
                            for _ in range(n_classifiers)]
         self.n_classifiers = n_classifiers
 
@@ -147,7 +145,7 @@ class LogisticRegressionCommittee(Predictor):
         # TODO(MatthewJA): Introduce committee variety.
         assert labels.shape[1] == 1 and len(labels.shape) == 2
         for classifier in self._committee:
-            classifier.fit(features, labels.ravel())
+            classifier.fit(features, labels)
 
     def predict(self, features: numpy.ndarray) -> numpy.ndarray:
         """Predicts labels of instances.
@@ -169,7 +167,7 @@ class LogisticRegressionCommittee(Predictor):
             An N x T array of corresponding predictions.
         """
         predictions = numpy.concatenate(
-            [classifier.predict_proba(features)[:, 1:]
+            [classifier.predict(features)
              for classifier in self._committee],
             axis=1)
         assert predictions.shape == (features.shape[0], self.n_classifiers)
@@ -206,5 +204,4 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
 
 PREDICTORS = {
     'LogisticRegression': LogisticRegression,
-    'LogisticRegressionCommittee': LogisticRegressionCommittee,
 }

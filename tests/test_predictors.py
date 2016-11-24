@@ -68,8 +68,8 @@ class TestPredictorInput(unittest.TestCase):
             predictor_input.features))
 
 
-class TestIntegrationLogisticRegressionCommittee(unittest.TestCase):
-    """Integration test for LogisticRegressionCommittee."""
+class TestIntegrationCommittee(unittest.TestCase):
+    """Integration test for Committee."""
 
     def setUp(self):
         # Make a protobuf.
@@ -106,9 +106,11 @@ class TestIntegrationLogisticRegressionCommittee(unittest.TestCase):
         self.tempdir.cleanup()
 
     def testAll(self):
-        """LogisticRegressionCommittee can be used with PredictorInput."""
+        """Committee can be used with PredictorInput."""
         pred_input = acton.proto.wrappers.PredictorInput(self.labels)
-        lrc = acton.predictors.LogisticRegressionCommittee(n_classifiers=10)
+        lrc = acton.predictors.Committee(
+            acton.predictors.LogisticRegression,
+            n_classifiers=10)
         lrc.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
         probs = lrc.predict(pred_input.features)
         self.assertEqual((self.n_instances, 10), probs.shape)

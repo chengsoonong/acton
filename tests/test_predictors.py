@@ -18,6 +18,7 @@ import acton.predictors
 import acton.proto.wrappers
 from acton.proto.predictors_pb2 import Labels
 import numpy
+import sklearn.linear_model
 
 
 class TestPredictorInput(unittest.TestCase):
@@ -109,8 +110,68 @@ class TestIntegrationCommittee(unittest.TestCase):
         """Committee can be used with PredictorInput."""
         pred_input = acton.proto.wrappers.PredictorInput(self.labels)
         lrc = acton.predictors.Committee(
-            acton.predictors.LogisticRegression,
+            acton.predictors.from_class(
+                sklearn.linear_model.LogisticRegression),
             n_classifiers=10)
         lrc.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
         probs = lrc.predict(pred_input.features)
         self.assertEqual((self.n_instances, 10), probs.shape)
+
+
+class TestSklearnWrapper(unittest.TestCase):
+    """Integration test for scikit-learn wrapper functions."""
+
+    def setUp(self):
+        # Make a protobuf.
+        self.labels = Labels()
+
+        self.instance_1 = self.labels.instance.add()
+        self.instance_1.id = b'instance id 1'
+        self.instance_1.label.append(float(0))
+
+        self.instance_2 = self.labels.instance.add()
+        self.instance_2.id = b'instance id 2'
+        self.instance_2.label.append(float(1))
+
+        self.labels.n_labellers = 1
+        self.labels.n_label_dimensions = 1
+        self.labels.dtype = 'float64'
+        self.labels.db_class = 'HDF5Database'
+
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.tempdir.name, 'predin.proto')
+        self.labels.db_path = os.path.join(self.tempdir.name, 'test.h5')
+        with open(self.path, 'wb') as f:
+            f.write(self.labels.SerializeToString())
+
+        self.n_instances = 2
+        self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
+        with acton.database.HDF5Database(
+                self.labels.db_path, label_dtype=self.labels.dtype,
+                feature_dtype='int32') as db:
+            db.write_features([self.instance_1.id, self.instance_2.id],
+                              self.features)
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def testFromInstance(self):
+        """from_instance wraps a scikit-learn classifier."""
+        # The main point of this test is to check nothing crashes.
+        classifier = sklearn.linear_model.LogisticRegression()
+        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
+        predictor = acton.predictors.from_instance(classifier)
+        predictor.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
+        probs = predictor.predict(pred_input.features)
+        self.assertEqual((2, 1), probs.shape)
+
+    def testFromClass(self):
+        """from_class wraps a scikit-learn classifier."""
+        # The main point of this test is to check nothing crashes.
+        Classifier = sklearn.linear_model.LogisticRegression
+        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
+        Predictor = acton.predictors.from_class(Classifier)
+        predictor = Predictor(C=50.0)
+        predictor.fit(pred_input.features, pred_input.labels.reshape((-1, 1)))
+        probs = predictor.predict(pred_input.features)
+        self.assertEqual((2, 1), probs.shape)

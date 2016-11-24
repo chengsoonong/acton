@@ -15,6 +15,7 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy
 import sklearn.cross_validation
+import sklearn.linear_model
 import sklearn.metrics
 
 T = TypeVar('T')
@@ -67,7 +68,6 @@ def simulate_active_learning(
         n_initial_labels: int=10,
         n_epochs: int=10,
         test_size: int=0.2,
-        predictor='LogisticRegression',
         recommender='RandomRecommender'):
     """Simulates an active learning task.
 
@@ -83,16 +83,10 @@ def simulate_active_learning(
         Number of epochs.
     test_size
         Percentage size of testing set.
-    predictor
-        Name of predictor to make predictions.
     recommender
         Name of recommender to make recommendations.
     """
     # Validation.
-    if predictor not in acton.predictors.PREDICTORS:
-        raise ValueError('Unknown predictor: {}. Predictors are one of '
-                         '{}.'.format(predictor,
-                                      acton.predictors.PREDICTORS.keys()))
     if recommender not in acton.recommenders.RECOMMENDERS:
         raise ValueError('Unknown recommender: {}. Recommenders are one of '
                          '{}.'.format(recommender,
@@ -107,7 +101,7 @@ def simulate_active_learning(
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
     predictor = acton.predictors.AveragePredictions(
-        acton.predictors.PREDICTORS[predictor]()
+        acton.predictors.from_class(sklearn.linear_model.LogisticRegression)()
     )
     labeller = acton.labellers.DatabaseLabeller(db)
     recommender = acton.recommenders.RECOMMENDERS[recommender]()
@@ -280,7 +274,6 @@ def db_from_hdf5(
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
          id_col: str=None, n_epochs: int=10, initial_count: int=10,
-         predictor: str='LogisticRegression',
          recommender: str='RandomRecommender'):
     """
     Arguments
@@ -299,8 +292,6 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Number of epochs to run.
     initial_count
         Number of random instances to label initially.
-    predictor
-        Name of predictor to make predictions.
     recommender
         Name of recommender to make recommendations.
     """
@@ -344,5 +335,4 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
             # Simulate the active learning task.
             simulate_active_learning(ids, db, n_epochs=n_epochs,
                                      n_initial_labels=initial_count,
-                                     predictor=predictor,
                                      recommender=recommender)

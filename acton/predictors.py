@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 import numpy
-import sklearn.linear_model
+import sklearn.base
 
 
 class Predictor(ABC):
@@ -47,28 +47,23 @@ class Predictor(ABC):
         """
 
 
-class LogisticRegression(Predictor):
-    """Logistic regression predictor.
-
-    Notes
-    -----
-    This predictor wraps sklearn.linear_model.LogisticRegression.
+class _InstancePredictor(Predictor):
+    """Wrapper for a scikit-learn instance.
 
     Attributes
     ----------
-    _lr : sklearn.linear_model.LogisticRegression
-        Underlying logistic regression model.
+    _instance : sklearn.base.BaseEstimator
+        scikit-learn predictor instance.
     """
 
-    def __init__(self, **kwargs: dict):
+    def __init__(self, instance: sklearn.base.BaseEstimator):
         """
-        Parameters
-        ----------
-        kwargs
-            Keyword arguments passed to the underlying
-            sklearn.linear_model.LogisticRegression object.
+        Arguments
+        ---------
+        instance
+            scikit-learn predictor instance.
         """
-        self._lr = sklearn.linear_model.LogisticRegression(**kwargs)
+        self._instance = instance
 
     def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
         """Fits the predictor to labelled data.
@@ -80,8 +75,7 @@ class LogisticRegression(Predictor):
         labels
             An N x 1 array of corresponding labels.
         """
-        assert labels.shape[1] == 1 and len(labels.shape) == 2
-        self._lr.fit(features, labels.ravel())
+        self._instance.fit(features, labels.ravel())
 
     def predict(self, features: numpy.ndarray) -> numpy.ndarray:
         """Predicts labels of instances.
@@ -89,7 +83,7 @@ class LogisticRegression(Predictor):
         Notes
         -----
             Unlike in scikit-learn, predictions are always real-valued.
-            Predicted labels for the classification problem are represented by
+            Predicted labels for a classification problem are represented by
             predicted probabilities of the positive class.
 
         Parameters
@@ -100,9 +94,47 @@ class LogisticRegression(Predictor):
         Returns
         -------
         numpy.ndarray
-            An N x 1 array of corresponding predictions.
+            An N x T array of corresponding predictions.
         """
-        return self._lr.predict_proba(features)[:, 1:]
+        return self._instance.predict_proba(features)[:, 1:]
+
+
+def from_instance(predictor: sklearn.base.BaseEstimator) -> Predictor:
+    """Converts a scikit-learn predictor instance into a Predictor instance.
+
+    Arguments
+    ---------
+    predictor
+        scikit-learn predictor.
+
+    Returns
+    -------
+    Predictor
+        Predictor instance wrapping the scikit-learn predictor.
+    """
+    return _InstancePredictor(predictor)
+
+
+def from_class(Predictor: type) -> type:
+    """Converts a scikit-learn predictor class into a Predictor class.
+
+    Arguments
+    ---------
+    Predictor
+        scikit-learn predictor class.
+
+    Returns
+    -------
+    type
+        Predictor class wrapping the scikit-learn class.
+    """
+    class Predictor_(_InstancePredictor):
+
+        def __init__(self, **kwargs):
+            super().__init__(instance=None)
+            self._instance = Predictor(**kwargs)
+
+    return Predictor_
 
 
 class Committee(Predictor):
@@ -200,8 +232,3 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
     predictor.predict = predict
 
     return predictor
-
-
-PREDICTORS = {
-    'LogisticRegression': LogisticRegression,
-}

@@ -6,6 +6,7 @@ from typing import List
 import acton.database
 import numpy
 import sklearn.base
+import sklearn.linear_model
 
 
 class Predictor(ABC):
@@ -34,6 +35,21 @@ class Predictor(ABC):
             Unlike in scikit-learn, predictions are always real-valued.
             Predicted labels for a classification problem are represented by
             predicted probabilities of the positive class.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x T array of corresponding predictions.
+        """
+
+    @abstractmethod
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
 
         Parameters
         ----------
@@ -105,6 +121,21 @@ class _InstancePredictor(Predictor):
         features = self._db.read_features(ids)
         return self._instance.predict_proba(features)[:, 1:]
 
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x 1 array of corresponding predictions.
+        """
+        return self.predict(ids)
+
 
 def from_instance(predictor: sklearn.base.BaseEstimator,
                   db: acton.database.Database) -> Predictor:
@@ -154,14 +185,20 @@ class Committee(Predictor):
     ----------
     n_classifiers : int
         Number of logistic regression classifiers in the committee.
+    subset_size : float
+        Percentage of known labels to take subsets of to train the
+        classifier. Lower numbers increase variety.
     _db : acton.database.Database
         Database storing features and labels.
     _committee : List[sklearn.linear_model.LogisticRegression]
         Underlying committee of logistic regression classifiers.
+    _reference_predictor : Predictor
+        Reference predictor trained on all known labels.
     """
 
     def __init__(self, Predictor: type, db: acton.database.Database,
-                 n_classifiers: int=10, **kwargs: dict):
+                 n_classifiers: int=10, subset_size: float=0.6,
+                 **kwargs: dict):
         """
         Parameters
         ----------
@@ -171,13 +208,18 @@ class Committee(Predictor):
             Database storing features and labels.
         n_classifiers
             Number of logistic regression classifiers in the committee.
+        subset_size
+            Percentage of known labels to take subsets of to train the
+            classifier. Lower numbers increase variety.
         kwargs
             Keyword arguments passed to the underlying Predictor.
         """
         self.n_classifiers = n_classifiers
+        self.subset_size = subset_size
         self._db = db
         self._committee = [Predictor(db=db, **kwargs)
                            for _ in range(n_classifiers)]
+        self._reference_predictor = Predictor(db=db, **kwargs)
 
     def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
@@ -187,9 +229,12 @@ class Committee(Predictor):
         ids
             List of IDs of instances to train from.
         """
-        # TODO(MatthewJA): Introduce committee variety.
         for classifier in self._committee:
-            classifier.fit(ids)
+            # Take some subsets to introduce variety.
+            subset = numpy.random.choice(
+                ids, size=int(len(ids) * self.subset_size), replace=False)
+            classifier.fit(subset)
+        self._reference_predictor.fit(ids)
 
     def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
@@ -215,6 +260,21 @@ class Committee(Predictor):
              for classifier in self._committee],
             axis=1)
         return predictions
+
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x 1 array of corresponding predictions.
+        """
+        return self._reference_predictor.predict(ids)
 
 
 def AveragePredictions(predictor: Predictor) -> Predictor:
@@ -243,3 +303,23 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
     predictor.predict = predict
 
     return predictor
+
+
+# Helper functions to generate predictor classes.
+
+
+def _logistic_regression() -> type:
+    return from_class(sklearn.linear_model.LogisticRegression)
+
+
+def _logistic_regression_committee() -> type:
+    def make_committee(db, *args, **kwargs):
+        return Committee(_logistic_regression(), db)
+
+    return make_committee
+
+
+PREDICTORS = {
+    'LogisticRegression': _logistic_regression(),
+    'LogisticRegressionCommittee': _logistic_regression_committee(),
+}

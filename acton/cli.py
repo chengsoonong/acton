@@ -50,7 +50,7 @@ import click
               help='Number of random instances to label initially',
               default=10)
 @click.option('--predictor',
-              type=click.Choice(['LogisticRegression']),
+              type=click.Choice(acton.predictors.PREDICTORS.keys()),
               default='LogisticRegression',
               help='Predictor to use')
 @click.option('--recommender',
@@ -75,7 +75,7 @@ def main(
         recommender: str,
         verbose: bool,
 ):
-    logging.warning('Not implemented: output, diversity, predictor,'
+    logging.warning('Not implemented: output, diversity,'
                     'recommendation_count, labeller_accuracy')
     logging.captureWarnings(True)
     if verbose:
@@ -87,7 +87,8 @@ def main(
         id_col=id,
         n_epochs=epochs,
         initial_count=initial_count,
-        recommender=recommender)
+        recommender=recommender,
+        predictor=predictor)
 
 
 if __name__ == '__main__':

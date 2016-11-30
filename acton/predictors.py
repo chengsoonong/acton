@@ -6,6 +6,7 @@ from typing import List
 import acton.database
 import numpy
 import sklearn.base
+import sklearn.cross_validation
 import sklearn.linear_model
 
 
@@ -229,10 +230,16 @@ class Committee(Predictor):
         ids
             List of IDs of instances to train from.
         """
+        # Get labels so we can stratify a split.
+        labels = self._db.read_labels([b'0'], ids)
         for classifier in self._committee:
-            # Take some subsets to introduce variety.
-            subset = numpy.random.choice(
-                ids, size=int(len(ids) * self.subset_size), replace=False)
+            # Take a subsets to introduce variety.
+            try:
+                subset, _ = sklearn.cross_validation.train_test_split(
+                    ids, train_size=self.subset_size, stratify=labels)
+            except ValueError:
+                # Too few labels.
+                subset = ids
             classifier.fit(subset)
         self._reference_predictor.fit(ids)
 

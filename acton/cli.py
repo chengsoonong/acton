@@ -75,8 +75,9 @@ def main(
         recommender: str,
         verbose: bool,
 ):
-    logging.warning('Not implemented: output, diversity, '
+    logging.warning('Not implemented: output, diversity,'
                     'recommendation_count, labeller_accuracy')
+    logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
     return acton.acton.main(
@@ -86,8 +87,8 @@ def main(
         id_col=id,
         n_epochs=epochs,
         initial_count=initial_count,
-        predictor=predictor,
-        recommender=recommender)
+        recommender=recommender,
+        predictor=predictor)
 
 
 if __name__ == '__main__':

@@ -1,8 +1,12 @@
 """Predictor classes."""
 
 from abc import ABC, abstractmethod
+from typing import List
 
+import acton.database
 import numpy
+import sklearn.base
+import sklearn.cross_validation
 import sklearn.linear_model
 
 
@@ -14,19 +18,17 @@ class Predictor(ABC):
     """
 
     @abstractmethod
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
 
     @abstractmethod
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -37,8 +39,23 @@ class Predictor(ABC):
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x T array of corresponding predictions.
+        """
+
+    @abstractmethod
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
@@ -47,121 +64,198 @@ class Predictor(ABC):
         """
 
 
-class LogisticRegression(Predictor):
-    """Logistic regression predictor.
-
-    Notes
-    -----
-    This predictor wraps sklearn.linear_model.LogisticRegression.
+class _InstancePredictor(Predictor):
+    """Wrapper for a scikit-learn instance.
 
     Attributes
     ----------
-    _lr : sklearn.linear_model.LogisticRegression
-        Underlying logistic regression model.
+    _db : acton.database.Database
+        Database storing features and labels.
+    _instance : sklearn.base.BaseEstimator
+        scikit-learn predictor instance.
     """
 
-    def __init__(self, **kwargs: dict):
+    def __init__(self, instance: sklearn.base.BaseEstimator,
+                 db: acton.database.Database):
         """
-        Parameters
-        ----------
-        kwargs
-            Keyword arguments passed to the underlying
-            sklearn.linear_model.LogisticRegression object.
+        Arguments
+        ---------
+        instance
+            scikit-learn predictor instance.
+        db
+            Database storing features and labels.
         """
-        self._lr = sklearn.linear_model.LogisticRegression(**kwargs)
+        self._db = db
+        self._instance = instance
 
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
-        assert labels.shape[1] == 1 and len(labels.shape) == 2
-        self._lr.fit(features, labels.ravel())
+        features = self._db.read_features(ids)
+        labels = self._db.read_labels([b'0'], ids)
+        self._instance.fit(features, labels.ravel())
 
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
         -----
             Unlike in scikit-learn, predictions are always real-valued.
-            Predicted labels for the classification problem are represented by
+            Predicted labels for a classification problem are represented by
             predicted probabilities of the positive class.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x T array of corresponding predictions.
+        """
+        features = self._db.read_features(ids)
+        return self._instance.predict_proba(features)[:, 1:]
+
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
         numpy.ndarray
             An N x 1 array of corresponding predictions.
         """
-        return self._lr.predict_proba(features)[:, 1:]
+        return self.predict(ids)
 
 
-class LogisticRegressionCommittee(Predictor):
-    """Logistic regression committee-based predictor.
+def from_instance(predictor: sklearn.base.BaseEstimator,
+                  db: acton.database.Database) -> Predictor:
+    """Converts a scikit-learn predictor instance into a Predictor instance.
 
-    Notes
-    -----
-    This predictor wraps sklearn.linear_model.LogisticRegression.
+    Arguments
+    ---------
+    predictor
+        scikit-learn predictor.
+    db
+        Database storing features and labels.
+
+    Returns
+    -------
+    Predictor
+        Predictor instance wrapping the scikit-learn predictor.
+    """
+    return _InstancePredictor(predictor, db)
+
+
+def from_class(Predictor: type) -> type:
+    """Converts a scikit-learn predictor class into a Predictor class.
+
+    Arguments
+    ---------
+    Predictor
+        scikit-learn predictor class.
+
+    Returns
+    -------
+    type
+        Predictor class wrapping the scikit-learn class.
+    """
+    class Predictor_(_InstancePredictor):
+
+        def __init__(self, db, **kwargs):
+            super().__init__(instance=None, db=db)
+            self._instance = Predictor(**kwargs)
+
+    return Predictor_
+
+
+class Committee(Predictor):
+    """A predictor using a committee of other predictors.
 
     Attributes
     ----------
     n_classifiers : int
         Number of logistic regression classifiers in the committee.
+    subset_size : float
+        Percentage of known labels to take subsets of to train the
+        classifier. Lower numbers increase variety.
+    _db : acton.database.Database
+        Database storing features and labels.
     _committee : List[sklearn.linear_model.LogisticRegression]
         Underlying committee of logistic regression classifiers.
+    _reference_predictor : Predictor
+        Reference predictor trained on all known labels.
     """
 
-    def __init__(self, n_classifiers: int=10, **kwargs: dict):
+    def __init__(self, Predictor: type, db: acton.database.Database,
+                 n_classifiers: int=10, subset_size: float=0.6,
+                 **kwargs: dict):
         """
         Parameters
         ----------
+        Predictor
+            Predictor to use in the committee.
+        db
+            Database storing features and labels.
         n_classifiers
             Number of logistic regression classifiers in the committee.
+        subset_size
+            Percentage of known labels to take subsets of to train the
+            classifier. Lower numbers increase variety.
         kwargs
-            Keyword arguments passed to the underlying
-            sklearn.linear_model.LogisticRegression object.
+            Keyword arguments passed to the underlying Predictor.
         """
-        self._committee = [sklearn.linear_model.LogisticRegression(**kwargs)
-                           for _ in range(n_classifiers)]
         self.n_classifiers = n_classifiers
+        self.subset_size = subset_size
+        self._db = db
+        self._committee = [Predictor(db=db, **kwargs)
+                           for _ in range(n_classifiers)]
+        self._reference_predictor = Predictor(db=db, **kwargs)
 
-    def fit(self, features: numpy.ndarray, labels: numpy.ndarray):
+    def fit(self, ids: List[bytes]):
         """Fits the predictor to labelled data.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
-        labels
-            An N x 1 array of corresponding labels.
+        ids
+            List of IDs of instances to train from.
         """
-        # TODO(MatthewJA): Introduce committee variety.
-        assert labels.shape[1] == 1 and len(labels.shape) == 2
+        # Get labels so we can stratify a split.
+        labels = self._db.read_labels([b'0'], ids)
         for classifier in self._committee:
-            classifier.fit(features, labels.ravel())
+            # Take a subsets to introduce variety.
+            try:
+                subset, _ = sklearn.cross_validation.train_test_split(
+                    ids, train_size=self.subset_size, stratify=labels)
+            except ValueError:
+                # Too few labels.
+                subset = ids
+            classifier.fit(subset)
+        self._reference_predictor.fit(ids)
 
-    def predict(self, features: numpy.ndarray) -> numpy.ndarray:
+    def predict(self, ids: List[bytes]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
         -----
             Unlike in scikit-learn, predictions are always real-valued.
-            Predicted labels for the classification problem are represented by
+            Predicted labels for a classification problem are represented by
             predicted probabilities of the positive class.
 
         Parameters
         ----------
-        features
-            An N x D array of feature vectors.
+        ids
+            List of IDs of instances to predict labels for.
 
         Returns
         -------
@@ -169,11 +263,25 @@ class LogisticRegressionCommittee(Predictor):
             An N x T array of corresponding predictions.
         """
         predictions = numpy.concatenate(
-            [classifier.predict_proba(features)[:, 1:]
+            [classifier.predict(ids)
              for classifier in self._committee],
             axis=1)
-        assert predictions.shape == (features.shape[0], self.n_classifiers)
         return predictions
+
+    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x 1 array of corresponding predictions.
+        """
+        return self._reference_predictor.predict(ids)
 
 
 def AveragePredictions(predictor: Predictor) -> Predictor:
@@ -204,7 +312,21 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
     return predictor
 
 
+# Helper functions to generate predictor classes.
+
+
+def _logistic_regression() -> type:
+    return from_class(sklearn.linear_model.LogisticRegression)
+
+
+def _logistic_regression_committee() -> type:
+    def make_committee(db, *args, **kwargs):
+        return Committee(_logistic_regression(), db)
+
+    return make_committee
+
+
 PREDICTORS = {
-    'LogisticRegression': LogisticRegression,
-    'LogisticRegressionCommittee': LogisticRegressionCommittee,
+    'LogisticRegression': _logistic_regression(),
+    'LogisticRegressionCommittee': _logistic_regression_committee(),
 }

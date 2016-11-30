@@ -15,6 +15,7 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy
 import sklearn.cross_validation
+import sklearn.linear_model
 import sklearn.metrics
 
 T = TypeVar('T')
@@ -67,8 +68,8 @@ def simulate_active_learning(
         n_initial_labels: int=10,
         n_epochs: int=10,
         test_size: int=0.2,
-        predictor='LogisticRegression',
-        recommender='RandomRecommender'):
+        recommender: str='RandomRecommender',
+        predictor: str='LogisticRegression'):
     """Simulates an active learning task.
 
     arguments
@@ -83,32 +84,31 @@ def simulate_active_learning(
         Number of epochs.
     test_size
         Percentage size of testing set.
-    predictor
-        Name of predictor to make predictions.
     recommender
         Name of recommender to make recommendations.
+    predictor
+        Name of predictor to make predictions.
     """
     # Validation.
-    if predictor not in acton.predictors.PREDICTORS:
-        raise ValueError('Unknown predictor: {}. Predictors are one of '
-                         '{}.'.format(predictor,
-                                      acton.predictors.PREDICTORS.keys()))
     if recommender not in acton.recommenders.RECOMMENDERS:
         raise ValueError('Unknown recommender: {}. Recommenders are one of '
                          '{}.'.format(recommender,
                                       acton.recommenders.RECOMMENDERS.keys()))
 
+    if predictor not in acton.predictors.PREDICTORS:
+        raise ValueError('Unknown predictor: {}. predictors are one of '
+                         '{}.'.format(predictor,
+                                      acton.predictors.PREDICTORS.keys()))
+
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
-    test_features = db.read_features(test_ids)
     test_labels = db.read_labels([b'0'], test_ids)
 
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
-    predictor = acton.predictors.AveragePredictions(
-        acton.predictors.PREDICTORS[predictor]()
-    )
+    predictor = acton.predictors.PREDICTORS[predictor](db=db)
+
     labeller = acton.labellers.DatabaseLabeller(db)
     recommender = acton.recommenders.RECOMMENDERS[recommender]()
 
@@ -130,19 +130,27 @@ def simulate_active_learning(
         labelled_ids.extend(recommendations)
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
+        # Here, we would write the labels to the database, but they're already
+        # there since we're just reading them from there anyway.
+        pass
+
         # Pass the labels to the predictor.
-        predictor.fit(db.read_features(labelled_ids), labels)
+        predictor.fit(labelled_ids)
 
         # Evaluate the predictor.
-        test_pred = predictor.predict(test_features)
+        test_pred = predictor.reference_predict(test_ids)
         accuracy = sklearn.metrics.accuracy_score(
-            test_labels.ravel(), test_pred.round().ravel())
+            test_labels.ravel(), test_pred.mean(axis=1).round().ravel())
         accuracies.append((len(labelled_ids), accuracy))
         logging.debug('Accuracy: {}'.format(accuracy))
 
         # Pass the predictions to the recommender.
-        predictions = predictor.predict(db.read_features(ids))
-        recommendations = [recommender.recommend(ids, predictions)]
+        unlabelled_ids = list(set(ids) - set(labelled_ids))
+        predictions = predictor.predict(unlabelled_ids)
+        recommendations = [
+            recommender.recommend(unlabelled_ids,
+                                  predictions)
+        ]
         logging.debug('Recommending: {}'.format(recommendations))
 
     plt.plot(*zip(*accuracies))
@@ -268,9 +276,9 @@ def db_from_hdf5(
             # vectors).
             batch_length = None
             for feature_idx, feature_col in enumerate(feature_cols):
+                feature_batch = data[feature_col][idx:idx + batch_size]
                 batch_length = batch_length or feature_batch.shape[0]
                 assert batch_length == feature_batch.shape[0]
-                feature_batch = data[feature_col][idx:idx + batch_size]
                 features_batch[:batch_length, :] = feature_batch
             label_batch = data[label_col][idx:idx + batch_size]
             id_batch = ids[idx:idx + batch_size]
@@ -280,8 +288,8 @@ def db_from_hdf5(
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
          id_col: str=None, n_epochs: int=10, initial_count: int=10,
-         predictor: str='LogisticRegression',
-         recommender: str='RandomRecommender'):
+         recommender: str='RandomRecommender',
+         predictor: str='LogisticRegression'):
     """
     Arguments
     ---------
@@ -299,10 +307,10 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Number of epochs to run.
     initial_count
         Number of random instances to label initially.
-    predictor
-        Name of predictor to make predictions.
     recommender
         Name of recommender to make recommendations.
+    predictor
+        Name of predictor to make predictions.
     """
     # Read in the features, labels, and IDs. This is different for HDF5 and
     # ASCII files.
@@ -344,5 +352,5 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
             # Simulate the active learning task.
             simulate_active_learning(ids, db, n_epochs=n_epochs,
                                      n_initial_labels=initial_count,
-                                     predictor=predictor,
-                                     recommender=recommender)
+                                     recommender=recommender,
+                                     predictor=predictor)

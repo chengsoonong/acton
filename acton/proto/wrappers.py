@@ -1,6 +1,6 @@
 """Classes that wrap protobufs."""
 
-from typing import Union
+from typing import Union, List
 
 import acton.database
 import acton.proto.predictors_pb2 as predictors_pb
@@ -32,6 +32,38 @@ class PredictorInput(object):
             else:
                 raise TypeError('proto should be str or protobuf.')
         self._validate_proto()
+
+    @property
+    def DB(self) -> acton.database.Database:
+        """Gets a database context manager for the database specified in input.
+
+        Returns
+        -------
+        type
+            Database context manager.
+        """
+        if hasattr(self, '_DB'):
+            return self._DB
+
+        self._DB = lambda: acton.database.DATABASES[self.proto.db_class](
+            self.proto.db_path, label_dtype=self.proto.dtype)
+
+        return self._DB
+
+    @property
+    def ids(self) -> List[bytes]:
+        """Gets a list of IDs.
+
+        Returns
+        -------
+        List[bytes]
+            List of known IDs.
+        """
+        if hasattr(self, '_ids'):
+            return self._ids
+
+        self._ids = [instance.id for instance in self.proto.instance]
+        return self._ids
 
     @property
     def labels(self) -> numpy.ndarray:

@@ -158,6 +158,20 @@ class HDF5Database(Database):
         assert hasattr(self, '_h5_file'), ('HDF5 database must be used as a '
                                            'context manager.')
 
+    def _open_hdf5(self):
+        """Opens the HDF5 file and creates it if it doesn't exist.
+
+        Notes
+        -----
+        The HDF5 file will be stored in self._h5_file.
+        """
+        try:
+            self._h5_file = h5py.File(self.path, 'r+')
+        except OSError:
+            with h5py.File(self.path, 'w') as h5_file:
+                self._setup_hdf5(h5_file)
+            self._h5_file = h5py.File(self.path, 'r+')
+
 
 class ManagedHDF5Database(HDF5Database):
     """Database using an HDF5 file.
@@ -222,12 +236,7 @@ class ManagedHDF5Database(HDF5Database):
         -----
         The HDF5 file will be stored in self._h5_file.
         """
-        try:
-            self._h5_file = h5py.File(self.path, 'r+')
-        except OSError:
-            with h5py.File(self.path, 'w') as h5_file:
-                self._setup_hdf5(h5_file)
-            self._h5_file = h5py.File(self.path, 'r+')
+        super()._open_hdf5()
 
         # Load attrs from HDF5 file if we haven't specified them.
         for attr in self._sync_attrs:
@@ -622,7 +631,7 @@ class HDF5Reader(HDF5Database):
         features = numpy.zeros((len(ids), self.n_features))
         # For each ID, get the corresponding features. This could be achieved
         # significantly faster.
-        for out_index, id_ in ids:
+        for out_index, id_ in enumerate(ids):
             for in_index, id__ in enumerate(self.get_known_instance_ids()):
                 if id_ != id__:
                     continue
@@ -670,14 +679,14 @@ class HDF5Reader(HDF5Database):
 
         # For each ID, get the corresponding labels. This could be achieved
         # significantly faster.
-        for out_index, id_ in instance_ids:
+        for out_index, id_ in enumerate(instance_ids):
             for in_index, id__ in enumerate(self.get_known_instance_ids()):
                 if id_ != id__:
                     continue
 
                 instance_labels = self._h5_file[
                     self.label_col][in_index]
-                labels[out_index] = instance_labels
+                labels[0, out_index] = instance_labels
                 break
             else:
                 raise ValueError('Unknown ID: {}'.format(id_))
@@ -703,7 +712,7 @@ class HDF5Reader(HDF5Database):
         """
         self._assert_open()
         if not self.id_col:
-            return list(range(self.n_instances))
+            return [str(i).encode('utf-8') for i in range(self.n_instances)]
         else:
             return list(self._h5_file[self.id_col])
 

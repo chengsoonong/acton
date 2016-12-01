@@ -251,7 +251,7 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         with acton.database.HDF5Reader(
                 data_path, feature_cols=feature_cols, label_col=label_col,
                 id_col=id_col) as reader:
-            simulate_active_learning(reader.get_known_instance_ids(), db,
+            simulate_active_learning(reader.get_known_instance_ids(), reader,
                                      n_epochs=n_epochs,
                                      n_initial_labels=initial_count,
                                      recommender=recommender,

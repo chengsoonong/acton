@@ -9,6 +9,25 @@ import h5py
 import numpy
 
 
+def product(seq: Iterable[int]):
+    """Finds the product of a list of ints.
+
+    Arguments
+    ---------
+    seq
+        List of ints.
+
+    Returns
+    -------
+    int
+        Product.
+    """
+    prod = 1
+    for i in seq:
+        prod *= i
+    return prod
+
+
 class Database(ABC):
     """Base class for database wrappers."""
 
@@ -516,11 +535,73 @@ class HDF5Reader(HDF5Database):
 
     Attributes
     ----------
+    feature_cols : List[str]
+        List of feature datasets.
+    id_col : str
+        Name of ID dataset.
+    label_col : str
+        Name of label dataset.
+    n_features : int
+        Number of features.
+    n_instances : int
+        Number of instances.
+    n_labels : int
+        Number of labels per instance.
     path : str
         Path to HDF5 file.
     _h5_file : h5py.File
         HDF5 file object.
+    _is_multidimensional : bool
+        Whether the features are in a multidimensional dataset.
     """
+
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 id_col: str=None):
+        """
+        Parameters
+        ----------
+        path
+            Path to HDF5 file.
+        feature_cols
+            List of feature datasets. If only one feature dataset is specified,
+            this dataset is allowed to be a multidimensional dataset and contain
+            multiple features.
+        label_col
+            Name of label dataset.
+        id_col
+            Name of ID dataset.
+        """
+        super().__init__(path)
+
+        if not feature_cols:
+            raise ValueError('Must specify feature columns for HDF5.')
+
+        self.feature_cols = feature_cols
+        self.label_col = label_col
+        self.id_col = id_col
+        with h5py.File(self.path, 'r') as data:
+            is_multidimensional = any(len(data[f_col].shape) > 1 or
+                                      not product(data[f_col].shape[1:]) == 1
+                                      for f_col in feature_cols)
+            if is_multidimensional and len(feature_cols) != 1:
+                raise ValueError(
+                    'Feature arrays and feature columns cannot be mixed. '
+                    'To read in features from a multidimensional dataset, '
+                    'only specify one feature column name.')
+
+            self._is_multidimensional = is_multidimensional
+
+            self.n_instances = data[label_col].shape[0]
+            if len(data[label_col].shape) == 1:
+                self.n_labels = 1
+            else:
+                assert len(data[label_col].shape) == 2
+                self.n_labels = data[label_col].shape[1]
+
+            if is_multidimensional:
+                self.n_features = data[feature_cols[0]].shape[1]
+            else:
+                self.n_features = len(feature_cols)
 
     def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
         """Reads feature vectors from the database.
@@ -535,6 +616,31 @@ class HDF5Reader(HDF5Database):
         numpy.ndarray
             N x D array of feature vectors.
         """
+        # TODO(MatthewJA): Optimise this.
+        self._assert_open()
+        # Allocate output features array.
+        features = numpy.zeros((len(ids), self.n_features))
+        # For each ID, get the corresponding features. This could be achieved
+        # significantly faster.
+        for out_index, id_ in ids:
+            for in_index, id__ in enumerate(self.get_known_instance_ids()):
+                if id_ != id__:
+                    continue
+
+                if self._is_multidimensional:
+                    instance_features = self._h5_file[
+                        self.feature_cols[0]][in_index]
+                    features[out_index] = instance_features
+                else:
+                    for feature_index, feature_col in enumerate(
+                            self.feature_cols):
+                        features[out_index, feature_index] = self._h5_file[
+                            feature_col
+                        ][in_index]
+                break
+            else:
+                raise ValueError('Unknown ID: {}'.format(id_))
+        return features
 
     def read_labels(self,
                     labeller_ids: Iterable[bytes],
@@ -553,6 +659,30 @@ class HDF5Reader(HDF5Database):
         numpy.ndarray
             T x N x F array of label vectors.
         """
+        # TODO(MatthewJA): Optimise this.
+        self._assert_open()
+        # Allocate output labels array.
+        labels = numpy.zeros(
+            (len(labeller_ids), len(instance_ids), self.n_labels))
+
+        if len(labeller_ids) > 1:
+            raise NotImplementedError('Multiple labellers not yet supported.')
+
+        # For each ID, get the corresponding labels. This could be achieved
+        # significantly faster.
+        for out_index, id_ in instance_ids:
+            for in_index, id__ in enumerate(self.get_known_instance_ids()):
+                if id_ != id__:
+                    continue
+
+                instance_labels = self._h5_file[
+                    self.label_col][in_index]
+                labels[out_index] = instance_labels
+                break
+            else:
+                raise ValueError('Unknown ID: {}'.format(id_))
+
+        return labels
 
     def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
@@ -571,7 +701,11 @@ class HDF5Reader(HDF5Database):
         List[str]
             A list of known instance IDs.
         """
-        raise NotImplementedError()
+        self._assert_open()
+        if not self.id_col:
+            return list(range(self.n_instances))
+        else:
+            return list(self._h5_file[self.id_col])
 
     def get_known_labeller_ids(self) -> List[bytes]:
         """Returns a list of known labeller IDs.

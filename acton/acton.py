@@ -21,25 +21,6 @@ import sklearn.metrics
 T = TypeVar('T')
 
 
-def product(seq: Iterable[int]):
-    """Finds the product of a list of ints.
-
-    Arguments
-    ---------
-    seq
-        List of ints.
-
-    Returns
-    -------
-    int
-        Product.
-    """
-    prod = 1
-    for i in seq:
-        prod *= i
-    return prod
-
-
 def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
     """Draws n random elements from a list.
 
@@ -336,7 +317,7 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
 
         max_id_length = max(len(id_) for id_ in ids)
 
-        with acton.database.HDF5Database(
+        with acton.database.ManagedHDF5Database(
                 temp_db_filename,
                 max_id_length=max_id_length,
                 label_dtype='bool',

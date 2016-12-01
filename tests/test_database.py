@@ -15,8 +15,8 @@ from acton import database
 import numpy
 
 
-class TestHDF5Database(unittest.TestCase):
-    """Tests the HDF5Database class."""
+class TestManagedHDF5Database(unittest.TestCase):
+    """Tests the ManagedHDF5Database class."""
 
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
@@ -40,7 +40,8 @@ class TestHDF5Database(unittest.TestCase):
         return os.path.join(self.tempdir.name, filename)
 
     def test_io_features(self):
-        """Features can be written to and read out from an HDF5Database."""
+        """Features can be written to and read out from a ManagedHDF5Database.
+        """
         path = self.temp_path('test_io_features.h5')
         # Make some testing data.
         n_instances = 20
@@ -51,10 +52,10 @@ class TestHDF5Database(unittest.TestCase):
             'float32')
 
         # Store half the testing data in the database.
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             db.write_features(ids[:n_instances // 2],
                               features[:n_instances // 2])
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             self.assertTrue(numpy.allclose(
                 features[:n_instances // 2],
                 db.read_features(ids[:n_instances // 2])))
@@ -67,15 +68,15 @@ class TestHDF5Database(unittest.TestCase):
             size=(len(changed_ids), n_dimensions))
 
         # Update the database and extend it by including all features.
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             db.write_features(ids, new_features)
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             self.assertTrue(numpy.allclose(
                 new_features,
                 db.read_features(ids)))
 
     def test_read_write_labels(self):
-        """Labels can be written to and read from an HDF5Database."""
+        """Labels can be written to and read from a ManagedHDF5Database."""
         path = self.temp_path('test_read_write_labels.h5')
         # Make some testing data.
         n_instances = 5
@@ -87,11 +88,11 @@ class TestHDF5Database(unittest.TestCase):
         labels = numpy.random.random(
             size=(n_labellers, n_instances, n_dimensions)).astype('float32')
         # Store half the testing data in the database.
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             db.write_labels(labeller_ids[:n_labellers // 2],
                             ids[:n_instances // 2],
                             labels[:n_labellers // 2, :n_instances // 2])
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             exp_labels = labels[:n_labellers // 2, :n_instances // 2]
             act_labels = db.read_labels(labeller_ids[:n_labellers // 2],
                                         ids[:n_instances // 2])
@@ -105,9 +106,9 @@ class TestHDF5Database(unittest.TestCase):
             size=(n_labellers, len(changed_ids), n_dimensions))
 
         # Update the database and extend it by including all labels.
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             db.write_labels(labeller_ids, ids, new_labels)
-        with database.HDF5Database(path) as db:
+        with database.ManagedHDF5Database(path) as db:
             self.assertTrue(numpy.allclose(
                 new_labels,
                 db.read_labels(labeller_ids, ids)))

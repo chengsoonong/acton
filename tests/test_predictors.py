@@ -32,7 +32,7 @@ class TestPredictorInput(unittest.TestCase):
         self.labels.n_labellers = 2
         self.labels.n_label_dimensions = 1
         self.labels.dtype = 'float32'
-        self.labels.db_class = 'HDF5Database'
+        self.labels.db_class = 'ManagedHDF5Database'
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
         self.labels.db_path = os.path.join(self.tempdir.name, 'test.h5')
@@ -53,7 +53,7 @@ class TestPredictorInput(unittest.TestCase):
         # Second assertion because the property is cached after the first run.
 
     @unittest.mock.patch.dict(acton.database.DATABASES, values={
-        'HDF5Database': unittest.mock.MagicMock()
+        'ManagedHDF5Database': unittest.mock.MagicMock()
     })
     def test_features(self):
         """PredictorInput gives a features array."""
@@ -87,7 +87,7 @@ class TestIntegrationCommittee(unittest.TestCase):
         self.labels.n_labellers = 1
         self.labels.n_label_dimensions = 1
         self.labels.dtype = 'float64'
-        self.labels.db_class = 'HDF5Database'
+        self.labels.db_class = 'ManagedHDF5Database'
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
@@ -97,7 +97,7 @@ class TestIntegrationCommittee(unittest.TestCase):
 
         self.n_instances = 2
         self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
-        with acton.database.HDF5Database(
+        with acton.database.ManagedHDF5Database(
                 self.labels.db_path, label_dtype=self.labels.dtype,
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
@@ -142,7 +142,7 @@ class TestSklearnWrapper(unittest.TestCase):
         self.labels.n_labellers = 1
         self.labels.n_label_dimensions = 1
         self.labels.dtype = 'float64'
-        self.labels.db_class = 'HDF5Database'
+        self.labels.db_class = 'ManagedHDF5Database'
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
@@ -152,7 +152,7 @@ class TestSklearnWrapper(unittest.TestCase):
 
         self.n_instances = 2
         self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
-        with acton.database.HDF5Database(
+        with acton.database.ManagedHDF5Database(
                 self.labels.db_path, label_dtype=self.labels.dtype,
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],

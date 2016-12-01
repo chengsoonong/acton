@@ -108,7 +108,45 @@ class Database(ABC):
 
 
 class HDF5Database(Database):
+    """Database wrapping an HDF5 file as a context manager.
+
+    Attributes
+    ----------
+    path : str
+        Path to HDF5 file.
+    _h5_file : h5py.File
+        HDF5 file object.
+    """
+
+    def __init__(self, path: str):
+        self.path = path
+
+    def __enter__(self):
+        self._open_hdf5()
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        self._h5_file.close()
+        delattr(self, '_h5_file')
+
+    def _assert_open(self):
+        """Asserts that the HDF5 file is ready to be read to/written from.
+
+        Raises
+        ------
+        AssertionError
+        """
+        assert hasattr(self, '_h5_file'), ('HDF5 database must be used as a '
+                                           'context manager.')
+
+
+class ManagedHDF5Database(HDF5Database):
     """Database using an HDF5 file.
+
+    Notes
+    -----
+    This database uses an internal schema. For reading files from disk, use
+    another Database.
 
     Attributes
     ----------
@@ -147,7 +185,7 @@ class HDF5Database(Database):
             then it will be read from the database file; if the database file
             does not exist then a default value of 128 will be used.
         """
-        self.path = path
+        super().__init__(path)
         self.label_dtype = label_dtype
         self._default_label_dtype = 'float32'
         self.feature_dtype = feature_dtype
@@ -178,14 +216,6 @@ class HDF5Database(Database):
                 setattr(self, attr, self._h5_file.attrs[attr])
 
         self._validate_hdf5()
-
-    def __enter__(self):
-        self._open_hdf5()
-        return self
-
-    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
-        self._h5_file.close()
-        delattr(self, '_h5_file')
 
     def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
         """Writes feature vectors to the database.
@@ -430,16 +460,6 @@ class HDF5Database(Database):
         self._assert_open()
         return [id_ for id_ in self._h5_file['labeller_ids']]
 
-    def _assert_open(self):
-        """Asserts that the HDF5 file is ready to be read to/written from.
-
-        Raises
-        ------
-        AssertionError
-        """
-        assert hasattr(self, '_h5_file'), ('HDF5 database must be used as a '
-                                           'context manager.')
-
     def _setup_hdf5(self, h5_file: h5py.File):
         """Sets up an HDF5 file to work as a database.
 
@@ -491,7 +511,80 @@ class HDF5Database(Database):
                     attr, getattr(self, attr), self._h5_file.attrs[attr]))
 
 
+class HDF5Reader(HDF5Database):
+    """Reads HDF5 databases.
+
+    Attributes
+    ----------
+    path : str
+        Path to HDF5 file.
+    _h5_file : h5py.File
+        HDF5 file object.
+    """
+
+    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+        ids
+            Iterable of IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            N x D array of feature vectors.
+        """
+
+    def read_labels(self,
+                    labeller_ids: Iterable[bytes],
+                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+        labeller_ids
+            Iterable of labeller IDs.
+        instance_ids
+            Iterable of instance IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            T x N x F array of label vectors.
+        """
+
+    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Iterable[bytes],
+                     instance_ids: Iterable[bytes],
+                     labels: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def get_known_instance_ids(self) -> List[bytes]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        raise NotImplementedError()
+
+    def get_known_labeller_ids(self) -> List[bytes]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        raise NotImplementedError()
+
+
 # For safe string-based access to database classes.
 DATABASES = {
-    'HDF5Database': HDF5Database,
+    'ManagedHDF5Database': ManagedHDF5Database,
 }

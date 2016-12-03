@@ -8,6 +8,8 @@ from typing import Iterable, List, TypeVar
 import acton.database
 import acton.labellers
 import acton.predictors
+import acton.proto.io
+import acton.proto.wrappers
 import acton.recommenders
 import astropy.io.ascii as io_ascii
 import astropy.table
@@ -45,6 +47,7 @@ def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
 def simulate_active_learning(
         ids: Iterable[bytes],
         db: acton.database.Database,
+        output_path: str,
         n_initial_labels: int=10,
         n_epochs: int=10,
         test_size: int=0.2,
@@ -58,6 +61,8 @@ def simulate_active_learning(
         IDs of instances in the unlabelled pool.
     db
         Database with features and labels.
+    output_path
+        Path to output intermediate predictions to. Will be overwritten.
     n_initial_labels
         Number of initial labels to draw.
     n_epochs
@@ -87,6 +92,7 @@ def simulate_active_learning(
 
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
+    predictor_name = predictor  # For saving.
     predictor = acton.predictors.PREDICTORS[predictor](db=db)
 
     labeller = acton.labellers.DatabaseLabeller(db)
@@ -103,7 +109,11 @@ def simulate_active_learning(
 
     # Simulation loop.
     accuracies = []  # List of (n_labels, accuracy) pairs.
+    logging.debug('Writing protobufs to {}.'.format(output_path))
+    writer = acton.proto.io.write_protos(output_path)
+    next(writer)  # Prime the coroutine.
     for epoch in range(n_epochs):
+        logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))
         # Label the recommendations.
         new_labels = numpy.array([
             labeller.query(id_) for id_ in recommendations]).reshape((-1, 1))
@@ -124,6 +134,16 @@ def simulate_active_learning(
         accuracies.append((len(labelled_ids), accuracy))
         logging.debug('Accuracy: {}'.format(accuracy))
 
+        # Construct a protobuf for outputting predictions.
+        proto = acton.proto.wrappers.from_predictions(
+            test_ids,
+            test_pred.reshape((1,) + test_pred.shape),
+            predictor=predictor_name,
+            db_path=db.path,
+            db_class=db.__class__.__name__)
+        # Then write them to a file.
+        writer.send(proto.proto)
+
         # Pass the predictions to the recommender.
         unlabelled_ids = list(set(ids) - set(labelled_ids))
         predictions = predictor.predict(unlabelled_ids)
@@ -132,9 +152,6 @@ def simulate_active_learning(
                                   predictions)
         ]
         logging.debug('Recommending: {}'.format(recommendations))
-
-    plt.plot(*zip(*accuracies))
-    plt.show()
 
 
 def db_from_ascii(
@@ -190,8 +207,8 @@ def db_from_ascii(
 
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
-         id_col: str=None, n_epochs: int=10, initial_count: int=10,
-         recommender: str='RandomRecommender',
+         output_path: str, id_col: str=None, n_epochs: int=10,
+         initial_count: int=10, recommender: str='RandomRecommender',
          predictor: str='LogisticRegression'):
     """
     Arguments
@@ -203,6 +220,8 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         columns will be used.
     label_col
         Column name of the labels.
+    output_path
+        Path to output file. Will be overwritten.
     id_col
         Column name of the IDs. If not specified, IDs will be automatically
         assigned.
@@ -241,7 +260,8 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
                     ids, id_col)
 
                 # Simulate the active learning task.
-                simulate_active_learning(ids, db, n_epochs=n_epochs,
+                simulate_active_learning(ids, db, output_path,
+                                         n_epochs=n_epochs,
                                          n_initial_labels=initial_count,
                                          recommender=recommender,
                                          predictor=predictor)
@@ -252,6 +272,7 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
                 data_path, feature_cols=feature_cols, label_col=label_col,
                 id_col=id_col) as reader:
             simulate_active_learning(reader.get_known_instance_ids(), reader,
+                                     output_path,
                                      n_epochs=n_epochs,
                                      n_initial_labels=initial_count,
                                      recommender=recommender,

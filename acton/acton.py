@@ -13,7 +13,6 @@ import acton.proto.wrappers
 import acton.recommenders
 import astropy.io.ascii as io_ascii
 import astropy.table
-import matplotlib.pyplot as plt
 import numpy
 import sklearn.cross_validation
 import sklearn.linear_model

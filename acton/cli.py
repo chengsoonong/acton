@@ -75,7 +75,7 @@ def main(
         recommender: str,
         verbose: bool,
 ):
-    logging.warning('Not implemented: output, diversity,'
+    logging.warning('Not implemented: diversity, '
                     'recommendation_count, labeller_accuracy')
     logging.captureWarnings(True)
     if verbose:
@@ -84,6 +84,7 @@ def main(
         data_path=data,
         feature_cols=feature,
         label_col=label,
+        output_path=output,
         id_col=id,
         n_epochs=epochs,
         initial_count=initial_count,

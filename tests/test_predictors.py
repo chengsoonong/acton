@@ -69,6 +69,45 @@ class TestPredictorInput(unittest.TestCase):
             predictor_input.features))
 
 
+class TestFromPredictions(unittest.TestCase):
+    """Tests from_predictions."""
+
+    def setUp(self):
+        self.n_predictors = 10
+        self.n_instances = 20
+        self.n_prediction_dimensions = 5
+        self.ids = [str(i).encode('ascii') for i in range(self.n_instances)]
+        self.predictions = numpy.random.random(
+            size=(self.n_predictors, self.n_instances,
+                  self.n_prediction_dimensions))
+
+    def test_protobuf(self):
+        """from_predictions converts predictions into a protobuf."""
+        proto = acton.proto.wrappers.from_predictions(
+            self.ids, self.predictions,
+            predictor='test', db_path='path', db_class='ManagedHDF5Database')
+        self.assertEqual(self.n_instances, len(proto.proto.prediction))
+        # Check the predictions and ID for each instance.
+        for i in range(self.n_instances):
+            self.assertTrue(numpy.allclose(
+                self.predictions[:, i],
+                numpy.array(proto.proto.prediction[i].prediction).reshape((
+                    proto.proto.n_predictors,
+                    proto.proto.n_prediction_dimensions,
+                ))
+            ))
+            self.assertEqual(self.ids[i],
+                             proto.proto.prediction[i].id.encode('ascii'))
+        self.assertEqual(self.n_predictors, proto.proto.n_predictors)
+        self.assertEqual(
+            self.n_prediction_dimensions,
+            proto.proto.n_prediction_dimensions)
+        self.assertEqual(self.predictions.dtype, proto.proto.dtype)
+        self.assertEqual('test', proto.proto.predictor)
+        self.assertEqual('path', proto.proto.db_path)
+        self.assertEqual('ManagedHDF5Database', proto.proto.db_class)
+
+
 class TestIntegrationCommittee(unittest.TestCase):
     """Integration test for Committee."""
 

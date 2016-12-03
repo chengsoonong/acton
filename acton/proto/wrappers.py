@@ -257,7 +257,10 @@ class PredictorOutput(object):
 
 def from_predictions(
         ids: Iterable[bytes],
-        predictions: numpy.ndarray) -> PredictorOutput:
+        predictions: numpy.ndarray,
+        predictor: str='',
+        db_path: str='',
+        db_class: str='') -> PredictorOutput:
     """Converts NumPy predictions to a PredictorOutput.
 
     Parameters
@@ -266,10 +269,33 @@ def from_predictions(
         Iterable of instance IDs.
     predictions
         T x N x D array of corresponding predictions.
+    predictor
+        Name of predictor used to generate predictions.
+    db_path
+        Path to database file.
+    db_class
+        Name of database class.
 
     Returns
     -------
     PredictorOutput
     """
-    raise NotImplementedError()
+    proto = predictors_pb.Predictions()
 
+    # Store single data first.
+    n_predictors, n_instances, n_prediction_dimensions = predictions.shape
+    proto.n_predictors = n_predictors
+    proto.n_prediction_dimensions = n_prediction_dimensions
+    proto.dtype = str(predictions.dtype)
+    proto.predictor = predictor
+    proto.db_path = db_path
+    proto.db_class = db_class
+
+    # Store the predictions array. We can do this by looping over the
+    # instances.
+    for id_, prediction in zip(ids, predictions.transpose((1, 0, 2))):
+        prediction_ = proto.prediction.add()
+        prediction_.id = id_
+        prediction_.prediction.extend(prediction.ravel())
+
+    return PredictorOutput(proto)

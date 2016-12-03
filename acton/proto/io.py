@@ -33,7 +33,7 @@ def read_proto(
 
 def write_protos(path: str):
     """Serialises many protobufs to a file.
-    
+
     Parameters
     ----------
     path

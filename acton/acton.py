@@ -153,58 +153,6 @@ def simulate_active_learning(
         logging.debug('Recommending: {}'.format(recommendations))
 
 
-def db_from_ascii(
-        db: acton.database.Database,
-        data: astropy.table.Table,
-        feature_cols: List[str],
-        label_col: str,
-        ids: List[bytes],
-        id_col: str=None):
-    """Reads an ASCII table into a database.
-
-    Notes
-    -----
-    The entire file is copied into memory.
-
-    Arguments
-    ---------
-    db
-        Database.
-    data
-        ASCII table.
-    feature_cols
-        List of column names of the features. If empty, all non-label and non-ID
-        columns will be used.
-    label_col
-        Column name of the labels.
-    id_col
-        Column name of the IDs.
-    ids
-        List of instance IDs.
-    """
-    # Read in features.
-    columns = data.keys()
-    if not feature_cols:
-        # If there are no features given, use all columns.
-        feature_cols = [c for c in columns
-                        if c != label_col and c != id_col]
-
-    # This converts the features from a table to an array.
-    features = data[feature_cols].as_array()
-    features = features.view(numpy.float64).reshape(features.shape + (-1,))
-
-    # Read in labels.
-    labels = numpy.array(data[label_col], dtype=bool).reshape((1, -1, 1))
-
-    # We want to support multiple labellers in the future, but currently don't.
-    # So every labeller is the same, ID = 0.
-    labeller_ids = [b'0']
-
-    # Write to database.
-    db.write_features(ids, features)
-    db.write_labels(labeller_ids, ids, labels)
-
-
 def main(data_path: str, feature_cols: List[str], label_col: str,
          output_path: str, id_col: str=None, n_epochs: int=10,
          initial_count: int=10, recommender: str='RandomRecommender',
@@ -235,35 +183,15 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     """
     is_ascii = not data_path.endswith('.h5')
     if is_ascii:
-        with tempfile.TemporaryDirectory(prefix='acton') as tempdir:
-
-            # Read the whole file into a DB.
-            temp_db_filename = os.path.join(tempdir, 'db.h5')
-            # First, find the maximum ID length. Do this by reading in IDs.
-            data = io_ascii.read(data_path)
-            if id_col:
-                ids = [str(id_).encode('utf-8') for id_ in data[id_col]]
-            else:
-                ids = [str(id_).encode('utf-8')
-                       for id_ in range(len(data[label_col]))]
-
-            max_id_length = max(len(id_) for id_ in ids)
-
-            with acton.database.ManagedHDF5Database(
-                    temp_db_filename,
-                    max_id_length=max_id_length,
-                    label_dtype='bool',
-                    feature_dtype='float64') as db:
-                db_from_ascii(
-                    db, io_ascii.read(data_path), feature_cols, label_col,
-                    ids, id_col)
-
-                # Simulate the active learning task.
-                simulate_active_learning(ids, db, output_path,
-                                         n_epochs=n_epochs,
-                                         n_initial_labels=initial_count,
-                                         recommender=recommender,
-                                         predictor=predictor)
+        with acton.database.ASCIIReader(
+                data_path, feature_cols=feature_cols, label_col=label_col,
+                id_col=id_col) as reader:
+            simulate_active_learning(reader.get_known_instance_ids(), reader,
+                                     output_path,
+                                     n_epochs=n_epochs,
+                                     n_initial_labels=initial_count,
+                                     recommender=recommender,
+                                     predictor=predictor)
 
     else:
         # Assume HDF5.

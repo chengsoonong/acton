@@ -2,9 +2,13 @@
 
 from abc import ABC, abstractmethod
 from inspect import Traceback
+import os.path
+import tempfile
 from typing import Iterable, List
 import warnings
 
+import astropy.io.ascii as io_ascii
+import astropy.table
 import h5py
 import numpy
 
@@ -727,7 +731,202 @@ class HDF5Reader(HDF5Database):
         raise NotImplementedError()
 
 
+class ASCIIReader(Database):
+    """Reads ASCII databases.
+
+    Attributes
+    ----------
+    feature_cols : List[str]
+        List of feature columns.
+    id_col : str
+        Name of ID column.
+    label_col : str
+        Name of label column.
+    max_id_length : int
+        Maximum length of IDs.
+    n_features : int
+        Number of features.
+    n_instances : int
+        Number of instances.
+    n_labels : int
+        Number of labels per instance.
+    path : str
+        Path to ASCII file.
+    _db : Database
+        Underlying ManagedHDF5Database.
+    _db_filepath : str
+        Path of underlying HDF5 database.
+    _tempdir : str
+        Temporary directory where the underlying HDF5 database is stored.
+    """
+
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 id_col: str=None):
+        """
+        Parameters
+        ----------
+        path
+            Path to ASCII file.
+        feature_cols
+            List of feature columns.
+        label_col
+            Name of label column.
+        id_col
+            Name of ID column.
+        """
+        self.path = path
+        self.feature_cols = feature_cols
+        self.label_col = label_col
+        self.id_col = id_col
+
+    @staticmethod
+    def _db_from_ascii(
+            db: Database,
+            data: astropy.table.Table,
+            feature_cols: List[str],
+            label_col: str,
+            ids: List[bytes],
+            id_col: str=None):
+        """Reads an ASCII table into a database.
+
+        Notes
+        -----
+        The entire file is copied into memory.
+
+        Arguments
+        ---------
+        db
+            Database.
+        data
+            ASCII table.
+        feature_cols
+            List of column names of the features. If empty, all non-label and
+            non-ID columns will be used.
+        label_col
+            Column name of the labels.
+        id_col
+            Column name of the IDs.
+        ids
+            List of instance IDs.
+        """
+        # Read in features.
+        columns = data.keys()
+        if not feature_cols:
+            # If there are no features given, use all columns.
+            feature_cols = [c for c in columns
+                            if c != label_col and c != id_col]
+
+        # This converts the features from a table to an array.
+        features = data[feature_cols].as_array()
+        features = features.view(numpy.float64).reshape(features.shape + (-1,))
+
+        # Read in labels.
+        labels = numpy.array(data[label_col], dtype=bool).reshape((1, -1, 1))
+
+        # We want to support multiple labellers in the future, but currently
+        # don't. So every labeller is the same, ID = 0.
+        labeller_ids = [b'0']
+
+        # Write to database.
+        db.write_features(ids, features)
+        db.write_labels(labeller_ids, ids, labels)
+
+    def __enter__(self):
+        self._tempdir = tempfile.TemporaryDirectory(prefix='acton')
+        # Read the whole file into a DB.
+        self._db_filepath = os.path.join(self._tempdir.name, 'db.h5')
+        # First, find the maximum ID length. Do this by reading in IDs.
+        data = io_ascii.read(self.path)
+        if self.id_col:
+            ids = [str(id_).encode('utf-8') for id_ in data[self.id_col]]
+        else:
+            ids = [str(id_).encode('utf-8')
+                   for id_ in range(len(data[self.label_col]))]
+
+        self.max_id_length = max(len(id_) for id_ in ids)
+
+        self._db = ManagedHDF5Database(
+            self._db_filepath,
+            max_id_length=self.max_id_length,
+            label_dtype='bool',
+            feature_dtype='float64')
+        self._db.__enter__()
+        self._db_from_ascii(self._db, data, self.feature_cols, self.label_col,
+                            ids, self.id_col)
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        self._db.__exit__(exc_type, exc_val, exc_tb)
+        self._tempdir.cleanup()
+        delattr(self, '_db')
+
+    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+        ids
+            Iterable of IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            N x D array of feature vectors.
+        """
+        return self._db.read_features(ids)
+
+    def read_labels(self,
+                    labeller_ids: Iterable[bytes],
+                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+        labeller_ids
+            Iterable of labeller IDs.
+        instance_ids
+            Iterable of instance IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            T x N x F array of label vectors.
+        """
+        return self._db.read_labels(labeller_ids, instance_ids)
+
+    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Iterable[bytes],
+                     instance_ids: Iterable[bytes],
+                     labels: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
+
+    def get_known_instance_ids(self) -> List[bytes]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        return self._db.get_known_instance_ids()
+
+    def get_known_labeller_ids(self) -> List[bytes]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        return self._db.get_known_labeller_ids()
+
+
 # For safe string-based access to database classes.
 DATABASES = {
+    'ASCIIReader': ASCIIReader,
+    'HDF5Reader': HDF5Reader,
     'ManagedHDF5Database': ManagedHDF5Database,
 }

@@ -8,7 +8,6 @@ Tests for `predictors` module.
 """
 
 import os.path
-import sys
 import tempfile
 import unittest
 import unittest.mock

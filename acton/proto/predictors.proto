@@ -44,6 +44,9 @@ message Labels {
 
     // Class of database.
     string db_class = 6;
+
+    // Keyword arguments to pass to the database constructor.
+    repeated KeyVal db_kwargs = 7;
 }
 
 /**

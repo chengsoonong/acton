@@ -58,10 +58,9 @@ class TestPredictorInput(unittest.TestCase):
     def test_features(self):
         """PredictorInput gives a features array."""
         # Setup mock.
-        for DB in acton.database.DATABASES:
-            DB = acton.database.DATABASES[DB]
-            db = DB().__enter__.return_value
-            db.read_features.return_value = self.features
+        DB = acton.database.DATABASES['ManagedHDF5Database']
+        db = DB().__enter__.return_value
+        db.read_features.return_value = self.features
 
         predictor_input = acton.proto.wrappers.PredictorInput(self.path)
         self.assertTrue(numpy.allclose(

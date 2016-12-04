@@ -1,8 +1,6 @@
 """Main processing script for Acton."""
 
 import logging
-import os.path
-import tempfile
 from typing import Iterable, List, TypeVar
 
 import acton.database
@@ -11,8 +9,6 @@ import acton.predictors
 import acton.proto.io
 import acton.proto.wrappers
 import acton.recommenders
-import astropy.io.ascii as io_ascii
-import astropy.table
 import numpy
 import sklearn.cross_validation
 import sklearn.linear_model

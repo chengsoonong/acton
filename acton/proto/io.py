@@ -1,6 +1,8 @@
 """Functions for reading/writing to protobufs."""
 
 import struct
+from typing import Union
+from typing.io import BinaryIO
 
 from google.protobuf.reflection import GeneratedProtocolMessageType
 import numpy
@@ -60,16 +62,20 @@ def write_protos(path: str):
             raise RuntimeError('Cannot write protobuf to closed file.')
 
 
-def read_protos(
-        path: str,
+def _read_protos(
+        proto_file: BinaryIO,
         Proto: GeneratedProtocolMessageType
 ) -> 'GeneratedProtocolMessageType()':
     """Reads many protobufs from a file.
 
+    Notes
+    -----
+    Internal use. For external API, use read_protos.
+
     Parameters
     ----------
     path
-        Path to binary file.
+        Binary file.
     Proto:
         Protocol message class (from the generated protobuf module).
 
@@ -79,14 +85,39 @@ def read_protos(
         A parsed protobuf.
     """
     # This is essentially the inverse of the write_protos function.
-    with open(path, 'rb') as proto_file:
-        length = proto_file.read(8)  # long long
-        while length:
-            length, = struct.unpack('<Q', length)
-            proto = Proto()
-            proto.ParseFromString(proto_file.read(length))
-            yield proto
-            length = proto_file.read(8)
+    length = proto_file.read(8)  # long long
+    while length:
+        length, = struct.unpack('<Q', length)
+        proto = Proto()
+        proto.ParseFromString(proto_file.read(length))
+        yield proto
+        length = proto_file.read(8)
+
+
+def read_protos(
+        file: Union[str, BinaryIO],
+        Proto: GeneratedProtocolMessageType
+) -> 'GeneratedProtocolMessageType()':
+    """Reads many protobufs from a file.
+
+    Parameters
+    ----------
+    file
+        Path to binary file, or file itself.
+    Proto:
+        Protocol message class (from the generated protobuf module).
+
+    Yields
+    -------
+    GeneratedProtocolMessageType
+        A parsed protobuf.
+    """
+    try:
+        yield from _read_protos(file, Proto)
+    except AttributeError:
+        # Not a file-like object, so open the file.
+        with open(file, 'rb') as proto_file:
+            yield from _read_protos(proto_file, Proto)
 
 
 def get_ndarray(data: list, shape: tuple, dtype: str) -> numpy.ndarray:

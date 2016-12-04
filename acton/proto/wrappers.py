@@ -33,7 +33,8 @@ class PredictorInput(object):
             else:
                 raise TypeError('proto should be str or protobuf.')
         self._validate_proto()
-        self.db_kwargs = {kwa.key: kwa.value for kwa in self.proto.db_kwargs}
+        self.db_kwargs = {kwa.key: json.loads(kwa.value)
+                          for kwa in self.proto.db_kwargs}
         self._set_default()
 
     @property

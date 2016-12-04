@@ -46,6 +46,7 @@ def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
 def simulate_active_learning(
         ids: Iterable[bytes],
         db: acton.database.Database,
+        db_kwargs: dict,
         output_path: str,
         n_initial_labels: int=10,
         n_epochs: int=10,
@@ -60,6 +61,8 @@ def simulate_active_learning(
         IDs of instances in the unlabelled pool.
     db
         Database with features and labels.
+    db_kwargs
+        Keyword arguments for the database constructor.
     output_path
         Path to output intermediate predictions to. Will be overwritten.
     n_initial_labels
@@ -139,7 +142,8 @@ def simulate_active_learning(
             test_pred.reshape((1,) + test_pred.shape),
             predictor=predictor_name,
             db_path=db.path,
-            db_class=db.__class__.__name__)
+            db_class=db.__class__.__name__,
+            db_kwargs=db_kwargs)
         # Then write them to a file.
         writer.send(proto.proto)
 
@@ -183,24 +187,21 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     """
     is_ascii = not data_path.endswith('.h5')
     if is_ascii:
-        with acton.database.ASCIIReader(
-                data_path, feature_cols=feature_cols, label_col=label_col,
-                id_col=id_col) as reader:
-            simulate_active_learning(reader.get_known_instance_ids(), reader,
-                                     output_path,
-                                     n_epochs=n_epochs,
-                                     n_initial_labels=initial_count,
-                                     recommender=recommender,
-                                     predictor=predictor)
-
+        DB = acton.database.ASCIIReader
     else:
         # Assume HDF5.
-        with acton.database.HDF5Reader(
-                data_path, feature_cols=feature_cols, label_col=label_col,
-                id_col=id_col) as reader:
-            simulate_active_learning(reader.get_known_instance_ids(), reader,
-                                     output_path,
-                                     n_epochs=n_epochs,
-                                     n_initial_labels=initial_count,
-                                     recommender=recommender,
-                                     predictor=predictor)
+        DB = acton.database.HDF5Reader
+
+    db_kwargs = {
+        'feature_cols': feature_cols,
+        'label_col': label_col,
+        'id_col': id_col,
+    }
+
+    with DB(data_path, **db_kwargs) as reader:
+        simulate_active_learning(reader.get_known_instance_ids(), reader,
+                                 db_kwargs, output_path,
+                                 n_epochs=n_epochs,
+                                 n_initial_labels=initial_count,
+                                 recommender=recommender,
+                                 predictor=predictor)

@@ -3,6 +3,14 @@ syntax = "proto3";
 package acton.predictors;
 
 /**
+ * Key/value pair.
+ */
+message KeyVal {
+    string key = 1;
+    string value = 2;
+}
+
+/**
  * Input to predictors.
  */
 message Labels {
@@ -79,4 +87,7 @@ message Predictions {
 
     // Class of database.
     string db_class = 7;
+
+    // Keyword arguments to pass to the database constructor.
+    repeated KeyVal db_kwargs = 8;
 }

@@ -1,5 +1,6 @@
 """Classes that wrap protobufs."""
 
+import json
 from typing import Union, List, Iterable
 
 import acton.database
@@ -32,6 +33,7 @@ class PredictorInput(object):
             else:
                 raise TypeError('proto should be str or protobuf.')
         self._validate_proto()
+        self.db_kwargs = {kwa.key: kwa.value for kwa in self.proto.db_kwargs}
         self._set_default()
 
     @property
@@ -47,7 +49,7 @@ class PredictorInput(object):
             return self._DB
 
         self._DB = lambda: acton.database.DATABASES[self.proto.db_class](
-            self.proto.db_path, label_dtype=self.proto.dtype)
+            self.proto.db_path, **self.db_kwargs)
 
         return self._DB
 
@@ -168,6 +170,8 @@ class PredictorOutput(object):
             else:
                 raise TypeError('proto should be str or protobuf.')
         self._validate_proto()
+        self.db_kwargs = {kwa.key: json.loads(kwa.value)
+                          for kwa in self.proto.db_kwargs}
         self._set_default()
 
     @property
@@ -183,7 +187,7 @@ class PredictorOutput(object):
             return self._DB
 
         self._DB = lambda: acton.database.DATABASES[self.proto.db_class](
-            self.proto.db_path, label_dtype=self.proto.dtype)
+            self.proto.db_path, **self.db_kwargs)
 
         return self._DB
 
@@ -221,7 +225,7 @@ class PredictorOutput(object):
 
         self._predictions = []
         for prediction in self.proto.prediction:
-            data = prediction.label
+            data = prediction.prediction
             shape = (self.proto.n_predictors,
                      self.proto.n_prediction_dimensions)
             dtype = self.proto.dtype
@@ -260,7 +264,8 @@ def from_predictions(
         predictions: numpy.ndarray,
         predictor: str='',
         db_path: str='',
-        db_class: str='') -> PredictorOutput:
+        db_class: str='',
+        db_kwargs: dict=None) -> PredictorOutput:
     """Converts NumPy predictions to a PredictorOutput.
 
     Parameters
@@ -275,12 +280,18 @@ def from_predictions(
         Path to database file.
     db_class
         Name of database class.
+    db_kwargs
+        Keyword arguments for the database constructor. Values must be
+        JSON-stringifiable.
 
     Returns
     -------
     PredictorOutput
     """
     proto = predictors_pb.Predictions()
+
+    # Handle default mutable arguments.
+    db_kwargs = db_kwargs or {}
 
     # Store single data first.
     n_predictors, n_instances, n_prediction_dimensions = predictions.shape
@@ -297,5 +308,11 @@ def from_predictions(
         prediction_ = proto.prediction.add()
         prediction_.id = id_
         prediction_.prediction.extend(prediction.ravel())
+
+    # Store the db_kwargs.
+    for key, value in db_kwargs.items():
+        kwarg = proto.db_kwargs.add()
+        kwarg.key = key
+        kwarg.value = json.dumps(value)
 
     return PredictorOutput(proto)

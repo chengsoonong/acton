@@ -21,3 +21,13 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Installation
+====================
+
+To install Acton, you will need protobuf-3.0.0. Then:
+
+.. code:: bash
+    git clone https://github.com/chengsoonong/acton.git
+    cd acton
+    protoc -I=acton/proto --python_out=acton/proto acton/proto/predictors.proto
+    pip3 install -e .

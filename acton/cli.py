@@ -57,6 +57,10 @@ import click
               type=click.Choice(acton.recommenders.RECOMMENDERS.keys()),
               default='RandomRecommender',
               help='Recommender to use')
+@click.option('--pandas-key',
+              type=str,
+              default='',
+              help='Key for pandas HDF5')
 @click.option('-v', '--verbose',
               is_flag=True,
               help='Verbose output')
@@ -74,6 +78,7 @@ def main(
         predictor: str,
         recommender: str,
         verbose: bool,
+        pandas_key: str,
 ):
     logging.warning('Not implemented: diversity, '
                     'recommendation_count, labeller_accuracy')
@@ -89,7 +94,8 @@ def main(
         n_epochs=epochs,
         initial_count=initial_count,
         recommender=recommender,
-        predictor=predictor)
+        predictor=predictor,
+        pandas_key=pandas_key)
 
 
 if __name__ == '__main__':

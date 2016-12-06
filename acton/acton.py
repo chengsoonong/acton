@@ -10,6 +10,7 @@ import acton.proto.io
 import acton.proto.wrappers
 import acton.recommenders
 import numpy
+import pandas
 import sklearn.cross_validation
 import sklearn.linear_model
 import sklearn.metrics
@@ -20,7 +21,7 @@ T = TypeVar('T')
 def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
     """Draws n random elements from a list.
 
-    Arguments
+    Parameters
     ---------
     n
         Number of elements to draw.
@@ -51,7 +52,7 @@ def simulate_active_learning(
         predictor: str='LogisticRegression'):
     """Simulates an active learning task.
 
-    arguments
+    Parameters
     ---------
     ids
         IDs of instances in the unlabelled pool.
@@ -153,12 +154,33 @@ def simulate_active_learning(
         logging.debug('Recommending: {}'.format(recommendations))
 
 
+def try_pandas(data_path: str) -> bool:
+    """Guesses if a file is a pandas file.
+
+    Parameters
+    ----------
+    data_path
+        Path to file.
+
+    Returns
+    -------
+    bool
+        True if the file is pandas.
+    """
+    try:
+        pandas.read_hdf(data_path)
+    except ValueError:
+        return False
+
+    return True
+
+
 def main(data_path: str, feature_cols: List[str], label_col: str,
          output_path: str, id_col: str=None, n_epochs: int=10,
          initial_count: int=10, recommender: str='RandomRecommender',
-         predictor: str='LogisticRegression'):
+         predictor: str='LogisticRegression', pandas_key: str=''):
     """
-    Arguments
+    Parameters
     ---------
     data_path
         Path to data file.
@@ -180,19 +202,29 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Name of recommender to make recommendations.
     predictor
         Name of predictor to make predictions.
+    pandas_key
+        Key for pandas HDF5. Specify iff using pandas.
     """
-    is_ascii = not data_path.endswith('.h5')
-    if is_ascii:
-        DB = acton.database.ASCIIReader
-    else:
-        # Assume HDF5.
-        DB = acton.database.HDF5Reader
-
     db_kwargs = {
         'feature_cols': feature_cols,
         'label_col': label_col,
         'id_col': id_col,
     }
+
+    is_ascii = not data_path.endswith('.h5')
+    if is_ascii:
+        logging.debug('Reading {} as ASCII.'.format(data_path))
+        DB = acton.database.ASCIIReader
+    else:
+        # Assume HDF5.
+        is_pandas = bool(pandas_key)
+        if is_pandas:
+            logging.debug('Reading {} as pandas.'.format(data_path))
+            DB = acton.database.PandasReader
+            db_kwargs['key'] = pandas_key
+        else:
+            logging.debug('Reading {} as HDF5.'.format(data_path))
+            DB = acton.database.HDF5Reader
 
     with DB(data_path, **db_kwargs) as reader:
         simulate_active_learning(reader.get_known_instance_ids(), reader,

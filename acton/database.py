@@ -11,6 +11,7 @@ import astropy.io.ascii as io_ascii
 import astropy.table
 import h5py
 import numpy
+import pandas
 
 
 def product(seq: Iterable[int]):
@@ -922,6 +923,172 @@ class ASCIIReader(Database):
             A list of known labeller IDs.
         """
         return self._db.get_known_labeller_ids()
+
+
+class PandasReader(Database):
+    """Reads HDF5 databases.
+
+    Attributes
+    ----------
+    feature_cols : List[str]
+        List of feature datasets.
+    id_col : str
+        Name of ID dataset.
+    label_col : str
+        Name of label dataset.
+    n_features : int
+        Number of features.
+    n_instances : int
+        Number of instances.
+    n_labels : int
+        Number of labels per instance.
+    path : str
+        Path to HDF5 file.
+    _df : pandas.DataFrame
+        HDF5 file object.
+    """
+
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 key: str, id_col: str=None):
+        """
+        Parameters
+        ----------
+        path
+            Path to HDF5 file.
+        feature_cols
+            List of feature datasets. If only one feature dataset is specified,
+            this dataset is allowed to be a multidimensional dataset and contain
+            multiple features.
+        label_col
+            Name of label dataset.
+        key
+            Pandas key.
+        id_col
+            Name of ID dataset.
+        """
+        self.path = path
+        self.feature_cols = feature_cols
+        self.label_col = label_col
+        self.id_col = id_col
+        self.key = key
+        self._df = pandas.read_hdf(self.path, self.key)
+        if self.id_col:
+            # Build an index for quickly querying the ID column.
+            self._df.set_index([self.id_col])
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        delattr(self, '_df')
+
+    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+        ids
+            Iterable of IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            N x D array of feature vectors.
+        """
+        # TODO(MatthewJA): Optimise this.
+        # Allocate output features array.
+        features = numpy.zeros((len(ids), self.n_features))
+        # For each ID, get the corresponding features.
+        for out_index, id_ in enumerate(ids):
+            if self.id_col:
+                sel = self._df.loc[self._df[self.id_col] == id_]
+                if not sel:
+                    raise ValueError('Unknown ID: {}'.format(id_))
+                sel = sel.ix[0]
+            else:
+                sel = self._df.ix[int(id_)]
+
+            for feature_index, feature in enumerate(self.feature_cols):
+                features[out_index, feature_index] = sel[feature]
+
+        return features
+
+    def read_labels(self,
+                    labeller_ids: Iterable[bytes],
+                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+        labeller_ids
+            Iterable of labeller IDs.
+        instance_ids
+            Iterable of instance IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            T x N x F array of label vectors.
+        """
+        raise NotImplementedError()
+        # # TODO(MatthewJA): Optimise this.
+        # self._assert_open()
+        # # Allocate output labels array.
+        # labels = numpy.zeros(
+        #     (len(labeller_ids), len(instance_ids), self.n_labels))
+
+        # if len(labeller_ids) > 1:
+        #     raise NotImplementedError('Multiple labellers not yet supported.')
+
+        # # For each ID, get the corresponding labels. This could be achieved
+        # # significantly faster.
+        # for out_index, id_ in enumerate(instance_ids):
+        #     for in_index, id__ in enumerate(self.get_known_instance_ids()):
+        #         if id_ != id__:
+        #             continue
+
+        #         instance_labels = self._h5_file[
+        #             self.label_col][in_index]
+        #         labels[0, out_index] = instance_labels
+        #         break
+        #     else:
+        #         raise ValueError('Unknown ID: {}'.format(id_))
+
+        # return labels
+
+    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Iterable[bytes],
+                     instance_ids: Iterable[bytes],
+                     labels: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def get_known_instance_ids(self) -> List[bytes]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        raise NotImplementedError()
+        # self._assert_open()
+        # if not self.id_col:
+        #     return [str(i).encode('utf-8') for i in range(self.n_instances)]
+        # else:
+        #     return list(self._h5_file[self.id_col])
+
+    def get_known_labeller_ids(self) -> List[bytes]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        raise NotImplementedError()
 
 
 # For safe string-based access to database classes.

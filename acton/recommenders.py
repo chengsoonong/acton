@@ -86,8 +86,42 @@ class QBCRecommender(Recommender):
         return ids[agreement.argmin()]
 
 
+class UncertaintyRecommender(Recommender):
+    """Recommends instances by uncertainty sampling."""
+
+    def recommend(self, ids: Sequence[bytes],
+                  predictions: numpy.ndarray) -> bytes:
+        """Recommends an instance to label.
+
+        Notes
+        -----
+        Assumes predictions are probabilities of positive binary label.
+
+        Parameters
+        ----------
+        ids
+            Sequence of IDs in the unlabelled data pool.
+        predictions
+            N x 1 array of predictions. The ith row must correspond with the ith
+            ID in the sequence.
+
+        Returns
+        -------
+        bytes
+            ID of the instance to label.
+        """
+        if predictions.shape[1] != 1:
+            raise ValueError('Uncertainty sampling must have one predictor')
+
+        assert len(ids) == predictions.shape[0]
+
+        distances = numpy.abs(predictions - 0.5)
+        return ids[distances.argmin()]
+
+
 # For safe string-based access to recommender classes.
 RECOMMENDERS = {
     'RandomRecommender': RandomRecommender,
     'QBCRecommender': QBCRecommender,
+    'UncertaintyRecommender': UncertaintyRecommender,
 }

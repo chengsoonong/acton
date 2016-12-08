@@ -945,7 +945,7 @@ class PandasReader(Database):
     path : str
         Path to HDF5 file.
     _df : pandas.DataFrame
-        HDF5 file object.
+        Pandas dataframe.
     """
 
     def __init__(self, path: str, feature_cols: List[str], label_col: str,
@@ -956,9 +956,8 @@ class PandasReader(Database):
         path
             Path to HDF5 file.
         feature_cols
-            List of feature datasets. If only one feature dataset is specified,
-            this dataset is allowed to be a multidimensional dataset and contain
-            multiple features.
+            List of feature columns. If none are specified, then all non-label,
+            non-ID columns will be used.
         label_col
             Name of label dataset.
         key
@@ -975,6 +974,13 @@ class PandasReader(Database):
         if self.id_col:
             # Build an index for quickly querying the ID column.
             self._df.set_index([self.id_col])
+
+        if not self.feature_cols:
+            self.feature_cols = [k for k in self._df.keys()
+                                 if k not in {self.label_col, self.id_col}]
+
+        self.n_instances = len(self._df[self.label_col])
+        self.n_features = len(self.feature_cols)
 
     def __enter__(self):
         return self
@@ -1028,33 +1034,28 @@ class PandasReader(Database):
         Returns
         -------
         numpy.ndarray
-            T x N x F array of label vectors.
+            T x N x 1 array of label vectors.
         """
-        raise NotImplementedError()
-        # # TODO(MatthewJA): Optimise this.
-        # self._assert_open()
-        # # Allocate output labels array.
-        # labels = numpy.zeros(
-        #     (len(labeller_ids), len(instance_ids), self.n_labels))
+        # Allocate output labels array.
+        labels = numpy.zeros(
+            (len(labeller_ids), len(instance_ids), 1))
 
-        # if len(labeller_ids) > 1:
-        #     raise NotImplementedError('Multiple labellers not yet supported.')
+        if len(labeller_ids) > 1:
+            raise NotImplementedError('Multiple labellers not yet supported.')
 
-        # # For each ID, get the corresponding labels. This could be achieved
-        # # significantly faster.
-        # for out_index, id_ in enumerate(instance_ids):
-        #     for in_index, id__ in enumerate(self.get_known_instance_ids()):
-        #         if id_ != id__:
-        #             continue
+        # For each ID, get the corresponding labels.
+        for out_index, id_ in enumerate(instance_ids):
+            if self.id_col:
+                sel = self._df.loc[self._df[self.id_col] == id_]
+                if not sel:
+                    raise ValueError('Unknown ID: {}'.format(id_))
+                sel = sel.ix[0]
+            else:
+                sel = self._df.ix[int(id_)]
 
-        #         instance_labels = self._h5_file[
-        #             self.label_col][in_index]
-        #         labels[0, out_index] = instance_labels
-        #         break
-        #     else:
-        #         raise ValueError('Unknown ID: {}'.format(id_))
+            labels[0, out_index, 0] = sel[self.label_col]
 
-        # return labels
+        return labels
 
     def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
@@ -1073,12 +1074,10 @@ class PandasReader(Database):
         List[str]
             A list of known instance IDs.
         """
-        raise NotImplementedError()
-        # self._assert_open()
-        # if not self.id_col:
-        #     return [str(i).encode('utf-8') for i in range(self.n_instances)]
-        # else:
-        #     return list(self._h5_file[self.id_col])
+        if not self.id_col:
+            return [str(i).encode('utf-8') for i in range(self.n_instances)]
+        else:
+            return list(self._df[self.id_col])
 
     def get_known_labeller_ids(self) -> List[bytes]:
         """Returns a list of known labeller IDs.
@@ -1096,4 +1095,5 @@ DATABASES = {
     'ASCIIReader': ASCIIReader,
     'HDF5Reader': HDF5Reader,
     'ManagedHDF5Database': ManagedHDF5Database,
+    'PandasReader': PandasReader,
 }

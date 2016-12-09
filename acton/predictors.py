@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import acton.database
+import acton.kde_predictor
 import numpy
 import sklearn.base
 import sklearn.cross_validation
@@ -326,7 +327,12 @@ def _logistic_regression_committee() -> type:
     return make_committee
 
 
+def _kde() -> type:
+    return from_class(acton.kde_predictor.KDEClassifier)
+
+
 PREDICTORS = {
     'LogisticRegression': _logistic_regression(),
     'LogisticRegressionCommittee': _logistic_regression_committee(),
+    'KDE': _kde(),
 }

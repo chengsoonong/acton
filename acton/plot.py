@@ -1,6 +1,7 @@
 """Script to plot a dump of predictions."""
 
 import sys
+from typing import Iterable
 from typing.io import BinaryIO
 
 import acton.proto.io
@@ -11,20 +12,14 @@ import matplotlib.pyplot as plt
 import sklearn.metrics
 
 
-@click.command()
-@click.argument('predictions',
-                type=click.File('rb'),
-                nargs=-1,
-                required=True)
-def plot(predictions: BinaryIO):
+def plot(predictions: Iterable[BinaryIO]):
     """Plots predictions from a file.
 
     Parameters
     ----------
     predictions
-        Predictions file.
+        Files containing predictions.
     """
-
     if len(predictions) < 1:
         raise ValueError('Must have at least 1 set of predictions.')
 
@@ -37,7 +32,7 @@ def plot(predictions: BinaryIO):
             for protobuf in acton.proto.io.read_protos(
                     predictions_, Predictions):
                 protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
-                ids = protobuf.ids
+                ids = [id_.encode('ascii') for id_ in protobuf.ids]
                 predictions_ = protobuf.predictions
                 assert predictions_.shape[0] == 1
                 predictions_ = predictions_[0]
@@ -54,5 +49,21 @@ def plot(predictions: BinaryIO):
     plt.show()
 
 
+@click.command()
+@click.argument('predictions',
+                type=click.File('rb'),
+                nargs=-1,
+                required=True)
+def _plot(predictions: Iterable[BinaryIO]):
+    """Plots predictions from a file.
+
+    Parameters
+    ----------
+    predictions
+        Files containing predictions.
+    """
+    return plot(predictions)
+
+
 if __name__ == '__main__':
-    sys.exit(plot())
+    sys.exit(_plot())

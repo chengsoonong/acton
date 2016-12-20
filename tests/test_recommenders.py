@@ -25,4 +25,4 @@ class TestRandomRecommender(unittest.TestCase):
         ids = {str(a).encode('ascii') for a in range(1000)}
         rr = acton.recommenders.RandomRecommender()
         id_ = rr.recommend(ids, predictions=None)
-        self.assertIn(id_, ids)
+        self.assertIn(id_[0], ids)

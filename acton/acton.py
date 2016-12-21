@@ -49,7 +49,8 @@ def simulate_active_learning(
         n_epochs: int=10,
         test_size: int=0.2,
         recommender: str='RandomRecommender',
-        predictor: str='LogisticRegression'):
+        predictor: str='LogisticRegression',
+        n_recommendations: int=1):
     """Simulates an active learning task.
 
     Parameters
@@ -72,6 +73,8 @@ def simulate_active_learning(
         Name of recommender to make recommendations.
     predictor
         Name of predictor to make predictions.
+    n_recommendations
+        Number of recommendations to make at once.
     """
     # Validation.
     if recommender not in acton.recommenders.RECOMMENDERS:
@@ -95,7 +98,7 @@ def simulate_active_learning(
     predictor = acton.predictors.PREDICTORS[predictor](db=db)
 
     labeller = acton.labellers.DatabaseLabeller(db)
-    recommender = acton.recommenders.RECOMMENDERS[recommender]()
+    recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
 
     # Draw some initial labels.
     recommendations = draw(n_initial_labels, train_ids, replace=False)
@@ -146,11 +149,13 @@ def simulate_active_learning(
 
         # Pass the predictions to the recommender.
         unlabelled_ids = list(set(ids) - set(labelled_ids))
+        if not unlabelled_ids:
+            logging.info('Labelled all instances.')
+            break
+
         predictions = predictor.predict(unlabelled_ids)
-        recommendations = [
-            recommender.recommend(unlabelled_ids,
-                                  predictions)
-        ]
+        recommendations = recommender.recommend(
+            unlabelled_ids, predictions, n=n_recommendations)
         logging.debug('Recommending: {}'.format(recommendations))
 
 
@@ -178,7 +183,8 @@ def try_pandas(data_path: str) -> bool:
 def main(data_path: str, feature_cols: List[str], label_col: str,
          output_path: str, id_col: str=None, n_epochs: int=10,
          initial_count: int=10, recommender: str='RandomRecommender',
-         predictor: str='LogisticRegression', pandas_key: str=''):
+         predictor: str='LogisticRegression', pandas_key: str='',
+         n_recommendations: int=1):
     """
     Parameters
     ---------
@@ -204,6 +210,8 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Name of predictor to make predictions.
     pandas_key
         Key for pandas HDF5. Specify iff using pandas.
+    n_recommendations
+        Number of recommendations to make at once.
     """
     db_kwargs = {
         'feature_cols': feature_cols,
@@ -232,4 +240,5 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
                                  n_epochs=n_epochs,
                                  n_initial_labels=initial_count,
                                  recommender=recommender,
-                                 predictor=predictor)
+                                 predictor=predictor,
+                                 n_recommendations=n_recommendations)

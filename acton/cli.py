@@ -80,8 +80,7 @@ def main(
         verbose: bool,
         pandas_key: str,
 ):
-    logging.warning('Not implemented: diversity, '
-                    'recommendation_count, labeller_accuracy')
+    logging.warning('Not implemented: diversity, labeller_accuracy')
     logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
@@ -95,7 +94,8 @@ def main(
         initial_count=initial_count,
         recommender=recommender,
         predictor=predictor,
-        pandas_key=pandas_key)
+        pandas_key=pandas_key,
+        n_recommendations=recommendation_count)
 
 
 if __name__ == '__main__':

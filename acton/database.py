@@ -654,7 +654,7 @@ class HDF5Reader(HDF5Database):
                 break
             else:
                 raise ValueError('Unknown ID: {}'.format(id_))
-        return features
+        return numpy.nan_to_num(features)
 
     def read_labels(self,
                     labeller_ids: Iterable[bytes],

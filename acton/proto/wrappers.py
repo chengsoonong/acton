@@ -307,7 +307,7 @@ def from_predictions(
     # instances.
     for id_, prediction in zip(ids, predictions.transpose((1, 0, 2))):
         prediction_ = proto.prediction.add()
-        prediction_.id = id_
+        prediction_.id = int(id_)  # numpy.int64 -> int
         prediction_.prediction.extend(prediction.ravel())
 
     # Store the db_kwargs.

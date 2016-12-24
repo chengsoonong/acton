@@ -182,8 +182,8 @@ def try_pandas(data_path: str) -> bool:
 
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
-         output_path: str, id_col: str=None, n_epochs: int=10,
-         initial_count: int=10, recommender: str='RandomRecommender',
+         output_path: str, n_epochs: int=10, initial_count: int=10,
+         recommender: str='RandomRecommender',
          predictor: str='LogisticRegression', pandas_key: str='',
          n_recommendations: int=1):
     """
@@ -198,9 +198,6 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Column name of the labels.
     output_path
         Path to output file. Will be overwritten.
-    id_col
-        Column name of the IDs. If not specified, IDs will be automatically
-        assigned.
     n_epochs
         Number of epochs to run.
     initial_count
@@ -217,7 +214,6 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     db_kwargs = {
         'feature_cols': feature_cols,
         'label_col': label_col,
-        'id_col': id_col,
     }
 
     is_ascii = not data_path.endswith('.h5')

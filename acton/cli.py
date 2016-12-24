@@ -80,7 +80,7 @@ def main(
         verbose: bool,
         pandas_key: str,
 ):
-    logging.warning('Not implemented: diversity, labeller_accuracy')
+    logging.warning('Not implemented: diversity, id_col, labeller_accuracy')
     logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
@@ -89,7 +89,6 @@ def main(
         feature_cols=feature,
         label_col=label,
         output_path=output,
-        id_col=id,
         n_epochs=epochs,
         initial_count=initial_count,
         recommender=recommender,

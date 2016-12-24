@@ -304,7 +304,7 @@ class ManagedHDF5Database(HDF5Database):
         n_old_ids = self._h5_file['instance_ids'].shape[0]
         self._h5_file['instance_ids'].resize((n_old_ids + n_new_ids,))
         self._h5_file['instance_ids'][-n_new_ids:] = numpy.array(
-            new_ids, dtype='int64')
+            new_ids, dtype=int)
 
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
@@ -414,7 +414,7 @@ class ManagedHDF5Database(HDF5Database):
             self._h5_file['instance_ids'].resize(
                 (n_old_instance_ids + n_new_instance_ids,))
             self._h5_file['instance_ids'][-n_new_instance_ids:] = numpy.array(
-                new_instance_ids, dtype='int64')
+                new_instance_ids, dtype=int)
 
         # Add the labeller IDs to the database.
         known_labeller_ids = set(self.get_known_labeller_ids())
@@ -426,7 +426,7 @@ class ManagedHDF5Database(HDF5Database):
             self._h5_file['labeller_ids'].resize(
                 (n_old_labeller_ids + n_new_labeller_ids,))
             self._h5_file['labeller_ids'][-n_new_labeller_ids:] = numpy.array(
-                new_labeller_ids, dtype='int64')
+                new_labeller_ids, dtype=int)
 
     def read_labels(self,
                     labeller_ids: Sequence[int],
@@ -451,7 +451,6 @@ class ManagedHDF5Database(HDF5Database):
                 labeller_ids or instance_ids):
             raise KeyError('No labels stored in database.')
 
-        logging.debug('Querying labeller IDs: {}'.format(labeller_ids))
         labels = self._h5_file['labels'].value[labeller_ids][:, instance_ids, :]
         labels = numpy.asarray(labels, dtype=self._h5_file.attrs['label_dtype'])
 
@@ -498,9 +497,9 @@ class ManagedHDF5Database(HDF5Database):
                                dtype=self.label_dtype,
                                maxshape=(None, None, None))
         h5_file.create_dataset('instance_ids', shape=(0,),
-                               dtype='int64', maxshape=(None,))
+                               dtype=int, maxshape=(None,))
         h5_file.create_dataset('labeller_ids', shape=(0,),
-                               dtype='int64', maxshape=(None,))
+                               dtype=int, maxshape=(None,))
         h5_file.attrs['label_dtype'] = self.label_dtype
         h5_file.attrs['feature_dtype'] = self.feature_dtype
         h5_file.attrs['n_features'] = -1

@@ -111,7 +111,6 @@ class DatabaseLabeller(Labeller):
         numpy.ndarray
             1 x 1 label array.
         """
-        assert isinstance(id_, int)
         return self._db.read_labels([0], [id_]).reshape((1, 1))
 
 

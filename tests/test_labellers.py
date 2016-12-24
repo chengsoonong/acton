@@ -44,8 +44,8 @@ ATCDFS J033126.71-285630.3|03 31 26.72|-28 56 30.3|0
         labeller = acton.labellers.ASCIITableLabeller(
             self.path, 'name', 'is_agn')
         self.assertEqual(
-            labeller.query(b'ATCDFS J032637.29-285738.2'),
+            labeller.query(0),
             numpy.array([[1]]))
         self.assertEqual(
-            labeller.query(b'ATCDFS J033056.94-285637.2'),
+            labeller.query(4),
             numpy.array([[0]]))

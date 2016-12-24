@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from inspect import Traceback
+import logging
 import os.path
 import tempfile
 from typing import Iterable, List, Sequence
@@ -272,6 +273,10 @@ class ManagedHDF5Database(HDF5Database):
                 'Expected features to have dimensionality {}, got {}'.format(
                     self._h5_file.attrs['n_features'], features.shape[1]))
 
+        # Early termination.
+        if not ids:
+            return
+
         # Cast the features to the right type.
         if features.dtype != self.feature_dtype:
             warnings.warn('Casting features from type {} to type {}.'.format(
@@ -279,13 +284,16 @@ class ManagedHDF5Database(HDF5Database):
             features = features.astype(self.feature_dtype)
 
         # Resize the feature array if we need to store more IDs than before.
-        max_id = max(ids)
-        if max_id >= self._h5_file['features'].shape[0]:
+        max_id = max(ids) + 1
+        if max_id > self._h5_file['features'].shape[0]:
             self._h5_file['features'].resize(
-                (max_id, self._h5_file['features'].shape[1]))
+                (max_id, self._h5_file.attrs['n_features']))
         # Store the feature vectors.
         # TODO(MatthewJA): Vectorise this. This could be tricky as HDF5 doesn't
         # fully support NumPy's fancy indexing.
+        logging.debug('Writing IDs: {}'.format(ids))
+        logging.debug('Max allowed ID: {}'.format(
+            self._h5_file['features'].shape[0]))
         for id_, feature in zip(ids, features):
             self._h5_file['features'][id_, :] = feature
 
@@ -367,6 +375,10 @@ class ManagedHDF5Database(HDF5Database):
                 'Expected labels to have dimensionality {}, got {}'.format(
                     self._h5_file.attrs['label_dim'], labels.shape[2]))
 
+        # Early termination.
+        if not labeller_ids or not instance_ids:
+            return
+
         # Cast the labels to the right type.
         if labels.dtype != self.label_dtype:
             warnings.warn('Casting labels from type {} to type {}.'.format(
@@ -374,13 +386,13 @@ class ManagedHDF5Database(HDF5Database):
             labels = labels.astype(self.label_dtype)
 
         # Resize the label array if necessary.
-        max_labeller_id = max(labeller_ids)
-        max_instance_id = max(instance_ids)
-        if (max_labeller_id >= self._h5_file['labels'].shape[0] or
-                max_instance_id >= self._h5_file['labels'].shape[1]):
+        max_labeller_id = max(labeller_ids) + 1
+        max_instance_id = max(instance_ids) + 1
+        if (max_labeller_id > self._h5_file['labels'].shape[0] or
+                max_instance_id > self._h5_file['labels'].shape[1]):
             self._h5_file['labels'].resize(
                 (max_labeller_id, max_instance_id,
-                 self._h5_file['labels'].shape[2]))
+                 self._h5_file.attrs['label_dim']))
         # Store the labels.
         # TODO(MatthewJA): Vectorise this.
         for labeller_idx, labeller_id in enumerate(labeller_ids):
@@ -388,6 +400,9 @@ class ManagedHDF5Database(HDF5Database):
                 label = labels[labeller_idx, instance_idx]
                 self._h5_file['labels'][
                     labeller_id, instance_id, :] = label
+
+        logging.debug(
+            'New label array size: {}'.format(self._h5_file['labels'].shape))
 
         # Add the instance IDs to the database.
         known_instance_ids = set(self.get_known_instance_ids())
@@ -436,7 +451,8 @@ class ManagedHDF5Database(HDF5Database):
                 labeller_ids or instance_ids):
             raise KeyError('No labels stored in database.')
 
-        labels = self._h5_file['labels'].value[labeller_ids, instance_ids, :]
+        logging.debug('Querying labeller IDs: {}'.format(labeller_ids))
+        labels = self._h5_file['labels'].value[labeller_ids][:, instance_ids, :]
         labels = numpy.asarray(labels, dtype=self._h5_file.attrs['label_dtype'])
 
         return labels

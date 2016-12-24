@@ -39,7 +39,7 @@ def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
     # is True - so we should use that here.
     return list(numpy.random.choice(lst, size=n, replace=replace))
 
-@profile
+
 def simulate_active_learning(
         ids: Iterable[int],
         db: acton.database.Database,

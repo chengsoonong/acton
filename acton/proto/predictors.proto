@@ -19,7 +19,7 @@ message Labels {
      */
     message LabelledInstance {
         // The ID of the instance that we are labelling.
-        string id = 1;
+        int64 id = 1;
 
         // Labels are a T x D array, where
         // - T is the number of labellers, and
@@ -58,7 +58,7 @@ message Predictions {
      */
     message Prediction {
         // The ID of the instance that we are predicting.
-        string id = 1;
+        int64 id = 1;
 
         // Predictions are a T x D array, where
         // - T is the number of predictors, and

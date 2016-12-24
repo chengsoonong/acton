@@ -75,9 +75,9 @@ class Recommender(ABC):
     """
 
     @abstractmethod
-    def recommend(self, ids: Iterable[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Parameters
@@ -93,7 +93,7 @@ class Recommender(ABC):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
 
@@ -110,9 +110,9 @@ class RandomRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Iterable[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Parameters
@@ -128,7 +128,7 @@ class RandomRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         return numpy.random.choice(list(ids), size=n)
@@ -146,9 +146,9 @@ class QBCRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Sequence[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Notes
@@ -169,7 +169,7 @@ class QBCRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         assert predictions.shape[1] > 2, "QBC must have > 2 predictors."
@@ -198,9 +198,9 @@ class UncertaintyRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Sequence[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Notes
@@ -221,7 +221,7 @@ class UncertaintyRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         if predictions.shape[1] != 1:

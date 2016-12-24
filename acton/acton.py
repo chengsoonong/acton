@@ -41,7 +41,7 @@ def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
 
 
 def simulate_active_learning(
-        ids: Iterable[bytes],
+        ids: Iterable[int],
         db: acton.database.Database,
         db_kwargs: dict,
         output_path: str,
@@ -90,7 +90,7 @@ def simulate_active_learning(
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
-    test_labels = db.read_labels([b'0'], test_ids)
+    test_labels = db.read_labels([0], test_ids)
 
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
@@ -130,6 +130,7 @@ def simulate_active_learning(
         predictor.fit(labelled_ids)
 
         # Evaluate the predictor.
+        # TODO(MatthewJA): Delete this!
         test_pred = predictor.reference_predict(test_ids)
         accuracy = sklearn.metrics.accuracy_score(
             test_labels.ravel(), test_pred.mean(axis=1).round().ravel())

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from inspect import Traceback
 import os.path
 import tempfile
-from typing import Iterable, List
+from typing import Iterable, List, Sequence
 import warnings
 
 import astropy.io.ascii as io_ascii
@@ -45,7 +45,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -61,8 +61,8 @@ class Database(ABC):
 
     @abstractmethod
     def read_labels(self,
-                    labeller_ids: Iterable[bytes],
-                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -79,7 +79,7 @@ class Database(ABC):
         """
 
     @abstractmethod
-    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         """Writes feature vectors to the database.
 
         Parameters
@@ -93,8 +93,8 @@ class Database(ABC):
 
     @abstractmethod
     def write_labels(self,
-                     labeller_ids: Iterable[bytes],
-                     instance_ids: Iterable[bytes],
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         """Writes label vectors to the database.
 
@@ -111,7 +111,7 @@ class Database(ABC):
         """
 
     @abstractmethod
-    def get_known_instance_ids(self) -> List[bytes]:
+    def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
 
         Returns
@@ -121,7 +121,7 @@ class Database(ABC):
         """
 
     @abstractmethod
-    def get_known_labeller_ids(self) -> List[bytes]:
+    def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
 
         Returns
@@ -250,7 +250,7 @@ class ManagedHDF5Database(HDF5Database):
 
         self._validate_hdf5()
 
-    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         """Writes feature vectors to the database.
 
         Parameters
@@ -303,7 +303,7 @@ class ManagedHDF5Database(HDF5Database):
         self._h5_file['instance_ids'][-n_new_ids:] = numpy.array(
             new_ids, dtype='<S{}'.format(self.max_id_length))
 
-    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -335,8 +335,8 @@ class ManagedHDF5Database(HDF5Database):
         return features
 
     def write_labels(self,
-                     labeller_ids: Iterable[bytes],
-                     instance_ids: Iterable[bytes],
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         """Writes label vectors to the database.
 
@@ -423,8 +423,8 @@ class ManagedHDF5Database(HDF5Database):
                 new_labeller_ids, dtype='<S{}'.format(self.max_id_length))
 
     def read_labels(self,
-                    labeller_ids: Iterable[bytes],
-                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -471,7 +471,7 @@ class ManagedHDF5Database(HDF5Database):
 
         return labels
 
-    def get_known_instance_ids(self) -> List[bytes]:
+    def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
 
         Returns
@@ -482,7 +482,7 @@ class ManagedHDF5Database(HDF5Database):
         self._assert_open()
         return [id_ for id_ in self._h5_file['instance_ids']]
 
-    def get_known_labeller_ids(self) -> List[bytes]:
+    def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
 
         Returns
@@ -617,7 +617,7 @@ class HDF5Reader(HDF5Database):
             else:
                 self.n_features = len(feature_cols)
 
-    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -657,8 +657,8 @@ class HDF5Reader(HDF5Database):
         return numpy.nan_to_num(features)
 
     def read_labels(self,
-                    labeller_ids: Iterable[bytes],
-                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -698,16 +698,16 @@ class HDF5Reader(HDF5Database):
 
         return labels
 
-    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
 
     def write_labels(self,
-                     labeller_ids: Iterable[bytes],
-                     instance_ids: Iterable[bytes],
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
 
-    def get_known_instance_ids(self) -> List[bytes]:
+    def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
 
         Returns
@@ -721,7 +721,7 @@ class HDF5Reader(HDF5Database):
         else:
             return list(self._h5_file[self.id_col])
 
-    def get_known_labeller_ids(self) -> List[bytes]:
+    def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
 
         Returns
@@ -861,7 +861,7 @@ class ASCIIReader(Database):
         self._tempdir.cleanup()
         delattr(self, '_db')
 
-    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -877,8 +877,8 @@ class ASCIIReader(Database):
         return self._db.read_features(ids)
 
     def read_labels(self,
-                    labeller_ids: Iterable[bytes],
-                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -895,16 +895,16 @@ class ASCIIReader(Database):
         """
         return self._db.read_labels(labeller_ids, instance_ids)
 
-    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         raise NotImplementedError('Cannot write to read-only database.')
 
     def write_labels(self,
-                     labeller_ids: Iterable[bytes],
-                     instance_ids: Iterable[bytes],
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         raise NotImplementedError('Cannot write to read-only database.')
 
-    def get_known_instance_ids(self) -> List[bytes]:
+    def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
 
         Returns
@@ -914,7 +914,7 @@ class ASCIIReader(Database):
         """
         return self._db.get_known_instance_ids()
 
-    def get_known_labeller_ids(self) -> List[bytes]:
+    def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
 
         Returns
@@ -988,7 +988,7 @@ class PandasReader(Database):
     def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
         delattr(self, '_df')
 
-    def read_features(self, ids: Iterable[bytes]) -> numpy.ndarray:
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
         Parameters
@@ -1020,8 +1020,8 @@ class PandasReader(Database):
         return features
 
     def read_labels(self,
-                    labeller_ids: Iterable[bytes],
-                    instance_ids: Iterable[bytes]) -> numpy.ndarray:
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
         """Reads label vectors from the database.
 
         Parameters
@@ -1057,16 +1057,16 @@ class PandasReader(Database):
 
         return labels
 
-    def write_features(self, ids: Iterable[bytes], features: numpy.ndarray):
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
 
     def write_labels(self,
-                     labeller_ids: Iterable[bytes],
-                     instance_ids: Iterable[bytes],
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')
 
-    def get_known_instance_ids(self) -> List[bytes]:
+    def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
 
         Returns
@@ -1079,7 +1079,7 @@ class PandasReader(Database):
         else:
             return list(self._df[self.id_col])
 
-    def get_known_labeller_ids(self) -> List[bytes]:
+    def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
 
         Returns

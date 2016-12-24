@@ -26,7 +26,7 @@ class TestPredictorInput(unittest.TestCase):
         # Make a protobuf.
         self.labels = Labels()
         self.instance = self.labels.instance.add()
-        self.instance.id = 'instance id'
+        self.instance.id = 1
         self.instance.label.extend([0, 1])
         self.labels.n_labellers = 2
         self.labels.n_label_dimensions = 1
@@ -74,7 +74,7 @@ class TestFromPredictions(unittest.TestCase):
         self.n_predictors = 10
         self.n_instances = 20
         self.n_prediction_dimensions = 5
-        self.ids = [str(i).encode('ascii') for i in range(self.n_instances)]
+        self.ids = list(range(self.n_instances))
         self.predictions = numpy.random.random(
             size=(self.n_predictors, self.n_instances,
                   self.n_prediction_dimensions))
@@ -95,7 +95,7 @@ class TestFromPredictions(unittest.TestCase):
                 ))
             ))
             self.assertEqual(self.ids[i],
-                             proto.proto.prediction[i].id.encode('ascii'))
+                             proto.proto.prediction[i].id)
         self.assertEqual(self.n_predictors, proto.proto.n_predictors)
         self.assertEqual(
             self.n_prediction_dimensions,
@@ -114,11 +114,11 @@ class TestIntegrationCommittee(unittest.TestCase):
         self.labels = Labels()
 
         self.instance_1 = self.labels.instance.add()
-        self.instance_1.id = b'instance id 1'
+        self.instance_1.id = 1
         self.instance_1.label.append(float(0))
 
         self.instance_2 = self.labels.instance.add()
-        self.instance_2.id = b'instance id 2'
+        self.instance_2.id = 3
         self.instance_2.label.append(float(1))
 
         self.labels.n_labellers = 1
@@ -139,9 +139,9 @@ class TestIntegrationCommittee(unittest.TestCase):
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
                               self.features)
-            labels = numpy.array([i.label for i in self.labels.instance]
-                ).reshape((1, -1, 1))
-            db.write_labels([b'0'], [self.instance_1.id, self.instance_2.id],
+            labels = numpy.array(
+                [i.label for i in self.labels.instance]).reshape((1, -1, 1))
+            db.write_labels([0], [self.instance_1.id, self.instance_2.id],
                             labels)
 
     def tearDown(self):
@@ -169,11 +169,11 @@ class TestSklearnWrapper(unittest.TestCase):
         self.labels = Labels()
 
         self.instance_1 = self.labels.instance.add()
-        self.instance_1.id = b'instance id 1'
+        self.instance_1.id = 1
         self.instance_1.label.append(float(0))
 
         self.instance_2 = self.labels.instance.add()
-        self.instance_2.id = b'instance id 2'
+        self.instance_2.id = 3
         self.instance_2.label.append(float(1))
 
         self.labels.n_labellers = 1
@@ -194,9 +194,9 @@ class TestSklearnWrapper(unittest.TestCase):
                 feature_dtype='int32') as db:
             db.write_features([self.instance_1.id, self.instance_2.id],
                               self.features)
-            labels = numpy.array([i.label for i in self.labels.instance]
-                ).reshape((1, -1, 1))
-            db.write_labels([b'0'], [self.instance_1.id, self.instance_2.id],
+            labels = numpy.array(
+                [i.label for i in self.labels.instance]).reshape((1, -1, 1))
+            db.write_labels([0], [self.instance_1.id, self.instance_2.id],
                             labels)
 
     def tearDown(self):

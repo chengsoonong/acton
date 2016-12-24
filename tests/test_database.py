@@ -8,6 +8,7 @@ Tests for `database` module.
 """
 
 import os.path
+import logging
 import tempfile
 import unittest
 
@@ -89,12 +90,12 @@ class TestManagedHDF5Database(unittest.TestCase):
             size=(n_labellers, n_instances, n_dimensions)).astype('float32')
         # Store half the testing data in the database.
         with database.ManagedHDF5Database(path) as db:
-            db.write_labels(labeller_ids[:n_labellers // 2],
+            db.write_labels(labeller_ids,
                             ids[:n_instances // 2],
-                            labels[:n_labellers // 2, :n_instances // 2])
+                            labels[:, :n_instances // 2])
         with database.ManagedHDF5Database(path) as db:
-            exp_labels = labels[:n_labellers // 2, :n_instances // 2]
-            act_labels = db.read_labels(labeller_ids[:n_labellers // 2],
+            exp_labels = labels[:, :n_instances // 2]
+            act_labels = db.read_labels(labeller_ids,
                                         ids[:n_instances // 2])
             self.assertTrue(numpy.allclose(exp_labels, act_labels),
                             msg='delta {}'.format(exp_labels - act_labels))

@@ -194,8 +194,6 @@ class ManagedHDF5Database(HDF5Database):
         Data type of labels.
     feature_dtype : str
         Data type of features.
-    max_id_length : int
-        Maximum length of ID strings.
     _h5_file : h5py.File
         Opened HDF5 file.
     _sync_attrs : List[str]
@@ -203,8 +201,7 @@ class ManagedHDF5Database(HDF5Database):
     """
 
     def __init__(self, path: str, label_dtype: str=None,
-                 feature_dtype: str=None,
-                 max_id_length: int=None):
+                 feature_dtype: str=None):
         """
         Parameters
         ----------
@@ -218,21 +215,15 @@ class ManagedHDF5Database(HDF5Database):
             Data type of features. If not provided then it will be read from the
             database file; if the database file does not exist then the default
             type of 'float32' will be used.
-        max_id_length
-            Maximum length of the IDs this database will store. If not provided
-            then it will be read from the database file; if the database file
-            does not exist then a default value of 128 will be used.
         """
         super().__init__(path)
         self.label_dtype = label_dtype
         self._default_label_dtype = 'float32'
         self.feature_dtype = feature_dtype
         self._default_feature_dtype = 'float32'
-        self.max_id_length = max_id_length
-        self._default_max_id_length = 128
 
         # List of attributes to keep in sync with the HDF5 file.
-        self._sync_attrs = ['max_id_length', 'label_dtype', 'feature_dtype']
+        self._sync_attrs = ['label_dtype', 'feature_dtype']
 
     def _open_hdf5(self):
         """Opens the HDF5 file and creates it if it doesn't exist.
@@ -287,12 +278,16 @@ class ManagedHDF5Database(HDF5Database):
                 features.dtype, self.feature_dtype))
             features = features.astype(self.feature_dtype)
 
+        # Resize the feature array if we need to store more IDs than before.
+        max_id = max(ids)
+        if max_id >= self._h5_file['features'].shape[0]:
+            self._h5_file['features'].resize(
+                (max_id, self._h5_file['features'].shape[1]))
         # Store the feature vectors.
+        # TODO(MatthewJA): Vectorise this. This could be tricky as HDF5 doesn't
+        # fully support NumPy's fancy indexing.
         for id_, feature in zip(ids, features):
-            if id_ not in self._h5_file['features']:
-                self._h5_file['features'].create_dataset(name=id_, data=feature)
-            else:
-                self._h5_file['features'][id_][:] = feature
+            self._h5_file['features'][id_, :] = feature
 
         # Add the IDs to the database.
         known_ids = set(self.get_known_instance_ids())
@@ -301,7 +296,7 @@ class ManagedHDF5Database(HDF5Database):
         n_old_ids = self._h5_file['instance_ids'].shape[0]
         self._h5_file['instance_ids'].resize((n_old_ids + n_new_ids,))
         self._h5_file['instance_ids'][-n_new_ids:] = numpy.array(
-            new_ids, dtype='<S{}'.format(self.max_id_length))
+            new_ids, dtype='int64')
 
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
@@ -326,12 +321,9 @@ class ManagedHDF5Database(HDF5Database):
                                dtype=self._h5_file.attrs['feature_dtype'])
         # Loop through each ID we want to query and put the associated feature
         # into the features array.
-        for idx, id_ in enumerate(ids):
-            try:
-                feature = self._h5_file['features'][id_]
-            except KeyError:
-                raise KeyError('Unknown ID: {}'.format(id_))
-            features[idx] = feature
+        features = self._h5_file['features'].value[ids, :]
+        features = numpy.asarray(
+            features, dtype=self._h5_file.attrs['feature_dtype'])
         return features
 
     def write_labels(self,
@@ -381,22 +373,21 @@ class ManagedHDF5Database(HDF5Database):
                 labels.dtype, self.label_dtype))
             labels = labels.astype(self.label_dtype)
 
+        # Resize the label array if necessary.
+        max_labeller_id = max(labeller_ids)
+        max_instance_id = max(instance_ids)
+        if (max_labeller_id >= self._h5_file['labels'].shape[0] or
+                max_instance_id >= self._h5_file['labels'].shape[1]):
+            self._h5_file['labels'].resize(
+                (max_labeller_id, max_instance_id,
+                 self._h5_file['labels'].shape[2]))
         # Store the labels.
+        # TODO(MatthewJA): Vectorise this.
         for labeller_idx, labeller_id in enumerate(labeller_ids):
             for instance_idx, instance_id in enumerate(instance_ids):
-                if labeller_id not in self._h5_file['labels']:
-                    labeller = self._h5_file['labels'].create_group(
-                        name=labeller_id)
-                    labeller.create_dataset(
-                        name=instance_id,
-                        data=labels[labeller_idx, instance_idx])
-                elif instance_id not in self._h5_file['labels'][labeller_id]:
-                    self._h5_file['labels'][labeller_id].create_dataset(
-                        name=instance_id,
-                        data=labels[labeller_idx, instance_idx])
-                else:
-                    self._h5_file['labels'][labeller_id][instance_idx][:] = (
-                        labels[labeller_idx, instance_idx])
+                label = labels[labeller_idx, instance_idx]
+                self._h5_file['labels'][
+                    labeller_id, instance_id, :] = label
 
         # Add the instance IDs to the database.
         known_instance_ids = set(self.get_known_instance_ids())
@@ -408,7 +399,7 @@ class ManagedHDF5Database(HDF5Database):
             self._h5_file['instance_ids'].resize(
                 (n_old_instance_ids + n_new_instance_ids,))
             self._h5_file['instance_ids'][-n_new_instance_ids:] = numpy.array(
-                new_instance_ids, dtype='<S{}'.format(self.max_id_length))
+                new_instance_ids, dtype='int64')
 
         # Add the labeller IDs to the database.
         known_labeller_ids = set(self.get_known_labeller_ids())
@@ -420,7 +411,7 @@ class ManagedHDF5Database(HDF5Database):
             self._h5_file['labeller_ids'].resize(
                 (n_old_labeller_ids + n_new_labeller_ids,))
             self._h5_file['labeller_ids'][-n_new_labeller_ids:] = numpy.array(
-                new_labeller_ids, dtype='<S{}'.format(self.max_id_length))
+                new_labeller_ids, dtype='int64')
 
     def read_labels(self,
                     labeller_ids: Sequence[int],
@@ -445,29 +436,8 @@ class ManagedHDF5Database(HDF5Database):
                 labeller_ids or instance_ids):
             raise KeyError('No labels stored in database.')
 
-        # Allocate the labels array.
-        labels = numpy.zeros(
-            (len(labeller_ids),
-             len(instance_ids),
-             self._h5_file.attrs['label_dim']),
-            dtype=self._h5_file.attrs['label_dtype'])
-        # Loop through each ID we want to query and put the associated label
-        # into the labels array.
-        for labeller_idx, labeller_id in enumerate(labeller_ids):
-            for instance_idx, instance_id in enumerate(instance_ids):
-                try:
-                    labeller_labels = self._h5_file['labels'][labeller_id]
-                except KeyError:
-                    raise KeyError(
-                        'Unknown labeller ID: {}'.format(labeller_id))
-
-                try:
-                    label = labeller_labels[instance_id]
-                except KeyError:
-                    raise KeyError(
-                        'Unknown instance ID: {}'.format(instance_id))
-
-                labels[labeller_idx, instance_idx] = label
+        labels = self._h5_file['labels'].value[labeller_ids, instance_ids, :]
+        labels = numpy.asarray(labels, dtype=self._h5_file.attrs['label_dtype'])
 
         return labels
 
@@ -501,21 +471,20 @@ class ManagedHDF5Database(HDF5Database):
         h5_file
             HDF5 file to set up. Must be opened in write mode.
         """
-        if self.max_id_length is None:
-            self.max_id_length = self._default_max_id_length
         if self.label_dtype is None:
             self.label_dtype = self._default_label_dtype
         if self.feature_dtype is None:
             self.feature_dtype = self._default_feature_dtype
-        h5_file.create_group('features')
-        h5_file.create_group('labels')
+        h5_file.create_dataset('features', shape=(0, 0),
+                               dtype=self.feature_dtype,
+                               maxshape=(None, None))
+        h5_file.create_dataset('labels', shape=(0, 0, 0),
+                               dtype=self.label_dtype,
+                               maxshape=(None, None, None))
         h5_file.create_dataset('instance_ids', shape=(0,),
-                               dtype='<S{}'.format(self.max_id_length),
-                               maxshape=(None,))
+                               dtype='int64', maxshape=(None,))
         h5_file.create_dataset('labeller_ids', shape=(0,),
-                               dtype='<S{}'.format(self.max_id_length),
-                               maxshape=(None,))
-        h5_file.attrs['max_id_length'] = self.max_id_length
+                               dtype='int64', maxshape=(None,))
         h5_file.attrs['label_dtype'] = self.label_dtype
         h5_file.attrs['feature_dtype'] = self.feature_dtype
         h5_file.attrs['n_features'] = -1
@@ -533,6 +502,10 @@ class ManagedHDF5Database(HDF5Database):
             assert 'labels' in self._h5_file
             assert 'instance_ids' in self._h5_file
             assert 'labeller_ids' in self._h5_file
+            assert len(self._h5_file['features'].shape) == 2
+            assert len(self._h5_file['labels'].shape) == 3
+            assert len(self._h5_file['instance_ids'].shape) == 1
+            assert len(self._h5_file['labeller_ids'].shape) == 1
         except AssertionError:
             raise ValueError(
                 'File {} is not a valid database.'.format(self.path))
@@ -551,8 +524,6 @@ class HDF5Reader(HDF5Database):
     ----------
     feature_cols : List[str]
         List of feature datasets.
-    id_col : str
-        Name of ID dataset.
     label_col : str
         Name of label dataset.
     n_features : int
@@ -569,8 +540,7 @@ class HDF5Reader(HDF5Database):
         Whether the features are in a multidimensional dataset.
     """
 
-    def __init__(self, path: str, feature_cols: List[str], label_col: str,
-                 id_col: str=None):
+    def __init__(self, path: str, feature_cols: List[str], label_col: str):
         """
         Parameters
         ----------
@@ -582,8 +552,6 @@ class HDF5Reader(HDF5Database):
             multiple features.
         label_col
             Name of label dataset.
-        id_col
-            Name of ID dataset.
         """
         super().__init__(path)
 
@@ -592,7 +560,6 @@ class HDF5Reader(HDF5Database):
 
         self.feature_cols = feature_cols
         self.label_col = label_col
-        self.id_col = id_col
         with h5py.File(self.path, 'r') as data:
             is_multidimensional = any(len(data[f_col].shape) > 1 or
                                       not product(data[f_col].shape[1:]) == 1
@@ -632,28 +599,16 @@ class HDF5Reader(HDF5Database):
         """
         # TODO(MatthewJA): Optimise this.
         self._assert_open()
-        # Allocate output features array.
-        features = numpy.zeros((len(ids), self.n_features))
-        # For each ID, get the corresponding features. This could be achieved
-        # significantly faster.
-        for out_index, id_ in enumerate(ids):
-            for in_index, id__ in enumerate(self.get_known_instance_ids()):
-                if id_ != id__:
-                    continue
-
-                if self._is_multidimensional:
-                    instance_features = self._h5_file[
-                        self.feature_cols[0]][in_index]
-                    features[out_index] = instance_features
-                else:
-                    for feature_index, feature_col in enumerate(
-                            self.feature_cols):
-                        features[out_index, feature_index] = self._h5_file[
-                            feature_col
-                        ][in_index]
-                break
-            else:
-                raise ValueError('Unknown ID: {}'.format(id_))
+        # For each ID, get the corresponding features.
+        if self._is_multidimensional:
+            features = self._h5_file[self.feature_cols[0]][ids]
+        else:
+            # Allocate output array.
+            features = numpy.zeros((len(ids), len(self.feature_cols)))
+            # Read each feature.
+            features_h5 = self._h5_file[self.feature_cols[0]]
+            for feature_idx, feature_name in enumerate(self.feature_cols):
+                features[ids, feature_idx] = features_h5[feature_name][ids]
         return numpy.nan_to_num(features)
 
     def read_labels(self,
@@ -682,19 +637,9 @@ class HDF5Reader(HDF5Database):
         if len(labeller_ids) > 1:
             raise NotImplementedError('Multiple labellers not yet supported.')
 
-        # For each ID, get the corresponding labels. This could be achieved
-        # significantly faster.
-        for out_index, id_ in enumerate(instance_ids):
-            for in_index, id__ in enumerate(self.get_known_instance_ids()):
-                if id_ != id__:
-                    continue
-
-                instance_labels = self._h5_file[
-                    self.label_col][in_index]
-                labels[0, out_index] = instance_labels
-                break
-            else:
-                raise ValueError('Unknown ID: {}'.format(id_))
+        # For each ID, get the corresponding labels.
+        labels = self._h5_file[self.label_col][instance_ids].reshape(
+            (1, len(instance_ids), -1))
 
         return labels
 
@@ -716,10 +661,7 @@ class HDF5Reader(HDF5Database):
             A list of known instance IDs.
         """
         self._assert_open()
-        if not self.id_col:
-            return [str(i).encode('utf-8') for i in range(self.n_instances)]
-        else:
-            return list(self._h5_file[self.id_col])
+        return [i for i in range(self.n_instances)]
 
     def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.
@@ -739,8 +681,6 @@ class ASCIIReader(Database):
     ----------
     feature_cols : List[str]
         List of feature columns.
-    id_col : str
-        Name of ID column.
     label_col : str
         Name of label column.
     max_id_length : int
@@ -761,8 +701,7 @@ class ASCIIReader(Database):
         Temporary directory where the underlying HDF5 database is stored.
     """
 
-    def __init__(self, path: str, feature_cols: List[str], label_col: str,
-                 id_col: str=None):
+    def __init__(self, path: str, feature_cols: List[str], label_col: str):
         """
         Parameters
         ----------
@@ -772,22 +711,18 @@ class ASCIIReader(Database):
             List of feature columns.
         label_col
             Name of label column.
-        id_col
-            Name of ID column.
         """
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
-        self.id_col = id_col
 
     @staticmethod
     def _db_from_ascii(
             db: Database,
             data: astropy.table.Table,
-            feature_cols: List[str],
+            feature_cols: Sequence[str],
             label_col: str,
-            ids: List[bytes],
-            id_col: str=None):
+            ids: Sequence[int]):
         """Reads an ASCII table into a database.
 
         Notes
@@ -805,8 +740,6 @@ class ASCIIReader(Database):
             non-ID columns will be used.
         label_col
             Column name of the labels.
-        id_col
-            Column name of the IDs.
         ids
             List of instance IDs.
         """
@@ -814,8 +747,7 @@ class ASCIIReader(Database):
         columns = data.keys()
         if not feature_cols:
             # If there are no features given, use all columns.
-            feature_cols = [c for c in columns
-                            if c != label_col and c != id_col]
+            feature_cols = [c for c in columns if c != label_col]
 
         # This converts the features from a table to an array.
         features = data[feature_cols].as_array()
@@ -826,7 +758,7 @@ class ASCIIReader(Database):
 
         # We want to support multiple labellers in the future, but currently
         # don't. So every labeller is the same, ID = 0.
-        labeller_ids = [b'0']
+        labeller_ids = [0]
 
         # Write to database.
         db.write_features(ids, features)
@@ -836,24 +768,17 @@ class ASCIIReader(Database):
         self._tempdir = tempfile.TemporaryDirectory(prefix='acton')
         # Read the whole file into a DB.
         self._db_filepath = os.path.join(self._tempdir.name, 'db.h5')
-        # First, find the maximum ID length. Do this by reading in IDs.
-        data = io_ascii.read(self.path)
-        if self.id_col:
-            ids = [str(id_).encode('utf-8') for id_ in data[self.id_col]]
-        else:
-            ids = [str(id_).encode('utf-8')
-                   for id_ in range(len(data[self.label_col]))]
 
-        self.max_id_length = max(len(id_) for id_ in ids)
+        data = io_ascii.read(self.path)
+        ids = list(range(len(data[self.label_col])))
 
         self._db = ManagedHDF5Database(
             self._db_filepath,
-            max_id_length=self.max_id_length,
             label_dtype='bool',
             feature_dtype='float64')
         self._db.__enter__()
         self._db_from_ascii(self._db, data, self.feature_cols, self.label_col,
-                            ids, self.id_col)
+                            ids)
         return self
 
     def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
@@ -932,8 +857,6 @@ class PandasReader(Database):
     ----------
     feature_cols : List[str]
         List of feature datasets.
-    id_col : str
-        Name of ID dataset.
     label_col : str
         Name of label dataset.
     n_features : int
@@ -949,7 +872,7 @@ class PandasReader(Database):
     """
 
     def __init__(self, path: str, feature_cols: List[str], label_col: str,
-                 key: str, id_col: str=None):
+                 key: str):
         """
         Parameters
         ----------
@@ -962,22 +885,16 @@ class PandasReader(Database):
             Name of label dataset.
         key
             Pandas key.
-        id_col
-            Name of ID dataset.
         """
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
-        self.id_col = id_col
         self.key = key
         self._df = pandas.read_hdf(self.path, self.key)
-        if self.id_col:
-            # Build an index for quickly querying the ID column.
-            self._df.set_index([self.id_col])
 
         if not self.feature_cols:
             self.feature_cols = [k for k in self._df.keys()
-                                 if k not in {self.label_col, self.id_col}]
+                                 if k != self.label_col]
 
         self.n_instances = len(self._df[self.label_col])
         self.n_features = len(self.feature_cols)
@@ -1006,13 +923,7 @@ class PandasReader(Database):
         features = numpy.zeros((len(ids), self.n_features))
         # For each ID, get the corresponding features.
         for out_index, id_ in enumerate(ids):
-            if self.id_col:
-                sel = self._df.loc[self._df[self.id_col] == id_]
-                if not sel:
-                    raise ValueError('Unknown ID: {}'.format(id_))
-                sel = sel.ix[0]
-            else:
-                sel = self._df.ix[int(id_)]
+            sel = self._df.ix[id_]
 
             for feature_index, feature in enumerate(self.feature_cols):
                 features[out_index, feature_index] = sel[feature]
@@ -1045,14 +956,7 @@ class PandasReader(Database):
 
         # For each ID, get the corresponding labels.
         for out_index, id_ in enumerate(instance_ids):
-            if self.id_col:
-                sel = self._df.loc[self._df[self.id_col] == id_]
-                if not sel:
-                    raise ValueError('Unknown ID: {}'.format(id_))
-                sel = sel.ix[0]
-            else:
-                sel = self._df.ix[int(id_)]
-
+            sel = self._df.ix[int(id_)]
             labels[0, out_index, 0] = sel[self.label_col]
 
         return labels
@@ -1074,10 +978,7 @@ class PandasReader(Database):
         List[str]
             A list of known instance IDs.
         """
-        if not self.id_col:
-            return [str(i).encode('utf-8') for i in range(self.n_instances)]
-        else:
-            return list(self._df[self.id_col])
+        return [i for i in range(self.n_instances)]
 
     def get_known_labeller_ids(self) -> List[int]:
         """Returns a list of known labeller IDs.

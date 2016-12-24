@@ -599,6 +599,7 @@ class HDF5Reader(HDF5Database):
             else:
                 self.n_features = len(feature_cols)
 
+    @profile
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 

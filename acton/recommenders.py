@@ -1,10 +1,12 @@
 """Recommender classes."""
 
 from abc import ABC, abstractmethod
+import logging
 from typing import Iterable, Sequence
 
 import acton.database
 import numpy
+import scipy.spatial
 
 
 def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
@@ -40,11 +42,17 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
     selections = [scores.argmax()]
     selections_set = set(selections)
 
+    logging.debug('Running MMR.')
     dists = []
-
+    dists_matrix = None
     while len(selections) < n:
-        dists.append([numpy.linalg.norm(features[selections[-1]] - features[i])
-                      for i in range(len(scores))])
+        if len(selections) % (n // 10) == 0:
+            logging.debug('\rMMR epoch {}/{}.'.format(len(selections), n))
+        # Compute distances for last selection.
+        last = features[selections[-1]:selections[-1] + 1]
+        last_dists = numpy.linalg.norm(features - last, axis=1)
+        dists.append(last_dists)
+        dists_matrix = numpy.array(dists)
 
         next_best = None
         next_best_margin = float('-inf')
@@ -53,7 +61,7 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
             if i in selections_set:
                 continue
 
-            margin = l * (scores[i] - (1 - l) * max(d[i] for d in dists))
+            margin = l * (scores[i] - (1 - l) * dists_matrix[:, i].max())
             if margin > next_best_margin:
                 next_best_margin = margin
                 next_best = i

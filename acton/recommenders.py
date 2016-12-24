@@ -47,7 +47,7 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
     dists_matrix = None
     while len(selections) < n:
         if len(selections) % (n // 10) == 0:
-            logging.debug('\rMMR epoch {}/{}.'.format(len(selections), n))
+            logging.debug('MMR epoch {}/{}.'.format(len(selections), n))
         # Compute distances for last selection.
         last = features[selections[-1]:selections[-1] + 1]
         last_dists = numpy.linalg.norm(features - last, axis=1)

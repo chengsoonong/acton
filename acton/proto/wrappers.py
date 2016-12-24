@@ -55,12 +55,12 @@ class PredictorInput(object):
         return self._DB
 
     @property
-    def ids(self) -> List[bytes]:
+    def ids(self) -> List[int]:
         """Gets a list of IDs.
 
         Returns
         -------
-        List[bytes]
+        List[int]
             List of known IDs.
         """
         if hasattr(self, '_ids'):
@@ -193,12 +193,12 @@ class PredictorOutput(object):
         return self._DB
 
     @property
-    def ids(self) -> List[bytes]:
+    def ids(self) -> List[int]:
         """Gets a list of IDs.
 
         Returns
         -------
-        List[bytes]
+        List[int]
             List of known IDs.
         """
         if hasattr(self, '_ids'):
@@ -261,7 +261,7 @@ class PredictorOutput(object):
 
 
 def from_predictions(
-        ids: Iterable[bytes],
+        ids: Iterable[int],
         predictions: numpy.ndarray,
         predictor: str='',
         db_path: str='',

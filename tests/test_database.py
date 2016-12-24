@@ -46,7 +46,7 @@ class TestManagedHDF5Database(unittest.TestCase):
         # Make some testing data.
         n_instances = 20
         n_dimensions = 15
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
+        ids = [i for i in range(n_instances)]
         numpy.random.shuffle(ids)
         features = numpy.random.random(size=(n_instances, n_dimensions)).astype(
             'float32')
@@ -82,8 +82,8 @@ class TestManagedHDF5Database(unittest.TestCase):
         n_instances = 5
         n_dimensions = 1
         n_labellers = 1
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
-        labeller_ids = [str(i).encode('ascii') for i in range(n_labellers)]
+        ids = [i for i in range(n_instances)]
+        labeller_ids = [i for i in range(n_labellers)]
         numpy.random.shuffle(ids)
         labels = numpy.random.random(
             size=(n_labellers, n_instances, n_dimensions)).astype('float32')

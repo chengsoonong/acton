@@ -6,7 +6,6 @@ from typing import Iterable, Sequence
 
 import acton.database
 import numpy
-import scipy.spatial
 
 
 def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,

@@ -616,7 +616,25 @@ class HDF5Reader(HDF5Database):
         self._assert_open()
         # For each ID, get the corresponding features.
         if self._is_multidimensional:
-            features = self._h5_file[self.feature_cols[0]][ids]
+            # If there are duplicates in ids, then this will crash with an
+            # OSError! (and a very cryptic error message...) To get around this,
+            # we'll first get all the unique IDs.
+            unique_ids = []
+            unique_ids_set = set()  # For lookups.
+            id_to_index = {}  # For reconstructing the features.
+            for id_ in ids:
+                if id_ not in unique_ids_set:
+                    unique_ids.append(id_)
+                    unique_ids_set.add(id_)
+                    id_to_index[id_] = len(unique_ids) - 1
+            # Then index with just the unique IDs.
+            features_ = self._h5_file[self.feature_cols[0]][unique_ids]
+            # Finally, reconstruct the features array.
+            features = numpy.zeros((len(ids), features_.shape[1]))
+            for index, id_ in enumerate(ids):
+                index_ = id_to_index[id_]
+                features[index, :] = features_[index_, :]
+            return features
         else:
             # Allocate output array.
             features = numpy.zeros((len(ids), len(self.feature_cols)))
@@ -653,9 +671,25 @@ class HDF5Reader(HDF5Database):
             raise NotImplementedError('Multiple labellers not yet supported.')
 
         # For each ID, get the corresponding labels.
-        labels = self._h5_file[self.label_col][instance_ids].reshape(
-            (1, len(instance_ids), -1))
-
+        # If there are duplicates in ids, then this will crash with an
+        # OSError! (and a very cryptic error message...) To get around this,
+        # we'll first get all the unique IDs.
+        unique_ids = []
+        unique_ids_set = set()  # For lookups.
+        id_to_index = {}  # For reconstructing the labels.
+        for id_ in instance_ids:
+            if id_ not in unique_ids_set:
+                unique_ids.append(id_)
+                unique_ids_set.add(id_)
+                id_to_index[id_] = len(unique_ids) - 1
+        # Then index with just the unique IDs.
+        labels_ = self._h5_file[self.label_col][unique_ids].reshape(
+            (1, len(unique_ids), -1))
+        # Finally, reconstruct the labels array.
+        labels = numpy.zeros((1, len(instance_ids), labels_.shape[2]))
+        for index, id_ in enumerate(instance_ids):
+            index_ = id_to_index[id_]
+            labels[0, index, :] = labels_[0, index_, :]
         return labels
 
     def write_features(self, ids: Sequence[int], features: numpy.ndarray):

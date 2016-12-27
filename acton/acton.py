@@ -95,7 +95,7 @@ def simulate_active_learning(
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
     predictor_name = predictor  # For saving.
-    predictor = acton.predictors.PREDICTORS[predictor](db=db)
+    predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)
 
     labeller = acton.labellers.DatabaseLabeller(db)
     recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)

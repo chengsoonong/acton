@@ -322,7 +322,7 @@ def _logistic_regression() -> type:
 
 def _logistic_regression_committee() -> type:
     def make_committee(db, *args, **kwargs):
-        return Committee(_logistic_regression(), db)
+        return Committee(_logistic_regression(), db, *args, **kwargs)
 
     return make_committee
 

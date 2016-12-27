@@ -8,7 +8,7 @@ import acton.database
 import numpy
 
 
-def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
+def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
                l: float=0.5) -> Iterable[int]:
     """Chooses n scores using maximal marginal relevance.
 
@@ -72,6 +72,58 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
         selections_set.add(next_best)
 
     return selections
+
+
+def choose_boltzmann(features: numpy.ndarray, scores: numpy.ndarray, n: int,
+                     temperature: float=1.0) -> Iterable[int]:
+    """Chooses n scores using a Boltzmann distribution.
+
+    Notes
+    -----
+    Scores are chosen from highest to lowest. If there are less scores to choose
+    from than requested, all scores will be returned in order of preference.
+
+    Parameters
+    ----------
+    scores
+        1D array of scores.
+    n
+        Number of scores to choose.
+    temperature
+        Temperature parameter for sampling. Higher temperatures give more
+        diversity.
+
+    Returns
+    -------
+    Iterable[int]
+        List of indices of scores chosen.
+    """
+    if n < 0:
+        raise ValueError('n must be a non-negative integer.')
+
+    if n == 0:
+        return []
+
+    boltzmann_scores = numpy.exp(-scores / temperature)
+    boltzmann_scores /= boltzmann_scores.sum()
+    not_chosen = list(range(len(boltzmann_scores)))
+    chosen = []
+    while len(chosen) < n and not_chosen:
+        scores_ = boltzmann_scores[not_chosen]
+        r = numpy.random.uniform(high=scores_.sum())
+        total = 0
+        upto = 0
+        while True:
+            score = scores_[upto]
+            total += score
+            if total > r:
+                break
+
+            upto += 1
+        chosen.append(not_chosen[upto])
+        not_chosen.pop(upto)
+
+    return chosen
 
 
 class Recommender(ABC):
@@ -188,8 +240,8 @@ class QBCRecommender(Recommender):
             n_agree - labels.shape[1] / 2)
 
         # MMR
-        indices = mmr_choose(self._db.read_features(ids), disagreement, n,
-                             l=diversity)
+        indices = choose_boltzmann(self._db.read_features(ids), disagreement, n,
+                                   temperature=diversity * 2)
         return [ids[i] for i in indices]
 
 
@@ -237,8 +289,8 @@ class UncertaintyRecommender(Recommender):
         assert len(ids) == predictions.shape[0]
 
         proximities = 0.5 - numpy.abs(predictions - 0.5)
-        indices = mmr_choose(self._db.read_features(ids), proximities, n,
-                             l=diversity)
+        indices = choose_boltzmann(self._db.read_features(ids), proximities, n,
+                                   temperature=diversity * 2)
         return [ids[i] for i in indices]
 
 

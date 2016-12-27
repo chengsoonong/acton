@@ -41,7 +41,7 @@ def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
 
 
 def simulate_active_learning(
-        ids: Iterable[bytes],
+        ids: Iterable[int],
         db: acton.database.Database,
         db_kwargs: dict,
         output_path: str,
@@ -90,7 +90,7 @@ def simulate_active_learning(
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
-    test_labels = db.read_labels([b'0'], test_ids)
+    test_ids.sort()
 
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
@@ -110,7 +110,6 @@ def simulate_active_learning(
     labels = numpy.zeros((0, 1))
 
     # Simulation loop.
-    accuracies = []  # List of (n_labels, accuracy) pairs.
     logging.debug('Writing protobufs to {}.'.format(output_path))
     writer = acton.proto.io.write_protos(output_path)
     next(writer)  # Prime the coroutine.
@@ -120,6 +119,7 @@ def simulate_active_learning(
         new_labels = numpy.array([
             labeller.query(id_) for id_ in recommendations]).reshape((-1, 1))
         labelled_ids.extend(recommendations)
+        labelled_ids.sort()
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
         # Here, we would write the labels to the database, but they're already
@@ -131,10 +131,6 @@ def simulate_active_learning(
 
         # Evaluate the predictor.
         test_pred = predictor.reference_predict(test_ids)
-        accuracy = sklearn.metrics.accuracy_score(
-            test_labels.ravel(), test_pred.mean(axis=1).round().ravel())
-        accuracies.append((len(labelled_ids), accuracy))
-        logging.debug('Accuracy: {}'.format(accuracy))
 
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.from_predictions(
@@ -181,8 +177,8 @@ def try_pandas(data_path: str) -> bool:
 
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
-         output_path: str, id_col: str=None, n_epochs: int=10,
-         initial_count: int=10, recommender: str='RandomRecommender',
+         output_path: str, n_epochs: int=10, initial_count: int=10,
+         recommender: str='RandomRecommender',
          predictor: str='LogisticRegression', pandas_key: str='',
          n_recommendations: int=1):
     """
@@ -197,9 +193,6 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
         Column name of the labels.
     output_path
         Path to output file. Will be overwritten.
-    id_col
-        Column name of the IDs. If not specified, IDs will be automatically
-        assigned.
     n_epochs
         Number of epochs to run.
     initial_count
@@ -216,7 +209,6 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     db_kwargs = {
         'feature_cols': feature_cols,
         'label_col': label_col,
-        'id_col': id_col,
     }
 
     is_ascii = not data_path.endswith('.h5')

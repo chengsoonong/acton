@@ -8,6 +8,7 @@ Tests for `database` module.
 """
 
 import os.path
+import logging
 import tempfile
 import unittest
 
@@ -46,7 +47,7 @@ class TestManagedHDF5Database(unittest.TestCase):
         # Make some testing data.
         n_instances = 20
         n_dimensions = 15
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
+        ids = [i for i in range(n_instances)]
         numpy.random.shuffle(ids)
         features = numpy.random.random(size=(n_instances, n_dimensions)).astype(
             'float32')
@@ -82,19 +83,19 @@ class TestManagedHDF5Database(unittest.TestCase):
         n_instances = 5
         n_dimensions = 1
         n_labellers = 1
-        ids = [str(i).encode('ascii') for i in range(n_instances)]
-        labeller_ids = [str(i).encode('ascii') for i in range(n_labellers)]
+        ids = [i for i in range(n_instances)]
+        labeller_ids = [i for i in range(n_labellers)]
         numpy.random.shuffle(ids)
         labels = numpy.random.random(
             size=(n_labellers, n_instances, n_dimensions)).astype('float32')
         # Store half the testing data in the database.
         with database.ManagedHDF5Database(path) as db:
-            db.write_labels(labeller_ids[:n_labellers // 2],
+            db.write_labels(labeller_ids,
                             ids[:n_instances // 2],
-                            labels[:n_labellers // 2, :n_instances // 2])
+                            labels[:, :n_instances // 2])
         with database.ManagedHDF5Database(path) as db:
-            exp_labels = labels[:n_labellers // 2, :n_instances // 2]
-            act_labels = db.read_labels(labeller_ids[:n_labellers // 2],
+            exp_labels = labels[:, :n_instances // 2]
+            act_labels = db.read_labels(labeller_ids,
                                         ids[:n_instances // 2])
             self.assertTrue(numpy.allclose(exp_labels, act_labels),
                             msg='delta {}'.format(exp_labels - act_labels))

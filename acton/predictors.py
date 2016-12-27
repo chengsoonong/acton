@@ -1,7 +1,7 @@
 """Predictor classes."""
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Iterable, Sequence
 
 import acton.database
 import acton.kde_predictor
@@ -19,7 +19,7 @@ class Predictor(ABC):
     """
 
     @abstractmethod
-    def fit(self, ids: List[bytes]):
+    def fit(self, ids: Iterable[int]):
         """Fits the predictor to labelled data.
 
         Parameters
@@ -29,7 +29,7 @@ class Predictor(ABC):
         """
 
     @abstractmethod
-    def predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -50,7 +50,7 @@ class Predictor(ABC):
         """
 
     @abstractmethod
-    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels using the best possible method.
 
         Parameters
@@ -89,7 +89,7 @@ class _InstancePredictor(Predictor):
         self._db = db
         self._instance = instance
 
-    def fit(self, ids: List[bytes]):
+    def fit(self, ids: Iterable[int]):
         """Fits the predictor to labelled data.
 
         Parameters
@@ -98,10 +98,10 @@ class _InstancePredictor(Predictor):
             List of IDs of instances to train from.
         """
         features = self._db.read_features(ids)
-        labels = self._db.read_labels([b'0'], ids)
+        labels = self._db.read_labels([0], ids)
         self._instance.fit(features, labels.ravel())
 
-    def predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -123,7 +123,7 @@ class _InstancePredictor(Predictor):
         features = self._db.read_features(ids)
         return self._instance.predict_proba(features)[:, 1:]
 
-    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels using the best possible method.
 
         Parameters
@@ -223,7 +223,7 @@ class Committee(Predictor):
                            for _ in range(n_classifiers)]
         self._reference_predictor = Predictor(db=db, **kwargs)
 
-    def fit(self, ids: List[bytes]):
+    def fit(self, ids: Iterable[int]):
         """Fits the predictor to labelled data.
 
         Parameters
@@ -232,7 +232,7 @@ class Committee(Predictor):
             List of IDs of instances to train from.
         """
         # Get labels so we can stratify a split.
-        labels = self._db.read_labels([b'0'], ids)
+        labels = self._db.read_labels([0], ids)
         for classifier in self._committee:
             # Take a subsets to introduce variety.
             try:
@@ -244,7 +244,7 @@ class Committee(Predictor):
             classifier.fit(subset)
         self._reference_predictor.fit(ids)
 
-    def predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels of instances.
 
         Notes
@@ -269,7 +269,7 @@ class Committee(Predictor):
             axis=1)
         return predictions
 
-    def reference_predict(self, ids: List[bytes]) -> numpy.ndarray:
+    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels using the best possible method.
 
         Parameters

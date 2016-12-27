@@ -32,11 +32,11 @@ def plot(predictions: Iterable[BinaryIO]):
             for protobuf in acton.proto.io.read_protos(
                     predictions_, Predictions):
                 protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
-                ids = [id_.encode('ascii') for id_ in protobuf.ids]
+                ids = protobuf.ids
                 predictions_ = protobuf.predictions
                 assert predictions_.shape[0] == 1
                 predictions_ = predictions_[0]
-                labels = db.read_labels([b'0'], ids).ravel()
+                labels = db.read_labels([0], ids).ravel()
                 predicted_labels = predictions_.round().ravel()
                 accuracies.append(sklearn.metrics.accuracy_score(
                     labels, predicted_labels))

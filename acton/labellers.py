@@ -15,7 +15,7 @@ class Labeller(ABC):
     """
 
     @abstractmethod
-    def query(self, id_: bytes) -> numpy.ndarray:
+    def query(self, id_: int) -> numpy.ndarray:
         """Queries the labeller.
 
         Parameters
@@ -58,8 +58,12 @@ class ASCIITableLabeller(Labeller):
         self.id_col = id_col
         self.label_col = label_col
         self._table = astropy.io.ascii.read(self.path)
+        self._id_to_name = {}
+        for id_, row in enumerate(self._table):
+            name = row[self.id_col]
+            self._id_to_name[id_] = name
 
-    def query(self, id_: bytes) -> numpy.ndarray:
+    def query(self, id_: int) -> numpy.ndarray:
         """Queries the labeller.
 
         Parameters
@@ -73,9 +77,9 @@ class ASCIITableLabeller(Labeller):
             1 x 1 label array.
         """
         for row in self._table:
-            if row[self.id_col].encode('ascii') == id_:
+            if row[self.id_col] == self._id_to_name[id_]:
                 return row[self.label_col].reshape((1, 1))
-        raise KeyError('Unknown id: {}'.format(self.id_))
+        raise KeyError('Unknown id: {}'.format(id_))
 
 
 class DatabaseLabeller(Labeller):
@@ -94,7 +98,7 @@ class DatabaseLabeller(Labeller):
         """
         self._db = db
 
-    def query(self, id_: bytes) -> numpy.ndarray:
+    def query(self, id_: int) -> numpy.ndarray:
         """Queries the labeller.
 
         Parameters
@@ -107,8 +111,7 @@ class DatabaseLabeller(Labeller):
         numpy.ndarray
             1 x 1 label array.
         """
-        assert isinstance(id_, bytes)
-        return self._db.read_labels([b'0'], [id_]).reshape((1, 1))
+        return self._db.read_labels([0], [id_]).reshape((1, 1))
 
 
 # For safe string-based access to labeller classes.

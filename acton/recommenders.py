@@ -1,10 +1,12 @@
 """Recommender classes."""
 
 from abc import ABC, abstractmethod
+import logging
 from typing import Iterable, Sequence
 
 import acton.database
 import numpy
+import scipy.spatial
 
 
 def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
@@ -40,11 +42,17 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
     selections = [scores.argmax()]
     selections_set = set(selections)
 
+    logging.debug('Running MMR.')
     dists = []
-
+    dists_matrix = None
     while len(selections) < n:
-        dists.append([numpy.linalg.norm(features[selections[-1]] - features[i])
-                      for i in range(len(scores))])
+        if len(selections) % (n // 10) == 0:
+            logging.debug('MMR epoch {}/{}.'.format(len(selections), n))
+        # Compute distances for last selection.
+        last = features[selections[-1]:selections[-1] + 1]
+        last_dists = numpy.linalg.norm(features - last, axis=1)
+        dists.append(last_dists)
+        dists_matrix = numpy.array(dists)
 
         next_best = None
         next_best_margin = float('-inf')
@@ -53,7 +61,7 @@ def mmr_choose(features: numpy.ndarray, scores: numpy.ndarray, n: int,
             if i in selections_set:
                 continue
 
-            margin = l * (scores[i] - (1 - l) * max(d[i] for d in dists))
+            margin = l * (scores[i] - (1 - l) * dists_matrix[:, i].max())
             if margin > next_best_margin:
                 next_best_margin = margin
                 next_best = i
@@ -75,9 +83,9 @@ class Recommender(ABC):
     """
 
     @abstractmethod
-    def recommend(self, ids: Iterable[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Parameters
@@ -93,7 +101,7 @@ class Recommender(ABC):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
 
@@ -110,9 +118,9 @@ class RandomRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Iterable[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Parameters
@@ -128,7 +136,7 @@ class RandomRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         return numpy.random.choice(list(ids), size=n)
@@ -146,9 +154,9 @@ class QBCRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Sequence[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Notes
@@ -169,7 +177,7 @@ class QBCRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         assert predictions.shape[1] > 2, "QBC must have > 2 predictors."
@@ -198,9 +206,9 @@ class UncertaintyRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Sequence[bytes],
+    def recommend(self, ids: Iterable[int],
                   predictions: numpy.ndarray,
-                  n: int=1, diversity: float=0.5) -> Sequence[bytes]:
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
 
         Notes
@@ -221,7 +229,7 @@ class UncertaintyRecommender(Recommender):
 
         Returns
         -------
-        Sequence[bytes]
+        Sequence[int]
             IDs of the instances to label.
         """
         if predictions.shape[1] != 1:

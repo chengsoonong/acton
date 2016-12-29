@@ -35,6 +35,7 @@ You will need a dataset. Acton currently supports ASCII tables (anything that ca
 To run Acton to generate a passive learning curve with logistic regression:
 
 .. code:: bash
+
     acton classification.txt -o passive.pb --recommender RandomRecommender --predictor LogisticRegression
 
 This outputs all predictions for test data points selected randomly from the input data to :code:`passive.pb`, which can then be used to construct a plot. To output an active learning curve using uncertainty sampling, change :code:`RandomRecommender` to :code:`UncertaintyRecommender`.

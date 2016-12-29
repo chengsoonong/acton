@@ -803,7 +803,8 @@ class ASCIIReader(Database):
         features = features.view(numpy.float64).reshape(features.shape + (-1,))
 
         # Read in labels.
-        labels = numpy.array(data[label_col], dtype=bool).reshape((1, -1, 1))
+        labels = numpy.array(
+            data[label_col], dtype=numpy.float64).reshape((1, -1, 1))
 
         # We want to support multiple labellers in the future, but currently
         # don't. So every labeller is the same, ID = 0.
@@ -823,7 +824,7 @@ class ASCIIReader(Database):
 
         self._db = ManagedHDF5Database(
             self._db_filepath,
-            label_dtype='bool',
+            label_dtype='float64',
             feature_dtype='float64')
         self._db.__enter__()
         self._db_from_ascii(self._db, data, self.feature_cols, self.label_col,

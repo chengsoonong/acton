@@ -36,7 +36,7 @@ class Predictor(ABC):
         -----
             Unlike in scikit-learn, predictions are always real-valued.
             Predicted labels for a classification problem are represented by
-            predicted probabilities of the positive class.
+            predicted probabilities of each class.
 
         Parameters
         ----------
@@ -46,7 +46,7 @@ class Predictor(ABC):
         Returns
         -------
         numpy.ndarray
-            An N x T array of corresponding predictions.
+            An N x T x C array of corresponding predictions.
         """
 
     @abstractmethod
@@ -61,7 +61,7 @@ class Predictor(ABC):
         Returns
         -------
         numpy.ndarray
-            An N x T array of corresponding predictions.
+            An N x 1 x C array of corresponding predictions.
         """
 
 
@@ -108,7 +108,7 @@ class _InstancePredictor(Predictor):
         -----
             Unlike in scikit-learn, predictions are always real-valued.
             Predicted labels for a classification problem are represented by
-            predicted probabilities of the positive class.
+            predicted probabilities of each class.
 
         Parameters
         ----------
@@ -118,10 +118,11 @@ class _InstancePredictor(Predictor):
         Returns
         -------
         numpy.ndarray
-            An N x T array of corresponding predictions.
+            An N x 1 x C array of corresponding predictions.
         """
         features = self._db.read_features(ids)
-        return self._instance.predict_proba(features)[:, 1:]
+        probs = self._instance.predict_proba(features)
+        return probs.reshape((probs.shape[0], 1, probs.shape[1]))
 
     def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels using the best possible method.
@@ -134,7 +135,7 @@ class _InstancePredictor(Predictor):
         Returns
         -------
         numpy.ndarray
-            An N x 1 array of corresponding predictions.
+            An N x 1 x C array of corresponding predictions.
         """
         return self.predict(ids)
 
@@ -251,7 +252,7 @@ class Committee(Predictor):
         -----
             Unlike in scikit-learn, predictions are always real-valued.
             Predicted labels for a classification problem are represented by
-            predicted probabilities of the positive class.
+            predicted probabilities of each class.
 
         Parameters
         ----------
@@ -261,12 +262,13 @@ class Committee(Predictor):
         Returns
         -------
         numpy.ndarray
-            An N x T array of corresponding predictions.
+            An N x T x C array of corresponding predictions.
         """
         predictions = numpy.concatenate(
             [classifier.predict(ids)
              for classifier in self._committee],
             axis=1)
+        assert predictions.shape[:2] == (len(ids), len(self._committee))
         return predictions
 
     def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
@@ -280,7 +282,7 @@ class Committee(Predictor):
         Returns
         -------
         numpy.ndarray
-            An N x 1 array of corresponding predictions.
+            An N x 1 x C array of corresponding predictions.
         """
         return self._reference_predictor.predict(ids)
 
@@ -306,7 +308,9 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
 
     def predict(features: numpy.ndarray) -> numpy.ndarray:
         predictions = predictor.predict_(features)
-        return predictions.mean(axis=1).reshape((-1, 1))
+        predictions = predictions.mean(axis=1)
+        return predictions.reshape(
+            (predictions.shape[0], 1, predictions.shape[1]))
 
     predictor.predict = predict
 

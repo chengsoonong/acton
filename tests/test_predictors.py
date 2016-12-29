@@ -158,7 +158,7 @@ class TestIntegrationCommittee(unittest.TestCase):
             ids = pred_input.ids
             lrc.fit(ids)
             probs = lrc.predict(ids)
-            self.assertEqual((self.n_instances, 10), probs.shape)
+            self.assertEqual((self.n_instances, 10, 2), probs.shape)
 
 
 class TestSklearnWrapper(unittest.TestCase):
@@ -213,7 +213,7 @@ class TestSklearnWrapper(unittest.TestCase):
             ids = pred_input.ids
             predictor.fit(ids)
             probs = predictor.predict(ids)
-            self.assertEqual((2, 1), probs.shape)
+            self.assertEqual((2, 1, 2), probs.shape)
 
     def testFromClass(self):
         """from_class wraps a scikit-learn classifier."""
@@ -227,4 +227,4 @@ class TestSklearnWrapper(unittest.TestCase):
             ids = pred_input.ids
             predictor.fit(ids)
             probs = predictor.predict(ids)
-            self.assertEqual((2, 1), probs.shape)
+            self.assertEqual((2, 1, 2), probs.shape)

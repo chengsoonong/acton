@@ -7,18 +7,14 @@ test_integration
 Integration tests.
 """
 
-import unittest
-
-import acton.cli
-import acton.proto.io
-import acton.proto.predictors_pb2
-from click.testing import CliRunner
 import os.path
+import unittest
 
 
 class TestIntegration(unittest.TestCase):
 
     def setUp(self):
+        from click.testing import CliRunner
         self.runner = CliRunner()
 
     def tearDown(self):
@@ -26,6 +22,9 @@ class TestIntegration(unittest.TestCase):
 
     def test_classification_passive_txt(self):
         """Acton handles a passive classification task with an ASCII file."""
+        import acton.cli
+        import acton.proto.io
+        import acton.proto.predictors_pb2
         txt_path = os.path.realpath(
             os.path.join(os.path.dirname(os.path.realpath(__file__)),
                          'data', 'classification.txt'))

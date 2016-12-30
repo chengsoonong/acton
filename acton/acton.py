@@ -135,7 +135,7 @@ def simulate_active_learning(
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.from_predictions(
             test_ids,
-            test_pred.reshape((1,) + test_pred.shape),
+            test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
             db_path=db.path,
             db_class=db.__class__.__name__,
@@ -153,6 +153,8 @@ def simulate_active_learning(
         recommendations = recommender.recommend(
             unlabelled_ids, predictions, n=n_recommendations)
         logging.debug('Recommending: {}'.format(recommendations))
+
+    return 0
 
 
 def try_pandas(data_path: str) -> bool:
@@ -227,10 +229,10 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
             DB = acton.database.HDF5Reader
 
     with DB(data_path, **db_kwargs) as reader:
-        simulate_active_learning(reader.get_known_instance_ids(), reader,
-                                 db_kwargs, output_path,
-                                 n_epochs=n_epochs,
-                                 n_initial_labels=initial_count,
-                                 recommender=recommender,
-                                 predictor=predictor,
-                                 n_recommendations=n_recommendations)
+        return simulate_active_learning(reader.get_known_instance_ids(), reader,
+                                        db_kwargs, output_path,
+                                        n_epochs=n_epochs,
+                                        n_initial_labels=initial_count,
+                                        recommender=recommender,
+                                        predictor=predictor,
+                                        n_recommendations=n_recommendations)

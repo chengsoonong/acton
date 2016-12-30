@@ -236,9 +236,11 @@ class QBCRecommender(Recommender):
         assert len(ids) == predictions.shape[0]
         assert 0 <= diversity <= 1
         labels = predictions.argmax(axis=2)
-        plurality_labels = scipy.stats.mode(labels, axis=1)
-        assert plurality_labels.shape == predictions.shape[:1]
-        agree_with_plurality = labels == plurality_labels.reshape((-1, 1))
+        plurality_labels, plurality_counts = scipy.stats.mode(labels, axis=1)
+        assert plurality_labels.shape == (predictions.shape[0], 1), \
+            'plurality_labels has shape {}; expected {}'.format(
+                plurality_labels.shape, (predictions.shape[0], 1))
+        agree_with_plurality = labels == plurality_labels
         assert labels.shape == agree_with_plurality.shape
         n_agree = labels.sum(axis=1)
         p_agree = n_agree / n_agree.max()  # Agreement is now between 0 and 1.
@@ -292,7 +294,7 @@ class UncertaintyRecommender(Recommender):
         assert len(ids) == predictions.shape[0]
 
         # x* = argmax (1 - p(y^ | x)) where y^ = argmax p(y | x) (Settles 2009).
-        proximities = 1 - predictions.max(axis=3).ravel()
+        proximities = 1 - predictions.max(axis=2).ravel()
         assert proximities.shape == (len(ids),)
 
         indices = choose_boltzmann(self._db.read_features(ids), proximities, n,

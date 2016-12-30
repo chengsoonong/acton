@@ -94,3 +94,4 @@ ENV/
 # Minutes, data
 minutes/
 data/
+!tests/data/

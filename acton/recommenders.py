@@ -6,6 +6,7 @@ from typing import Iterable, Sequence
 
 import acton.database
 import numpy
+import scipy.stats
 
 
 def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
@@ -144,7 +145,7 @@ class Recommender(ABC):
         ids
             Iterable of IDs in the unlabelled data pool.
         predictions
-            N x 1 array of predictions.
+            N x T x C array of predictions.
         n
             Number of recommendations to make.
         diversity
@@ -179,7 +180,7 @@ class RandomRecommender(Recommender):
         ids
             Iterable of IDs in the unlabelled data pool.
         predictions
-            N x 1 array of predictions.
+            N x T x C array of predictions.
         n
             Number of recommendations to make.
         diversity
@@ -219,8 +220,8 @@ class QBCRecommender(Recommender):
         ids
             Sequence of IDs in the unlabelled data pool.
         predictions
-            N x T array of predictions. The ith row must correspond with the ith
-            ID in the sequence.
+            N x T x C array of predictions. The ith row must correspond with the
+            ith ID in the sequence.
         n
             Number of recommendations to make.
         diversity
@@ -234,19 +235,21 @@ class QBCRecommender(Recommender):
         assert predictions.shape[1] > 2, "QBC must have > 2 predictors."
         assert len(ids) == predictions.shape[0]
         assert 0 <= diversity <= 1
-        labels = predictions >= 0.5
+        labels = predictions.argmax(axis=2)
+        plurality_labels = scipy.stats.mode(labels, axis=1)
+        assert plurality_labels.shape == predictions.shape[:1]
+        agree_with_plurality = labels == plurality_labels.reshape((-1, 1))
+        assert labels.shape == agree_with_plurality.shape
         n_agree = labels.sum(axis=1)
-        disagreement = labels.shape[1] - numpy.abs(
-            n_agree - labels.shape[1] / 2)
-
-        # MMR
+        p_agree = n_agree / n_agree.max()  # Agreement is now between 0 and 1.
+        disagreement = 1 - p_agree
         indices = choose_boltzmann(self._db.read_features(ids), disagreement, n,
                                    temperature=diversity * 2)
         return [ids[i] for i in indices]
 
 
 class UncertaintyRecommender(Recommender):
-    """Recommends instances by uncertainty sampling."""
+    """Recommends instances by confidence-based uncertainty sampling."""
 
     def __init__(self, db: acton.database.Database):
         """
@@ -271,8 +274,8 @@ class UncertaintyRecommender(Recommender):
         ids
             Sequence of IDs in the unlabelled data pool.
         predictions
-            N x 1 array of predictions. The ith row must correspond with the ith
-            ID in the sequence.
+            N x 1 x C array of predictions. The ith row must correspond with the
+            ith ID in the sequence.
         n
             Number of recommendations to make.
         diversity
@@ -288,7 +291,10 @@ class UncertaintyRecommender(Recommender):
 
         assert len(ids) == predictions.shape[0]
 
-        proximities = 0.5 - numpy.abs(predictions - 0.5)
+        # x* = argmax (1 - p(y^ | x)) where y^ = argmax p(y | x) (Settles 2009).
+        proximities = 1 - predictions.max(axis=3).ravel()
+        assert proximities.shape == (len(ids),)
+
         indices = choose_boltzmann(self._db.read_features(ids), proximities, n,
                                    temperature=diversity * 2)
         return [ids[i] for i in indices]

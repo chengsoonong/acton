@@ -37,7 +37,7 @@ def plot(predictions: Iterable[BinaryIO]):
                 assert predictions_.shape[0] == 1
                 predictions_ = predictions_[0]
                 labels = db.read_labels([0], ids).ravel()
-                predicted_labels = predictions_.round().ravel()
+                predicted_labels = predictions_.argmax(axis=1).ravel()
                 accuracies.append(sklearn.metrics.accuracy_score(
                     labels, predicted_labels))
 

@@ -149,6 +149,8 @@ def simulate_active_learning(
             logging.info('Labelled all instances.')
             break
 
+        unlabelled_ids.sort()
+
         predictions = predictor.predict(unlabelled_ids)
         recommendations = recommender.recommend(
             unlabelled_ids, predictions, n=n_recommendations)

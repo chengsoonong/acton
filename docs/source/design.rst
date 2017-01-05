@@ -42,21 +42,33 @@ Three components, which interact with each other via serialised objects.
 Predictors
 ^^^^^^^^^^
 
-Wrapper to provide a common interface to external predictors. -
-`sklearn <http://scikit-learn.org/>`__ - default predictors -
-`keras <http://keras.io/>`__ - deep learning - `Vowpal
-Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki/Command-line-arguments>`__
-- Command line interface - `GPy <https://sheffieldml.github.io/GPy/>`__
+Wrapper to provide a common interface to external predictors.
+
+- `sklearn <http://scikit-learn.org/>`__ - default predictors
+- `keras <http://keras.io/>`__
+- deep learning
+- `Vowpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki/Command-line-arguments>`__
+- Command line interface
+- `GPy <https://sheffieldml.github.io/GPy/>`__
 - Confidence intervals for regression
 
 Labellers
 ^^^^^^^^^
 
-Interfaces: - Read label from a file - Interactive human labellers for
-RGZ like interface - Amazon mechanical turk
+Interfaces:
 
-Potential applications: - cross identification of AGN - galaxy
-classification - redshift estimation
+- Read label from a file
+- Interactive human labellers for
+
+RGZ like interface
+
+- Amazon mechanical turk
+
+Potential applications:
+
+- cross identification of AGN
+- galaxy classification
+- redshift estimation
 
 Recommenders
 ^^^^^^^^^^^^

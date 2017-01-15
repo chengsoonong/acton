@@ -33,19 +33,26 @@ def read_proto(
     return proto
 
 
-def write_protos(path: str):
+def write_protos(path: str, metadata: bytes=b''):
     """Serialises many protobufs to a file.
 
     Parameters
     ----------
     path
         Path to binary file. Will be overwritten.
+    metadata
+        Optional bytestring to prepend to the file.
 
     Notes
     -----
     Coroutine. Accepts protobufs, or None to terminate and close file.
     """
     with open(path, 'wb') as proto_file:
+        # Write metadata.
+        proto_file.write(struct.pack('<Q', len(metadata)))
+        proto_file.write(metadata)
+
+        # Write protobufs.
         proto = yield
         while proto:
             proto = proto.SerializeToString()
@@ -62,6 +69,49 @@ def write_protos(path: str):
             raise RuntimeError('Cannot write protobuf to closed file.')
 
 
+def _read_metadata(proto_file: BinaryIO) -> bytes:
+    """Reads metadata from a protobufs file.
+
+    Notes
+    -----
+    Internal use. For external API, use read_metadata.
+
+    Parameters
+    ----------
+    proto_file
+        Binary file.
+
+    Returns
+    -------
+    bytes
+        Metadata.
+    """
+    metadata_length = proto_file.read(8)  # Long long
+    metadata_length, = struct.unpack('<Q', metadata_length)
+    return proto_file.read(metadata_length)
+
+
+def read_metadata(file: Union[str, BinaryIO]) -> bytes:
+    """Reads metadata from a protobufs file.
+
+    Parameters
+    ----------
+    file
+        Path to binary file, or file itself.
+
+    Returns
+    -------
+    bytes
+        Metadata.
+    """
+    try:
+        return _read_metadata(file)
+    except AttributeError:
+        # Not a file-like object, so open the file.
+        with open(file, 'rb') as proto_file:
+            return _read_metadata(proto_file)
+
+
 def _read_protos(
         proto_file: BinaryIO,
         Proto: GeneratedProtocolMessageType
@@ -74,7 +124,7 @@ def _read_protos(
 
     Parameters
     ----------
-    path
+    proto_file
         Binary file.
     Proto:
         Protocol message class (from the generated protobuf module).
@@ -85,6 +135,12 @@ def _read_protos(
         A parsed protobuf.
     """
     # This is essentially the inverse of the write_protos function.
+
+    # Skip the metadata.
+    metadata_length = proto_file.read(8)  # Long long
+    metadata_length, = struct.unpack('<Q', metadata_length)
+    proto_file.read(metadata_length)
+
     length = proto_file.read(8)  # long long
     while length:
         length, = struct.unpack('<Q', length)

@@ -87,6 +87,9 @@ def simulate_active_learning(
                          '{}.'.format(predictor,
                                       acton.predictors.PREDICTORS.keys()))
 
+    # Bytestring describing this run.
+    metadata = '{} | {}'.format(recommender, predictor).encode('ascii')
+
     # Split into training and testing sets.
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
@@ -111,7 +114,7 @@ def simulate_active_learning(
 
     # Simulation loop.
     logging.debug('Writing protobufs to {}.'.format(output_path))
-    writer = acton.proto.io.write_protos(output_path)
+    writer = acton.proto.io.write_protos(output_path, metadata=metadata)
     next(writer)  # Prime the coroutine.
     for epoch in range(n_epochs):
         logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))

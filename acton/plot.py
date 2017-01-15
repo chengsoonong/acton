@@ -1,5 +1,6 @@
 """Script to plot a dump of predictions."""
 
+import itertools
 import sys
 from typing import Iterable
 from typing.io import BinaryIO
@@ -23,14 +24,19 @@ def plot(predictions: Iterable[BinaryIO]):
     if len(predictions) < 1:
         raise ValueError('Must have at least 1 set of predictions.')
 
-    for predictions_ in predictions:
+    metadata = []
+    predictions, predictions_ = itertools.tee(predictions)
+    for proto_file in predictions_:
+        metadata.append(acton.proto.io.read_metadata(proto_file))
+
+    for meta, proto_file in zip(metadata, predictions):
         # Read in the first protobuf to get the database file.
-        protobuf = next(acton.proto.io.read_protos(predictions_, Predictions))
+        protobuf = next(acton.proto.io.read_protos(proto_file, Predictions))
         protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
         with protobuf.DB() as db:
             accuracies = []
             for protobuf in acton.proto.io.read_protos(
-                    predictions_, Predictions):
+                    proto_file, Predictions):
                 protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
                 ids = protobuf.ids
                 predictions_ = protobuf.predictions
@@ -41,7 +47,7 @@ def plot(predictions: Iterable[BinaryIO]):
                 accuracies.append(sklearn.metrics.accuracy_score(
                     labels, predicted_labels))
 
-            plt.plot(accuracies, label=protobuf.proto.predictor)
+            plt.plot(accuracies, label=meta.decode('ascii', errors='replace'))
 
     plt.xlabel('Number of additional labels')
     plt.ylabel('Accuracy score')

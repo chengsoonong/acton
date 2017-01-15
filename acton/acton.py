@@ -14,6 +14,7 @@ import pandas
 import sklearn.cross_validation
 import sklearn.linear_model
 import sklearn.metrics
+import sklearn.preprocessing
 
 T = TypeVar('T')
 
@@ -112,6 +113,9 @@ def simulate_active_learning(
     # This will store all the corresponding labels.
     labels = numpy.zeros((0, 1))
 
+    # This will encode labels as integers.
+    label_encoder = sklearn.preprocessing.LabelEncoder()
+
     # Simulation loop.
     logging.debug('Writing protobufs to {}.'.format(output_path))
     writer = acton.proto.io.write_protos(output_path, metadata=metadata)
@@ -121,6 +125,12 @@ def simulate_active_learning(
         # Label the recommendations.
         new_labels = numpy.array([
             labeller.query(id_) for id_ in recommendations]).reshape((-1, 1))
+
+        if not hasattr(label_encoder, 'classes_'):
+            label_encoder.fit(new_labels)
+
+        new_labels = label_encoder.transform(new_labels)
+
         labelled_ids.extend(recommendations)
         labelled_ids.sort()
         labels = numpy.concatenate([labels, new_labels], axis=0)

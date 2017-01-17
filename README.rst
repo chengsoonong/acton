@@ -40,13 +40,10 @@ To run Acton to generate a passive learning curve with logistic regression:
 
 This outputs all predictions for test data points selected randomly from the input data to :code:`passive.pb`, which can then be used to construct a plot. To output an active learning curve using uncertainty sampling, change :code:`RandomRecommender` to :code:`UncertaintyRecommender`.
 
-To show the learning curve (from a python terminal)
+To show the learning curve, use `acton.plot`:
 
-.. code:: python
+.. code:: bash
 
-    import acton
-    import acton.plot
-    with open('passive.pb', 'rb') as results:
-        acton.plot.plot([results])
+    python3 -m acton.plot passive.pb
 
 Look at the directory ``examples`` for more examples.

@@ -661,15 +661,12 @@ class HDF5Reader(HDF5Database):
         numpy.ndarray
             T x N x F array of label vectors.
         """
-        # TODO(MatthewJA): Optimise this.
         self._assert_open()
-        # Allocate output labels array.
-        labels = numpy.zeros(
-            (len(labeller_ids), len(instance_ids), self.n_labels))
 
         if len(labeller_ids) > 1:
             raise NotImplementedError('Multiple labellers not yet supported.')
 
+        # TODO(MatthewJA): Optimise this.
         # For each ID, get the corresponding labels.
         # If there are duplicates in ids, then this will crash with an
         # OSError! (and a very cryptic error message...) To get around this,
@@ -686,7 +683,9 @@ class HDF5Reader(HDF5Database):
         labels_ = self._h5_file[self.label_col][unique_ids].reshape(
             (1, len(unique_ids), -1))
         # Finally, reconstruct the labels array.
-        labels = numpy.zeros((1, len(instance_ids), labels_.shape[2]))
+        labels = numpy.zeros(
+            (1, len(instance_ids), labels_.shape[2]),
+            dtype=labels_.dtype)
         for index, id_ in enumerate(instance_ids):
             index_ = id_to_index[id_]
             labels[0, index, :] = labels_[0, index_, :]

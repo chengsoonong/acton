@@ -129,7 +129,7 @@ def simulate_active_learning(
         if not hasattr(label_encoder, 'classes_'):
             label_encoder.fit(new_labels)
 
-        new_labels = label_encoder.transform(new_labels)
+        new_labels = label_encoder.transform(new_labels).reshape((-1, 1))
 
         labelled_ids.extend(recommendations)
         labelled_ids.sort()

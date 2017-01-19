@@ -2,7 +2,7 @@ h5py>=2.6.0
 protobuf>=3.1.0
 numpy==1.11.0
 scipy==0.17.0
-scikit-learn==0.17.1
+scikit-learn==0.18.1
 typing>=3.5.2
 astropy==1.1.2
 pip==8.1.2

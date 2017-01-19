@@ -55,11 +55,106 @@ class TestIntegration(unittest.TestCase):
                 2, len(protos),
                 msg='Expected 2 protobufs; found {}'.format(len(protos)))
 
+    def test_classification_ascii_non_integer_labels(self):
+        """Acton handles non-integer labels in an ASCII table."""
+        txt_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_str.txt'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', txt_path,
+                 '-o', 'str.pb',
+                 '--recommender', 'RandomRecommender',
+                 '--predictor', 'LogisticRegression',
+                 '--epochs', '2',
+                 '--label', 'label'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('str.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'str.pb', acton.proto.predictors_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
+    def test_classification_pandas_non_integer_labels(self):
+        """Acton handles non-integer labels in a pandas table."""
+        txt_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_pandas_str.h5'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', txt_path,
+                 '-o', 'str.pb',
+                 '--recommender', 'RandomRecommender',
+                 '--predictor', 'LogisticRegression',
+                 '--epochs', '2',
+                 '--label', 'label',
+                 '--pandas-key', 'classification'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('str.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'str.pb', acton.proto.predictors_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
+    def test_classification_h5_non_integer_labels(self):
+        """Acton handles non-integer labels in an HDF5 table."""
+        txt_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_str.h5'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', txt_path,
+                 '-o', 'str.pb',
+                 '--recommender', 'RandomRecommender',
+                 '--predictor', 'LogisticRegression',
+                 '--epochs', '2',
+                 '--label', 'labels',
+                 '--feature', 'features'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('str.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'str.pb', acton.proto.predictors_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
     def test_classification_passive_pandas(self):
         """Acton handles a passive classification task with a pandas table."""
         pandas_path = os.path.realpath(
             os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                         'data', 'classification.h5'))
+                         'data', 'classification_pandas.h5'))
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
                 acton.cli.main,

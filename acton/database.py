@@ -661,15 +661,12 @@ class HDF5Reader(HDF5Database):
         numpy.ndarray
             T x N x F array of label vectors.
         """
-        # TODO(MatthewJA): Optimise this.
         self._assert_open()
-        # Allocate output labels array.
-        labels = numpy.zeros(
-            (len(labeller_ids), len(instance_ids), self.n_labels))
 
         if len(labeller_ids) > 1:
             raise NotImplementedError('Multiple labellers not yet supported.')
 
+        # TODO(MatthewJA): Optimise this.
         # For each ID, get the corresponding labels.
         # If there are duplicates in ids, then this will crash with an
         # OSError! (and a very cryptic error message...) To get around this,
@@ -686,7 +683,9 @@ class HDF5Reader(HDF5Database):
         labels_ = self._h5_file[self.label_col][unique_ids].reshape(
             (1, len(unique_ids), -1))
         # Finally, reconstruct the labels array.
-        labels = numpy.zeros((1, len(instance_ids), labels_.shape[2]))
+        labels = numpy.zeros(
+            (1, len(instance_ids), labels_.shape[2]),
+            dtype=labels_.dtype)
         for index, id_ in enumerate(instance_ids):
             index_ = id_to_index[id_]
             labels[0, index, :] = labels_[0, index_, :]
@@ -804,7 +803,7 @@ class ASCIIReader(Database):
 
         # Read in labels.
         labels = numpy.array(
-            data[label_col], dtype=numpy.float64).reshape((1, -1, 1))
+            data[label_col]).reshape((1, -1, 1))
 
         # We want to support multiple labellers in the future, but currently
         # don't. So every labeller is the same, ID = 0.
@@ -822,9 +821,12 @@ class ASCIIReader(Database):
         data = io_ascii.read(self.path)
         ids = list(range(len(data[self.label_col])))
 
+        max_label_len = max(len(str(i)) for i in data[self.label_col])
+        label_dtype = '<S{}'.format(max_label_len)
+
         self._db = ManagedHDF5Database(
             self._db_filepath,
-            label_dtype='float64',
+            label_dtype=label_dtype,
             feature_dtype='float64')
         self._db.__enter__()
         self._db_from_ascii(self._db, data, self.feature_cols, self.label_col,
@@ -997,9 +999,13 @@ class PandasReader(Database):
         numpy.ndarray
             T x N x 1 array of label vectors.
         """
+        # Draw a label to get the dtype.
+        dtype = type(self._df.ix[0][self.label_col])
+
         # Allocate output labels array.
         labels = numpy.zeros(
-            (len(labeller_ids), len(instance_ids), 1))
+            (len(labeller_ids), len(instance_ids), 1),
+            dtype=dtype)
 
         if len(labeller_ids) > 1:
             raise NotImplementedError('Multiple labellers not yet supported.')

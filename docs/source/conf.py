@@ -374,6 +374,7 @@ MOCK_MODULES = [
     'protobuf',
     'scikit-learn',
     'scipy',
+    'sklearn',
     'sklearn.base',
     'tables',
 ]

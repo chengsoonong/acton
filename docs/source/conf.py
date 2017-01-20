@@ -359,6 +359,13 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
+class Blank: pass
+
+class SklearnBaseMock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return Blank()
+
 MOCK_MODULES = [
     'astropy',
     'astropy.io',
@@ -374,7 +381,6 @@ MOCK_MODULES = [
     'protobuf',
     'scipy',
     'sklearn',
-    'sklearn.base',
     'sklearn.cross_validation',
     'sklearn.datasets',
     'sklearn.linear_model',
@@ -388,9 +394,4 @@ MOCK_MODULES = [
     'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-import sklearn.base
-
-class Blank: pass
-
-sklearn.base.BaseEstimator = sklearn.base.ClassifierMixin = Blank()
+sys.modules.update(('sklearn.base', SklearnBaseMock()))

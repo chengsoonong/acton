@@ -370,5 +370,6 @@ MOCK_MODULES = [
     'astropy',
     'pandas',
     'tables',
+    'click',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

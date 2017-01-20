@@ -376,7 +376,16 @@ MOCK_MODULES = [
     'scipy',
     'sklearn',
     'sklearn.base',
+    'sklearn.cross_validation',
+    'sklearn.datasets',
+    'sklearn.linear_model',
+    'sklearn.metrics',
     'sklearn.neighbors',
+    'sklearn.preprocessing',
+    'sklearn.utils',
+    'sklearn.utils.estimator_checks',
+    'sklearn.utils.multiclass',
+    'sklearn.utils.validation',
     'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

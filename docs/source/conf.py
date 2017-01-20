@@ -390,4 +390,7 @@ MOCK_MODULES = [
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import sklearn.base
-sklearn.base.BaseEstimator = sklearn.base.ClassifierMixin = Mock()
+
+class Blank: pass
+
+sklearn.base.BaseEstimator = sklearn.base.ClassifierMixin = Blank()

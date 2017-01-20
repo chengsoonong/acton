@@ -361,7 +361,7 @@ class Mock(MagicMock):
 
 class Blank: pass
 
-class SklearnBaseMock(MagicMock):
+class SklearnBaseMock:
     @classmethod
     def __getattr__(cls, name):
         return Blank()

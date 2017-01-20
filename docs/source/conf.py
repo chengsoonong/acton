@@ -391,6 +391,8 @@ MOCK_MODULES = [
     'google.protobuf',
     'google.protobuf.reflection',
     'h5py',
+    'matplotlib',
+    'matplotlib.pyplot',
     'numpy',
     'pandas',
     'protobuf',

@@ -361,7 +361,12 @@ class Blank:
     def __getattr__(self, name):
         return Blank()
 
-class Blank2(Blank): pass
+class Blank2:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        return Blank()
 
 skbm = Blank()
 skbm.BaseEstimator = Blank

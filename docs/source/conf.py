@@ -357,14 +357,15 @@ def setup(app):
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
+        if name != 'base':
             return MagicMock()
 
-class Blank: pass
+        super().__getattr__(name)
 
-class SklearnBaseMock:
-    @classmethod
-    def __getattr__(cls, name):
-        return Blank()
+class Blank: pass
+skbm = Blank()
+skbm.BaseEstimator = Blank()
+skbm.ClassifierMixin = Blank()
 
 MOCK_MODULES = [
     'astropy',
@@ -394,4 +395,4 @@ MOCK_MODULES = [
     'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-sys.modules.update([('sklearn.base', SklearnBaseMock())])
+sys.modules.update([('sklearn.base', skbm)])

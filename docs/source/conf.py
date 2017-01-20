@@ -360,18 +360,21 @@ class Mock(MagicMock):
             return MagicMock()
 
 MOCK_MODULES = [
-    'h5py',
-    'protobuf',
-    'google',
-    'google.protobuf',
-    'scipy',
-    'numpy',
-    'scikit-learn',
     'astropy',
     'astropy.io',
     'astropy.io.ascii',
-    'pandas',
-    'tables',
+    'astropy.table',
     'click',
+    'google',
+    'google.protobuf',
+    'google.protobuf.reflection',
+    'h5py',
+    'numpy',
+    'pandas',
+    'protobuf',
+    'scikit-learn',
+    'scipy',
+    'sklearn.base',
+    'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

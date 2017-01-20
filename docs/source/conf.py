@@ -361,9 +361,11 @@ class Blank:
     def __getattr__(self, name):
         return Blank()
 
+class Blank2(Blank): pass
+
 skbm = Blank()
 skbm.BaseEstimator = Blank
-skbm.ClassifierMixin = Blank
+skbm.ClassifierMixin = Blank2
 
 class Mock(MagicMock):
     @classmethod

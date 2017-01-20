@@ -368,6 +368,8 @@ MOCK_MODULES = [
     'numpy',
     'scikit-learn',
     'astropy',
+    'astropy.io',
+    'astropy.io.ascii',
     'pandas',
     'tables',
     'click',

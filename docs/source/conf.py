@@ -354,10 +354,16 @@ def run_apidoc(_):
 def setup(app):
     app.connect('builder-inited', run_apidoc)
 
-class Blank: pass
+class Blank:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        return Blank()
+
 skbm = Blank()
-skbm.BaseEstimator = Blank()
-skbm.ClassifierMixin = Blank()
+skbm.BaseEstimator = Blank
+skbm.ClassifierMixin = Blank
 
 class Mock(MagicMock):
     @classmethod

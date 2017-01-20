@@ -374,6 +374,7 @@ MOCK_MODULES = [
     'protobuf',
     'scikit-learn',
     'scipy',
+    'scipy.sparse',
     'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

@@ -360,7 +360,7 @@ class Mock(MagicMock):
         if name != 'base':
             return MagicMock()
 
-        super().__getattr__(name)
+        super().__getattr__(cls, name)
 
 class Blank: pass
 skbm = Blank()

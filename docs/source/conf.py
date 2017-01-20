@@ -395,6 +395,7 @@ MOCK_MODULES = [
     'pandas',
     'protobuf',
     'scipy',
+    'scipy.stats',
     'sklearn',
     'sklearn.cross_validation',
     'sklearn.datasets',

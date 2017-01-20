@@ -354,18 +354,19 @@ def run_apidoc(_):
 def setup(app):
     app.connect('builder-inited', run_apidoc)
 
+class Blank: pass
+skbm = Blank()
+skbm.BaseEstimator = Blank()
+skbm.ClassifierMixin = Blank()
+
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
         if name != 'base':
             return MagicMock()
 
-        super().__getattr__(cls, name)
+        return skbm
 
-class Blank: pass
-skbm = Blank()
-skbm.BaseEstimator = Blank()
-skbm.ClassifierMixin = Blank()
 
 MOCK_MODULES = [
     'astropy',

@@ -376,6 +376,7 @@ MOCK_MODULES = [
     'scipy',
     'sklearn',
     'sklearn.base',
+    'sklearn.neighbors',
     'tables',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

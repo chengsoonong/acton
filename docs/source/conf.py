@@ -19,6 +19,8 @@
 #
 import os.path
 import sys
+from unittest.mock import MagicMock
+
 sys.path.insert(1, os.path.abspath('../../'))
 
 # -- General configuration ------------------------------------------------
@@ -351,3 +353,22 @@ def run_apidoc(_):
 
 def setup(app):
     app.connect('builder-inited', run_apidoc)
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = [
+    'h5py',
+    'protobuf',
+    'google',
+    'google.protobuf',
+    'scipy',
+    'numpy',
+    'scikit-learn',
+    'astropy',
+    'pandas',
+    'tables',
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

@@ -8,9 +8,6 @@ Welcome to Acton's documentation!
 
 Contents:
 
-.. toctree::
-   :maxdepth: 2
-
 .. automodule:: acton
     :members:
 

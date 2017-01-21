@@ -290,3 +290,65 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# These blank classes are needed to mock sklearn's base classes without hitting
+# metaclass errors.
+class Blank:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        return Blank()
+
+class Blank2:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        return Blank()
+
+skbm = Blank()
+skbm.BaseEstimator = Blank
+skbm.ClassifierMixin = Blank2
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        if name != 'base':
+            return MagicMock()
+
+        return skbm
+
+
+MOCK_MODULES = [
+    'astropy',
+    'astropy.io',
+    'astropy.io.ascii',
+    'astropy.table',
+    'click',
+    'google',
+    'google.protobuf',
+    'google.protobuf.reflection',
+    'h5py',
+    'matplotlib',
+    'matplotlib.pyplot',
+    'numpy',
+    'pandas',
+    'protobuf',
+    'scipy',
+    'scipy.stats',
+    'sklearn',
+    'sklearn.cross_validation',
+    'sklearn.datasets',
+    'sklearn.linear_model',
+    'sklearn.metrics',
+    'sklearn.neighbors',
+    'sklearn.preprocessing',
+    'sklearn.utils',
+    'sklearn.utils.estimator_checks',
+    'sklearn.utils.multiclass',
+    'sklearn.utils.validation',
+    'tables',
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+sys.modules.update([('sklearn.base', skbm)])

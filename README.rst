@@ -8,12 +8,23 @@ located.
 
 |Build Status| |Documentation Status|
 
+.. |Build Status| image:: https://travis-ci.org/chengsoonong/acton.svg?branch=master
+   :target: https://travis-ci.org/chengsoonong/acton
+.. |Documentation Status| image:: http://readthedocs.org/projects/acton/badge/?version=latest
+   :target: http://acton.readthedocs.io/en/latest/?badge=latest
+
+Dependencies
+------------
+
+Most dependencies will be installed by pip. You will need to manually install:
+
+- Python 3.4+
+- `Protobuf <https://github.com/google/protobuf/tree/master/python>`__
+
 Setup
 -----
 
-Install
-`Protobuf <https://github.com/google/protobuf/tree/master/python>`__.
-Then install Acton using ``pip3``:
+Install Acton using ``pip3``:
 
 .. code:: bash
 
@@ -22,10 +33,29 @@ Then install Acton using ``pip3``:
 This provides access to a command-line tool ``acton`` as well as the
 ``acton`` Python library.
 
-.. |Build Status| image:: https://travis-ci.org/chengsoonong/acton.svg?branch=master
-   :target: https://travis-ci.org/chengsoonong/acton
-.. |Documentation Status| image:: http://readthedocs.org/projects/acton/badge/?version=latest
-   :target: http://acton.readthedocs.io/en/latest/?badge=latest
+Acton CLI
+---------
+
+The command-line interface to Acton is available through the ``acton``
+command. This takes a dataset of features and labels and simulates an
+active learning experiment on that dataset.
+
+Input
++++++
+
+Acton supports three formats of dataset: ASCII, pandas, and HDF5. ASCII
+tables can be any file read by ``astropy.io.ascii.read``, including many common
+plain-text table formats like CSV. pandas tables are supported if dumped to a
+file from ``DataFrame.to_hdf``. HDF5 tables are either an HDF5 file with datasets
+for each feature and a dataset for labels, or an HDF5 file with one
+multidimensional dataset for features and one dataset for labels.
+
+Output
+++++++
+
+Acton outputs a file containing predictions for each epoch of the simulation.
+These are encoded as specified in `this notebook
+<https://github.com/chengsoonong/acton/files/603416/classification.txt>`_.
 
 Quickstart
 ----------

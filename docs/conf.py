@@ -291,6 +291,8 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
+from mock import MagicMock
+
 # These blank classes are needed to mock sklearn's base classes without hitting
 # metaclass errors.
 class Blank:

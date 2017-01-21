@@ -300,23 +300,23 @@ from mock import MagicMock
 
 # These blank classes are needed to mock sklearn's base classes without hitting
 # metaclass errors.
-class Blank:
+class BaseEstimator:
     def __init__(self, *args, **kwargs):
         pass
 
     def __getattr__(self, name):
-        return Blank()
+        return MagicMock()
 
-class Blank2:
+class ClassifierMixin:
     def __init__(self, *args, **kwargs):
         pass
 
     def __getattr__(self, name):
-        return Blank()
+        return MagicMock()
 
-skbm = Blank()
-skbm.BaseEstimator = Blank
-skbm.ClassifierMixin = Blank2
+skbm = MagicMock()
+skbm.BaseEstimator = BaseEstimator
+skbm.ClassifierMixin = ClassifierMixin
 
 class Mock(MagicMock):
     @classmethod

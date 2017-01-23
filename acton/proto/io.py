@@ -11,7 +11,7 @@ import numpy
 def read_proto(
         path: str,
         Proto: GeneratedProtocolMessageType
-) -> 'GeneratedProtocolMessageType()':
+) -> 'Protobuf':
     """Reads a protobuf from a .proto file.
 
     Parameters
@@ -67,6 +67,21 @@ def write_protos(path: str, metadata: bytes=b''):
         proto = yield
         if proto:
             raise RuntimeError('Cannot write protobuf to closed file.')
+
+
+def write_proto(path: str, proto: 'Protobuf'):
+    """Serialises a protobuf to a file.
+
+    Parameters
+    ----------
+    path
+        Path to binary file. Will be overwritten.
+    proto
+        Protobuf to write to file.
+    """
+    with open(path, 'wb') as proto_file:
+        proto = proto.SerializeToString()
+        proto_file.write(proto)
 
 
 def _read_metadata(proto_file: BinaryIO) -> bytes:

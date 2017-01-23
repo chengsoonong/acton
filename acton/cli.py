@@ -97,5 +97,54 @@ def main(
         n_recommendations=recommendation_count)
 
 
+@click.command()
+@click.option('--data',
+              type=click.Path(exists=True, dir_okay=False),
+              help='Path to features/labels file',
+              required=True)
+@click.option('-l', '--label',
+              type=str,
+              help='Column name of labels',
+              required=True)
+@click.option('-o', '--output',
+              type=click.Path(dir_okay=False),
+              help='Path to output file',
+              required=True)
+@click.option('-f', '--feature',
+              type=str,
+              multiple=True,
+              help='Column names of features')
+@click.option('--predictor',
+              type=click.Choice(acton.predictors.PREDICTORS.keys()),
+              default='LogisticRegression',
+              help='Predictor to use')
+@click.option('--pandas-key',
+              type=str,
+              default='',
+              help='Key for pandas HDF5')
+@click.option('-v', '--verbose',
+              is_flag=True,
+              help='Verbose output')
+def predict(
+        data: str,
+        label: str,
+        output: str,
+        feature: str,
+        predictor: str,
+        verbose: bool,
+        pandas_key: str,
+):
+    logging.captureWarnings(True)
+    if verbose:
+        logging.root.setLevel(logging.DEBUG)
+    return acton.acton.predict(
+        data_path=data,
+        feature_cols=feature,
+        label_col=label,
+        output_path=output,
+        predictor=predictor,
+        pandas_key=pandas_key)
+
+
 if __name__ == '__main__':
     sys.exit(main())

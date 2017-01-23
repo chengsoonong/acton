@@ -35,7 +35,8 @@ setup(
                  'acton'},
     entry_points={
         'console_scripts': [
-            'acton=acton.cli:main'
+            'acton=acton.cli:main',
+            'acton-predict=acton.cli:predict',
         ]
     },
     include_package_data=True,

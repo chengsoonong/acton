@@ -9,6 +9,9 @@ import acton.recommenders
 import click
 
 
+# acton
+
+
 @click.command()
 @click.option('--data',
               type=click.Path(exists=True, dir_okay=False),
@@ -97,6 +100,9 @@ def main(
         n_recommendations=recommendation_count)
 
 
+# acton-predict
+
+
 @click.command()
 @click.option('--data',
               type=click.Path(exists=True, dir_okay=False),
@@ -144,6 +150,52 @@ def predict(
         output_path=output,
         predictor=predictor,
         pandas_key=pandas_key)
+
+
+# acton-recommend
+
+
+@click.command()
+@click.option('--predictions',
+              type=click.Path(exists=True, dir_okay=False),
+              help='Path to predictions file',
+              required=True)
+@click.option('-o', '--output',
+              type=click.Path(dir_okay=False),
+              help='Path to output file',
+              required=False)
+@click.option('--diversity',
+              type=float,
+              help='Diversity of recommendations',
+              default=0.0)
+@click.option('--recommendation-count',
+              type=int,
+              help='Number of recommendations to make',
+              default=1)
+@click.option('--recommender',
+              type=click.Choice(acton.recommenders.RECOMMENDERS.keys()),
+              default='RandomRecommender',
+              help='Recommender to use')
+@click.option('-v', '--verbose',
+              is_flag=True,
+              help='Verbose output')
+def recommend(
+        predictions: str,
+        output: str,
+        diversity: float,
+        recommendation_count: int,
+        recommender: str,
+        verbose: bool,
+):
+    logging.warning('Not implemented: diversity')
+    logging.captureWarnings(True)
+    if verbose:
+        logging.root.setLevel(logging.DEBUG)
+    return acton.acton.recommend(
+        predictions_path=predictions,
+        output_path=output,
+        recommender=recommender,
+        n_recommendations=recommendation_count)
 
 
 if __name__ == '__main__':

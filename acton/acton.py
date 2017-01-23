@@ -360,3 +360,37 @@ def predict(
             db_class=db.__class__.__name__,
             db_kwargs=db_kwargs)
         acton.proto.io.write_proto(output_path, proto.proto)
+
+
+def recommend(
+        predictions_path: str,
+        recommender: str='RandomRecommender',
+        output_path: str=None,
+        n_recommendations: int=1):
+    """Simulate an active learning experiment.
+
+    Parameters
+    ---------
+    data_path
+        Path to predictions file.
+    recommender
+        Name of recommender to make recommendations.
+    output_path
+        Path to output file. Will be overwritten. If not specified, will output
+        to stdout.
+    n_recommendations
+        Number of recommendations to make at once. Default 1.
+    """
+    validate_recommender(recommender)
+
+    predictions = acton.proto.wrappers.PredictorOutput(predictions_path)
+    with predictions.DB() as db:
+        recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
+        recommendations = recommender.recommend(
+            predictions.ids, predictions.predictions, n=n_recommendations)
+        if output_path:
+            with open(output_path, 'w') as output_file:
+                output_file.write('\n'.join(str(r) for r in recommendations))
+        else:
+            for r in recommendations:
+                print(r)

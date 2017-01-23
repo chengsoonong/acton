@@ -37,6 +37,7 @@ setup(
         'console_scripts': [
             'acton=acton.cli:main',
             'acton-predict=acton.cli:predict',
+            'acton-recommend=acton.cli:recommend',
         ]
     },
     include_package_data=True,

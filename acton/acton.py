@@ -367,7 +367,7 @@ def recommend(
         recommender: str='RandomRecommender',
         output_path: str=None,
         n_recommendations: int=1):
-    """Simulate an active learning experiment.
+    """Recommends instances to label based on predictions.
 
     Parameters
     ---------

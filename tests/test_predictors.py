@@ -15,7 +15,7 @@ import unittest.mock
 import acton.database
 import acton.predictors
 import acton.proto.wrappers
-from acton.proto.predictors_pb2 import Labels
+from acton.proto.predictors_pb2 import IDs
 import numpy
 import sklearn.linear_model
 
@@ -24,31 +24,25 @@ class TestPredictorInput(unittest.TestCase):
 
     def setUp(self):
         # Make a protobuf.
-        self.labels = Labels()
-        self.instance = self.labels.instance.add()
-        self.instance.id = 1
-        self.instance.label.extend([0, 1])
-        self.labels.n_labellers = 2
-        self.labels.n_label_dimensions = 1
-        self.labels.dtype = 'float32'
-        self.labels.db_class = 'ManagedHDF5Database'
+        self.ids = IDs()
+        self.ids.id.append(10)
+        self.ids.id.append(20)
+        self.ids.db_class = 'ManagedHDF5Database'
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
-        self.labels.db_path = os.path.join(self.tempdir.name, 'test.h5')
+        self.ids.db_path = os.path.join(self.tempdir.name, 'test.h5')
         with open(self.path, 'wb') as f:
-            f.write(self.labels.SerializeToString())
+            f.write(self.ids.SerializeToString())
         self.features = numpy.array([2, 5]).reshape((1, 2))
 
     def tearDown(self):
         self.tempdir.cleanup()
 
-    def test_labels(self):
-        """PredictorInput gives a label array."""
+    def test_ids(self):
+        """PredictorInput gives a list of IDs."""
         predictor_input = acton.proto.wrappers.PredictorInput(self.path)
-        self.assertTrue(numpy.all(
-            predictor_input.labels == numpy.array([[[0]], [[1]]])))  # T x N x F
-        self.assertTrue(numpy.all(
-            predictor_input.labels == numpy.array([[[0]], [[1]]])))  # T x N x F
+        self.assertEqual([10, 20], predictor_input.ids)
+        self.assertEqual([10, 20], predictor_input.ids)
         # Second assertion because the property is cached after the first run.
 
     @unittest.mock.patch.dict(acton.database.DATABASES, values={
@@ -111,45 +105,35 @@ class TestIntegrationCommittee(unittest.TestCase):
 
     def setUp(self):
         # Make a protobuf.
-        self.labels = Labels()
+        self.ids = IDs()
 
-        self.instance_1 = self.labels.instance.add()
-        self.instance_1.id = 1
-        self.instance_1.label.append(float(0))
+        self.ids.id.append(1)
+        self.ids.id.append(3)
 
-        self.instance_2 = self.labels.instance.add()
-        self.instance_2.id = 3
-        self.instance_2.label.append(float(1))
-
-        self.labels.n_labellers = 1
-        self.labels.n_label_dimensions = 1
-        self.labels.dtype = 'float64'
-        self.labels.db_class = 'ManagedHDF5Database'
+        self.ids.db_class = 'ManagedHDF5Database'
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
-        self.labels.db_path = os.path.join(self.tempdir.name, 'test.h5')
+        self.ids.db_path = os.path.join(self.tempdir.name, 'test.h5')
         with open(self.path, 'wb') as f:
-            f.write(self.labels.SerializeToString())
+            f.write(self.ids.SerializeToString())
 
         self.n_instances = 2
         self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
         with acton.database.ManagedHDF5Database(
-                self.labels.db_path, label_dtype=self.labels.dtype,
+                self.ids.db_path,
                 feature_dtype='int32') as db:
-            db.write_features([self.instance_1.id, self.instance_2.id],
+            db.write_features(self.ids.id,
                               self.features)
-            labels = numpy.array(
-                [i.label for i in self.labels.instance]).reshape((1, -1, 1))
-            db.write_labels([0], [self.instance_1.id, self.instance_2.id],
-                            labels)
+            labels = numpy.array([0, 1]).reshape((1, -1, 1))
+            db.write_labels([0], self.ids.id, labels)
 
     def tearDown(self):
         self.tempdir.cleanup()
 
     def testAll(self):
         """Committee can be used with PredictorInput."""
-        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
+        pred_input = acton.proto.wrappers.PredictorInput(self.ids)
         with pred_input.DB() as db:
             lrc = acton.predictors.Committee(
                 acton.predictors.from_class(
@@ -166,38 +150,28 @@ class TestSklearnWrapper(unittest.TestCase):
 
     def setUp(self):
         # Make a protobuf.
-        self.labels = Labels()
+        self.ids = IDs()
 
-        self.instance_1 = self.labels.instance.add()
-        self.instance_1.id = 1
-        self.instance_1.label.append(float(0))
+        self.ids.id.append(1)
+        self.ids.id.append(3)
 
-        self.instance_2 = self.labels.instance.add()
-        self.instance_2.id = 3
-        self.instance_2.label.append(float(1))
-
-        self.labels.n_labellers = 1
-        self.labels.n_label_dimensions = 1
-        self.labels.dtype = 'float64'
-        self.labels.db_class = 'ManagedHDF5Database'
+        self.ids.db_class = 'ManagedHDF5Database'
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predin.proto')
-        self.labels.db_path = os.path.join(self.tempdir.name, 'test.h5')
+        self.ids.db_path = os.path.join(self.tempdir.name, 'test.h5')
         with open(self.path, 'wb') as f:
-            f.write(self.labels.SerializeToString())
+            f.write(self.ids.SerializeToString())
 
         self.n_instances = 2
         self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
         with acton.database.ManagedHDF5Database(
-                self.labels.db_path, label_dtype=self.labels.dtype,
+                self.ids.db_path,
                 feature_dtype='int32') as db:
-            db.write_features([self.instance_1.id, self.instance_2.id],
+            db.write_features(self.ids.id,
                               self.features)
-            labels = numpy.array(
-                [i.label for i in self.labels.instance]).reshape((1, -1, 1))
-            db.write_labels([0], [self.instance_1.id, self.instance_2.id],
-                            labels)
+            labels = numpy.array([0, 1]).reshape((1, -1, 1))
+            db.write_labels([0], self.ids.id, labels)
 
     def tearDown(self):
         self.tempdir.cleanup()
@@ -206,7 +180,7 @@ class TestSklearnWrapper(unittest.TestCase):
         """from_instance wraps a scikit-learn classifier."""
         # The main point of this test is to check nothing crashes.
         classifier = sklearn.linear_model.LogisticRegression()
-        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
+        pred_input = acton.proto.wrappers.PredictorInput(self.ids)
 
         with pred_input.DB() as db:
             predictor = acton.predictors.from_instance(classifier, db)
@@ -219,7 +193,7 @@ class TestSklearnWrapper(unittest.TestCase):
         """from_class wraps a scikit-learn classifier."""
         # The main point of this test is to check nothing crashes.
         Classifier = sklearn.linear_model.LogisticRegression
-        pred_input = acton.proto.wrappers.PredictorInput(self.labels)
+        pred_input = acton.proto.wrappers.PredictorInput(self.ids)
 
         with pred_input.DB() as db:
             Predictor = acton.predictors.from_class(Classifier)

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='predictors.proto',
   package='acton.predictors',
   syntax='proto3',
-  serialized_pb=_b('\n\x10predictors.proto\x12\x10\x61\x63ton.predictors\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\x84\x02\n\x06Labels\x12;\n\x08instance\x18\x01 \x03(\x0b\x32).acton.predictors.Labels.LabelledInstance\x12\x13\n\x0bn_labellers\x18\x02 \x01(\x05\x12\x1a\n\x12n_label_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x0f\n\x07\x64\x62_path\x18\x05 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x06 \x01(\t\x12+\n\tdb_kwargs\x18\x07 \x03(\x0b\x32\x18.acton.predictors.KeyVal\x1a-\n\x10LabelledInstance\x12\n\n\x02id\x18\x01 \x01(\x03\x12\r\n\x05label\x18\x02 \x03(\x01\"\xa2\x02\n\x0bPredictions\x12<\n\nprediction\x18\x01 \x03(\x0b\x32(.acton.predictors.Predictions.Prediction\x12\x14\n\x0cn_predictors\x18\x02 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x0f\n\x07\x64\x62_path\x18\x06 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x07 \x01(\t\x12+\n\tdb_kwargs\x18\x08 \x03(\x0b\x32\x18.acton.predictors.KeyVal\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x10predictors.proto\x12\x10\x61\x63ton.predictors\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"a\n\x03IDs\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x0f\n\x07\x64\x62_path\x18\x02 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x03 \x01(\t\x12+\n\tdb_kwargs\x18\x04 \x03(\x0b\x32\x18.acton.predictors.KeyVal\"\xa2\x02\n\x0bPredictions\x12<\n\nprediction\x18\x01 \x03(\x0b\x32(.acton.predictors.Predictions.Prediction\x12\x14\n\x0cn_predictors\x18\x02 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x03 \x01(\x05\x12\r\n\x05\x64type\x18\x04 \x01(\t\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x0f\n\x07\x64\x62_path\x18\x06 \x01(\t\x12\x10\n\x08\x64\x62_class\x18\x07 \x01(\t\x12+\n\tdb_kwargs\x18\x08 \x03(\x0b\x32\x18.acton.predictors.KeyVal\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -64,23 +64,37 @@ _KEYVAL = _descriptor.Descriptor(
 )
 
 
-_LABELS_LABELLEDINSTANCE = _descriptor.Descriptor(
-  name='LabelledInstance',
-  full_name='acton.predictors.Labels.LabelledInstance',
+_IDS = _descriptor.Descriptor(
+  name='IDs',
+  full_name='acton.predictors.IDs',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='id', full_name='acton.predictors.Labels.LabelledInstance.id', index=0,
-      number=1, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
+      name='id', full_name='acton.predictors.IDs.id', index=0,
+      number=1, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='label', full_name='acton.predictors.Labels.LabelledInstance.label', index=1,
-      number=2, type=1, cpp_type=5, label=3,
+      name='db_path', full_name='acton.predictors.IDs.db_path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='db_class', full_name='acton.predictors.IDs.db_class', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='db_kwargs', full_name='acton.predictors.IDs.db_kwargs', index=3,
+      number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -97,80 +111,8 @@ _LABELS_LABELLEDINSTANCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=292,
-  serialized_end=337,
-)
-
-_LABELS = _descriptor.Descriptor(
-  name='Labels',
-  full_name='acton.predictors.Labels',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='instance', full_name='acton.predictors.Labels.instance', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_labellers', full_name='acton.predictors.Labels.n_labellers', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_label_dimensions', full_name='acton.predictors.Labels.n_label_dimensions', index=2,
-      number=3, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dtype', full_name='acton.predictors.Labels.dtype', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db_path', full_name='acton.predictors.Labels.db_path', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db_class', full_name='acton.predictors.Labels.db_class', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db_kwargs', full_name='acton.predictors.Labels.db_kwargs', index=6,
-      number=7, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_LABELS_LABELLEDINSTANCE, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=77,
-  serialized_end=337,
+  serialized_start=76,
+  serialized_end=173,
 )
 
 
@@ -207,8 +149,8 @@ _PREDICTIONS_PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=586,
-  serialized_end=630,
+  serialized_start=422,
+  serialized_end=466,
 )
 
 _PREDICTIONS = _descriptor.Descriptor(
@@ -286,18 +228,16 @@ _PREDICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=340,
-  serialized_end=630,
+  serialized_start=176,
+  serialized_end=466,
 )
 
-_LABELS_LABELLEDINSTANCE.containing_type = _LABELS
-_LABELS.fields_by_name['instance'].message_type = _LABELS_LABELLEDINSTANCE
-_LABELS.fields_by_name['db_kwargs'].message_type = _KEYVAL
+_IDS.fields_by_name['db_kwargs'].message_type = _KEYVAL
 _PREDICTIONS_PREDICTION.containing_type = _PREDICTIONS
 _PREDICTIONS.fields_by_name['prediction'].message_type = _PREDICTIONS_PREDICTION
 _PREDICTIONS.fields_by_name['db_kwargs'].message_type = _KEYVAL
 DESCRIPTOR.message_types_by_name['KeyVal'] = _KEYVAL
-DESCRIPTOR.message_types_by_name['Labels'] = _LABELS
+DESCRIPTOR.message_types_by_name['IDs'] = _IDS
 DESCRIPTOR.message_types_by_name['Predictions'] = _PREDICTIONS
 
 KeyVal = _reflection.GeneratedProtocolMessageType('KeyVal', (_message.Message,), dict(
@@ -307,20 +247,12 @@ KeyVal = _reflection.GeneratedProtocolMessageType('KeyVal', (_message.Message,),
   ))
 _sym_db.RegisterMessage(KeyVal)
 
-Labels = _reflection.GeneratedProtocolMessageType('Labels', (_message.Message,), dict(
-
-  LabelledInstance = _reflection.GeneratedProtocolMessageType('LabelledInstance', (_message.Message,), dict(
-    DESCRIPTOR = _LABELS_LABELLEDINSTANCE,
-    __module__ = 'predictors_pb2'
-    # @@protoc_insertion_point(class_scope:acton.predictors.Labels.LabelledInstance)
-    ))
-  ,
-  DESCRIPTOR = _LABELS,
+IDs = _reflection.GeneratedProtocolMessageType('IDs', (_message.Message,), dict(
+  DESCRIPTOR = _IDS,
   __module__ = 'predictors_pb2'
-  # @@protoc_insertion_point(class_scope:acton.predictors.Labels)
+  # @@protoc_insertion_point(class_scope:acton.predictors.IDs)
   ))
-_sym_db.RegisterMessage(Labels)
-_sym_db.RegisterMessage(Labels.LabelledInstance)
+_sym_db.RegisterMessage(IDs)
 
 Predictions = _reflection.GeneratedProtocolMessageType('Predictions', (_message.Message,), dict(
 

@@ -13,40 +13,24 @@ message KeyVal {
 /**
  * Input to predictors.
  */
-message Labels {
+message IDs {
     /**
-     * An instance and its label.
+     * A list of IDs for a database.
+     *
+     * Intended to be used as input to predictors.
      */
-    message LabelledInstance {
-        // The ID of the instance that we are labelling.
-        int64 id = 1;
 
-        // Labels are a T x D array, where
-        // - T is the number of labellers, and
-        // - D is the dimensionality of the labels.
-        repeated double label = 2;
-    }
-
-    // Labelled instances for training.
-    repeated LabelledInstance instance = 1;
-
-    // Number of labellers.
-    int32 n_labellers = 2;
-
-    // Dimensionality of the labels.
-    int32 n_label_dimensions = 3;
-
-    // Data type of the labels.
-    string dtype = 4;
+    // IDs.
+    repeated int64 id = 1;
 
     // Path to database.
-    string db_path = 5;
+    string db_path = 2;
 
     // Class of database.
-    string db_class = 6;
+    string db_class = 3;
 
     // Keyword arguments to pass to the database constructor.
-    repeated KeyVal db_kwargs = 7;
+    repeated KeyVal db_kwargs = 4;
 }
 
 /**

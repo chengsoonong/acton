@@ -14,11 +14,11 @@ class PredictorInput(object):
 
     Attributes
     ----------
-    proto : predictors_pb.Labels
+    proto : predictors_pb.IDs
         Protobuf representing the input.
     """
 
-    def __init__(self, proto: Union[str, predictors_pb.Labels]):
+    def __init__(self, proto: Union[str, predictors_pb.IDs]):
         """
         Parameters
         ----------
@@ -26,9 +26,9 @@ class PredictorInput(object):
             Path to .proto file, or raw protobuf itself.
         """
         try:
-            self.proto = acton.proto.io.read_proto(proto, predictors_pb.Labels)
+            self.proto = acton.proto.io.read_proto(proto, predictors_pb.IDs)
         except TypeError:
-            if isinstance(proto, predictors_pb.Labels):
+            if isinstance(proto, predictors_pb.IDs):
                 self.proto = proto
             else:
                 raise TypeError('proto should be str or protobuf.')
@@ -66,7 +66,7 @@ class PredictorInput(object):
         if hasattr(self, '_ids'):
             return self._ids
 
-        self._ids = [instance.id for instance in self.proto.instance]
+        self._ids = list(self.proto.id)
         return self._ids
 
     @property
@@ -86,14 +86,10 @@ class PredictorInput(object):
         if hasattr(self, '_labels'):
             return self._labels
 
-        self._labels = []
-        for instance in self.proto.instance:
-            data = instance.label
-            shape = (self.proto.n_labellers, self.proto.n_label_dimensions)
-            dtype = self.proto.dtype
-            self._labels.append(acton.proto.io.get_ndarray(data, shape, dtype))
-        self._labels = numpy.array(self._labels).transpose((1, 0, 2))
-        return self._labels
+        ids = self.ids
+        DB = acton.database.DATABASES[self.proto.db_class]
+        with DB(self.proto.db_path) as db:
+            return db.read_labels(ids)
 
     @property
     def features(self) -> numpy.ndarray:
@@ -112,9 +108,9 @@ class PredictorInput(object):
         if hasattr(self, '_features'):
             return self._features
 
-        ids = [instance.id for instance in self.proto.instance]
+        ids = self.ids
         DB = acton.database.DATABASES[self.proto.db_class]
-        with DB(self.proto.db_path, label_dtype=self.proto.dtype) as db:
+        with DB(self.proto.db_path) as db:
             return db.read_features(ids)
 
     def _validate_proto(self):
@@ -128,22 +124,12 @@ class PredictorInput(object):
             raise ValueError('Invalid database class: {}'.format(
                 self.proto.db_class))
 
-        if self.proto.n_labellers < 1:
-            raise ValueError('Number of labellers must be > 0.')
-
-        if self.proto.n_label_dimensions < 1:
-            raise ValueError('Label dimension must be > 0.')
-
         if not self.proto.db_path:
             raise ValueError('Must specify db_path.')
 
-        if self.proto.n_label_dimensions > 1:
-            raise NotImplementedError(
-                'Multidimensional labels are not currently supported.')
-
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        self.proto.dtype = self.proto.dtype or 'float32'
+        pass
 
 
 class PredictorOutput(object):

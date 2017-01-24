@@ -16,6 +16,7 @@ requirements = [
 test_requirements = [
     'flake8==3.2.0',
     'pyflakes>=1.3.0',
+    'nose==1.3.7',
 ]
 
 setup(
@@ -38,6 +39,7 @@ setup(
             'acton=acton.cli:main',
             'acton-predict=acton.cli:predict',
             'acton-recommend=acton.cli:recommend',
+            'acton-label=acton.cli:label',
         ]
     },
     include_package_data=True,

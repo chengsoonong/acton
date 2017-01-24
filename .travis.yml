@@ -31,7 +31,7 @@ install:
   - conda create -q -n testenv python=$TRAVIS_PYTHON_VERSION numpy llvmlite scipy
   - source activate testenv
   # Install protobuf
-  - ./install_protobuf.sh
+  - ./install_protobuf
   # Install other requirements
   - pip install -r requirements.txt
   - python setup.py install

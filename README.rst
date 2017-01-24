@@ -55,7 +55,7 @@ Output
 
 Acton outputs a file containing predictions for each epoch of the simulation.
 These are encoded as specified in `this notebook
-<https://github.com/chengsoonong/acton/files/603416/classification.txt>`_.
+<https://github.com/chengsoonong/acton/blob/master/docs/protobuf_spec.ipynb>`_.
 
 Quickstart
 ----------

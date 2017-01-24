@@ -174,7 +174,7 @@ def simulate_active_learning(
         test_pred = predictor.reference_predict(test_ids)
 
         # Construct a protobuf for outputting predictions.
-        proto = acton.proto.wrappers.from_predictions(
+        proto = acton.proto.wrappers.Predictions.make(
             test_ids,
             test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
@@ -221,7 +221,9 @@ def try_pandas(data_path: str) -> bool:
     return True
 
 
-def get_DB(data_path: str, pandas_key: str=None):
+def get_DB(
+        data_path: str,
+        pandas_key: str=None) -> (acton.database.Database, dict):
     """Gets a Database that will handle the given data table.
 
     Parameters
@@ -394,3 +396,54 @@ def recommend(
         else:
             for r in recommendations:
                 print(r)
+
+
+def lines_from_stdin() -> Iterable[str]:
+    """Yields lines from stdin."""
+    while True:
+        line = input()
+        if not line:
+            break
+
+        yield line
+
+
+def label(
+        data_path: str,
+        label_col: str,
+        output_path: str,
+        pandas_key: str='',
+        recommendations_path: str=None):
+    """Simulates a labelling task.
+
+    Parameters
+    ---------
+    data_path
+        Path to data file.
+    label_col
+        Column name of the labels.
+    output_path
+        Path to output file. Will be overwritten.
+    pandas_key
+        Key for pandas HDF5. Specify iff using pandas.
+    recommendations_path
+        Path to recommendations text file (one recommended ID per line). If not
+        specified, this is read from stdin.
+    """
+    DB, db_kwargs = get_DB(data_path)
+    db_kwargs['label_col'] = label_col
+    db_kwargs['feature_cols'] = ''
+
+    with DB(data_path, **db_kwargs) as db:
+        if recommendations_path:
+            with open(recommendations_path) as recommendations_file:
+                ids = [
+                    l.rstrip('\n') for l in recommendations_file.readlines()]
+        else:
+            ids = list(lines_from_stdin())
+
+        labeller = acton.labellers.DatabaseLabeller(db)
+
+        labels = [labeller.query(id_) for id_ in ids]
+
+        print(labels)

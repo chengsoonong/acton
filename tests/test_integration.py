@@ -12,7 +12,7 @@ import unittest
 
 import acton.cli
 import acton.proto.io
-import acton.proto.predictors_pb2
+import acton.proto.acton_pb2
 from click.testing import CliRunner
 
 
@@ -47,7 +47,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('passive.pb'))
 
             reader = acton.proto.io.read_protos(
-                'passive.pb', acton.proto.predictors_pb2.Predictions)
+                'passive.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -78,7 +78,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('str.pb'))
 
             reader = acton.proto.io.read_protos(
-                'str.pb', acton.proto.predictors_pb2.Predictions)
+                'str.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -110,7 +110,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('str.pb'))
 
             reader = acton.proto.io.read_protos(
-                'str.pb', acton.proto.predictors_pb2.Predictions)
+                'str.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -142,7 +142,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('str.pb'))
 
             reader = acton.proto.io.read_protos(
-                'str.pb', acton.proto.predictors_pb2.Predictions)
+                'str.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -174,7 +174,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('passive.pb'))
 
             reader = acton.proto.io.read_protos(
-                'passive.pb', acton.proto.predictors_pb2.Predictions)
+                'passive.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -205,7 +205,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('uncertainty.pb'))
 
             reader = acton.proto.io.read_protos(
-                'uncertainty.pb', acton.proto.predictors_pb2.Predictions)
+                'uncertainty.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 
@@ -236,7 +236,7 @@ class TestIntegration(unittest.TestCase):
             self.assertTrue(os.path.exists('qbc.pb'))
 
             reader = acton.proto.io.read_protos(
-                'qbc.pb', acton.proto.predictors_pb2.Predictions)
+                'qbc.pb', acton.proto.acton_pb2.Predictions)
 
             protos = list(reader)
 

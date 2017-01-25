@@ -95,3 +95,6 @@ ENV/
 minutes/
 data/
 !tests/data/
+
+# Mac
+*.DS_Store

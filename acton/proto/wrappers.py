@@ -6,6 +6,7 @@ from typing import Union, List, Iterable
 import acton.database
 import acton.proto.acton_pb2 as acton_pb
 import acton.proto.io
+import google.protobuf.json_format as json_format
 import numpy
 
 
@@ -36,6 +37,8 @@ class LabelPool(object):
     ----------
     proto : acton_pb.LabelPool
         Protobuf representing the label pool.
+    db_kwargs : dict
+        Key-value pairs of keyword arguments for the database constructor.
     """
 
     def __init__(self, proto: Union[str, acton_pb.LabelPool]):
@@ -56,6 +59,28 @@ class LabelPool(object):
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
         self._set_default()
+
+    @classmethod
+    def deserialise(cls, proto: bytes, json: bool=False) -> 'LabelPool':
+        """Deserialises a protobuf into a LabelPool.
+
+        Parameters
+        ----------
+        proto
+            Serialised protobuf.
+        json
+            Whether the serialised protobuf is in JSON format.
+
+        Returns
+        -------
+        LabelPool
+        """
+        if not json:
+            lp = acton_pb.LabelPool()
+            lp.ParseFromString(proto)
+            return cls(lp)
+
+        return cls(json_format.Parse(proto, acton_pb.LabelPool()))
 
     @property
     def DB(self) -> acton.database.Database:

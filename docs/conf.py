@@ -335,6 +335,7 @@ MOCK_MODULES = [
     'click',
     'google',
     'google.protobuf',
+    'google.protobuf.json_format',
     'google.protobuf.reflection',
     'h5py',
     'matplotlib',

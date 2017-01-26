@@ -1,6 +1,7 @@
 """Main processing script for Acton."""
 
 import logging
+import sys
 from typing import Iterable, List, TypeVar
 
 import acton.database
@@ -306,39 +307,24 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
                                         n_recommendations=n_recommendations)
 
 
-def predict(
-        data_path: str,
-        feature_cols: str,
-        label_col: str,
-        output_path: str,
-        predictor: str,
-        pandas_key: str=None):
+def predict(predictor: str):
     """Train a predictor and predict labels.
+
+    Notes
+    -----
+    Reads a LabelPool protobuf from stdin and outputs a Predictions protobuf.
 
     Parameters
     ---------
-    data_path
-        Path to data file.
-    feature_cols
-        List of column names of the features. If empty, all non-label and non-ID
-        columns will be used.
-    label_col
-        Column name of the labels.
-    output_path
-        Path to output file. Will be overwritten.
     predictor
         Name of predictor to make predictions.
-    pandas_key
-        Key for pandas HDF5. Specify iff using pandas.
     """
     validate_predictor(predictor)
 
-    DB, db_kwargs = get_DB(data_path, pandas_key=pandas_key)
+    labels = sys.stdin.buffer.read()
+    labels = acton.proto.wrappers.LabelPool.deserialise(labels)
 
-    db_kwargs['feature_cols'] = feature_cols
-    db_kwargs['label_col'] = label_col
-
-    with DB(data_path, **db_kwargs) as db:
+    with labels.DB() as db:
         ids = db.get_known_instance_ids()
 
         # Split into training and testing sets.
@@ -354,14 +340,15 @@ def predict(
         predictions = predictor.reference_predict(ids)
 
         # Construct a protobuf for outputting predictions.
-        proto = acton.proto.wrappers.from_predictions(
+        proto = acton.proto.wrappers.Predictions.make(
             ids,
             predictions.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
             db_path=db.path,
             db_class=db.__class__.__name__,
-            db_kwargs=db_kwargs)
-        acton.proto.io.write_proto(output_path, proto.proto)
+            db_kwargs=labels.db_kwargs)
+
+        sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
 def recommend(
@@ -410,40 +397,41 @@ def lines_from_stdin() -> Iterable[str]:
 
 def label(
         data_path: str,
+        feature_cols: List[str],
         label_col: str,
-        output_path: str,
-        pandas_key: str='',
-        recommendations_path: str=None):
+        pandas_key: str=''):
     """Simulates a labelling task.
+
+    Notes
+    -----
+    Reads recommendations from stdin and outputs a LabelPool protobuf to stdout.
 
     Parameters
     ---------
     data_path
         Path to data file.
+    feature_cols
+        List of column names of features. If empty, all columns will be used.
     label_col
         Column name of the labels.
     output_path
         Path to output file. Will be overwritten.
     pandas_key
         Key for pandas HDF5. Specify iff using pandas.
-    recommendations_path
-        Path to recommendations text file (one recommended ID per line). If not
-        specified, this is read from stdin.
     """
     DB, db_kwargs = get_DB(data_path)
     db_kwargs['label_col'] = label_col
     db_kwargs['feature_cols'] = ''
 
-    with DB(data_path, **db_kwargs) as db:
-        if recommendations_path:
-            with open(recommendations_path) as recommendations_file:
-                ids = [
-                    l.rstrip('\n') for l in recommendations_file.readlines()]
-        else:
-            ids = list(lines_from_stdin())
+    ids = [int(i) for i in lines_from_stdin()]
 
-        labeller = acton.labellers.DatabaseLabeller(db)
+    # We'd store the labels here, except that we just read them from the DB.
+    # Instead, we'll record that we've labelled them.
+    # # labeller = acton.labellers.DatabaseLabeller(db)
+    # # labels = [labeller.query(id_) for id_ in ids]
 
-        labels = [labeller.query(id_) for id_ in ids]
-
-        print(labels)
+    # Output to stdout.
+    proto = acton.proto.wrappers.LabelPool.make(
+        ids=ids, db_path=data_path, db_class=DB.__name__,
+        db_kwargs=db_kwargs)
+    sys.stdout.buffer.write(proto.proto.SerializeToString())

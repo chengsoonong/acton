@@ -55,7 +55,7 @@ Output
 
 Acton outputs a file containing predictions for each epoch of the simulation.
 These are encoded as specified in `this notebook
-<https://github.com/chengsoonong/acton/files/603416/classification.txt>`_.
+<https://github.com/chengsoonong/acton/blob/master/docs/protobuf_spec.ipynb>`_.
 
 Quickstart
 ----------
@@ -66,9 +66,9 @@ To run Acton to generate a passive learning curve with logistic regression:
 
 .. code:: bash
 
-    acton --data classification.txt --label col20 -o passive.pb --recommender RandomRecommender --predictor LogisticRegression
+    acton --data classification.txt --label col20 --feature col10 --feature col11 -o passive.pb --recommender RandomRecommender --predictor LogisticRegression
 
-This outputs all predictions for test data points selected randomly from the input data to :code:`passive.pb`, which can then be used to construct a plot. To output an active learning curve using uncertainty sampling, change :code:`RandomRecommender` to :code:`UncertaintyRecommender`.
+This command uses columns ``col10`` and ``col11`` as features, and ``col20`` as labels, a logistic regression predictor, and random recommendations. It outputs all predictions for test data points selected randomly from the input data to :code:`passive.pb`, which can then be used to construct a plot. To output an active learning curve using uncertainty sampling, change :code:`RandomRecommender` to :code:`UncertaintyRecommender`.
 
 To show the learning curve, use `acton.plot`:
 

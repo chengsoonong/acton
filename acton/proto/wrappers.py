@@ -242,19 +242,35 @@ class Predictions(object):
         return self._DB
 
     @property
-    def ids(self) -> List[int]:
-        """Gets a list of IDs.
+    def predicted_ids(self) -> List[int]:
+        """Gets a list of IDs corresponding to predictions.
 
         Returns
         -------
         List[int]
-            List of known IDs.
+            List of IDs corresponding to predictions.
         """
-        if hasattr(self, '_ids'):
-            return self._ids
+        if hasattr(self, '_predicted_ids'):
+            return self._predicted_ids
 
-        self._ids = [prediction.id for prediction in self.proto.prediction]
-        return self._ids
+        self._predicted_ids = [prediction.id
+                               for prediction in self.proto.prediction]
+        return self._predicted_ids
+
+    @property
+    def labelled_ids(self) -> List[int]:
+        """Gets a list of IDs the predictor knew the label for.
+
+        Returns
+        -------
+        List[int]
+            List of IDs the predictor knew the label for.
+        """
+        if hasattr(self, '_labelled_ids'):
+            return self._labelled_ids
+
+        self._labelled_ids = list(self.proto.labelled_id)
+        return self._labelled_ids
 
     @property
     def predictions(self) -> numpy.ndarray:

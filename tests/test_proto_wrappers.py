@@ -72,13 +72,15 @@ class TestPredictions(unittest.TestCase):
 
     def test_integration(self):
         """Predictions.make returns a Predictions with correct values."""
-        ids = [0, 2]
+        predicted_ids = [0, 2]
+        labelled_ids = [1, 2]
         predictions = numpy.array([0.1, 0.5, 0.5, 0.9]).reshape((2, 2, 1))
         preds = acton.proto.wrappers.Predictions.make(
-            predicted_ids=ids, labelled_ids=ids, predictions=predictions,
-            db_path=self.db_path, db_class=self.db_class,
-            db_kwargs=self.db_kwargs)
-        self.assertEqual([0, 2], preds.ids)
+            predicted_ids=predicted_ids, labelled_ids=labelled_ids,
+            predictions=predictions, db_path=self.db_path,
+            db_class=self.db_class, db_kwargs=self.db_kwargs)
+        self.assertEqual([0, 2], preds.predicted_ids)
+        self.assertEqual([1, 2], preds.labelled_ids)
         with preds.DB() as db:
             self.assertEqual([0, 1, 2], db.get_known_instance_ids())
         self.assertTrue(numpy.allclose(predictions, preds.predictions))

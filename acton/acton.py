@@ -369,18 +369,30 @@ def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
     predictions = sys.stdin.buffer.read()
     predictions = acton.proto.wrappers.Predictions.deserialise(predictions)
 
+    # Make a list of IDs that do not have labels and the indices of the
+    # corresponding predictions.
+    ids = []
+    indices = []
+    has_labels = set(predictions.labelled_ids)
+    for pred_index, id_ in enumerate(predictions.predicted_ids):
+        if id_ not in has_labels:
+            ids.append(id_)
+            indices.append(pred_index)
+    # Array of predictions for unlabelled instances.
+    predictions_array = predictions.predictions[indices]
+
     with predictions.DB() as db:
         recommender_name = recommender
         recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
         recommendations = recommender.recommend(
-            predictions.ids, predictions.predictions, n=n_recommendations)
+            ids, predictions_array, n=n_recommendations)
 
         logging.debug('Recommending: {}'.format(list(recommendations)))
 
         # Construct a protobuf for outputting recommendations.
         proto = acton.proto.wrappers.Recommendations.make(
             [int(r) for r in recommendations],
-            predictions.proto.labelled_id,
+            predictions.labelled_ids,
             recommender=recommender_name,
             db_path=db.path,
             db_class=db.__class__.__name__,

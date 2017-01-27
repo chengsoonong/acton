@@ -325,15 +325,9 @@ def predict(predictor: str):
     labels = sys.stdin.buffer.read()
     labels = acton.proto.wrappers.LabelPool.deserialise(labels)
 
-    # TODO(MatthewJA): Use the labels as a training set.
-
     with labels.DB() as db:
         ids = db.get_known_instance_ids()
-
-        # Split into training and testing sets.
-        train_ids, test_ids = sklearn.cross_validation.train_test_split(
-            ids, test_size=0.8)
-        test_ids.sort()
+        train_ids = labels.ids
 
         predictor_name = predictor
         predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)

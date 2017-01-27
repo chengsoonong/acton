@@ -84,7 +84,7 @@ message Predictions {
  */
 message Recommendations {
     // IDs of recommendations.
-    repeated int64 id = 1;
+    repeated int64 recommended_id = 1;
 
     // IDs of instances used to train the predictor used to recommend.
     repeated int64 labelled_id = 2;

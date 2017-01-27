@@ -54,7 +54,7 @@ class LabelPool(object):
             if isinstance(proto, acton_pb.LabelPool):
                 self.proto = proto
             else:
-                raise TypeError('proto should be str or protobuf.')
+                raise TypeError('proto should be str or LabelPool protobuf.')
         self._validate_proto()
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
@@ -218,7 +218,7 @@ class Predictions(object):
             if isinstance(proto, acton_pb.Predictions):
                 self.proto = proto
             else:
-                raise TypeError('proto should be str or protobuf.')
+                raise TypeError('proto should be str or Predictions protobuf.')
         self._validate_proto()
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
@@ -361,6 +361,157 @@ class Predictions(object):
         for id_ in labelled_ids:
             # int() here takes numpy.int64 to int, for protobuf compatibility.
             proto.labelled_id.append(int(id_))
+
+        # Store the db_kwargs.
+        for key, value in db_kwargs.items():
+            kwarg = proto.db.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+
+        return cls(proto)
+
+
+class Recommendations(object):
+    """Wrapper for the Recommendations protobuf.
+
+    Attributes
+    ----------
+    proto : acton_pb.Recommendations
+        Protobuf representing recommendations.
+    db_kwargs : dict
+        Key-value pairs of keyword arguments for the database constructor.
+    """
+
+    def __init__(self, proto: Union[str, acton_pb.Recommendations]):
+        """
+        Parameters
+        ----------
+        proto
+            Path to .proto file, or raw protobuf itself.
+        """
+        try:
+            self.proto = acton.proto.io.read_proto(
+                proto, acton_pb.Recommendations)
+        except TypeError:
+            if isinstance(proto, acton_pb.Recommendations):
+                self.proto = proto
+            else:
+                raise TypeError(
+                    'proto should be str or Recommendations protobuf.')
+        self._validate_proto()
+        self.db_kwargs = {kwa.key: json.loads(kwa.value)
+                          for kwa in self.proto.db.kwarg}
+        self._set_default()
+
+    @classmethod
+    def deserialise(cls, proto: bytes, json: bool=False) -> 'Recommendations':
+        """Deserialises a protobuf into Recommendations.
+
+        Parameters
+        ----------
+        proto
+            Serialised protobuf.
+        json
+            Whether the serialised protobuf is in JSON format.
+
+        Returns
+        -------
+        Recommendations
+        """
+        if not json:
+            recommendations = acton_pb.Recommendations()
+            recommendations.ParseFromString(proto)
+            return cls(recommendations)
+
+        return cls(json_format.Parse(proto, acton_pb.Recommendations()))
+
+    @property
+    def DB(self) -> acton.database.Database:
+        """Gets a database context manager for the specified database.
+
+        Returns
+        -------
+        type
+            Database context manager.
+        """
+        if hasattr(self, '_DB'):
+            return self._DB
+
+        self._DB = lambda: acton.database.DATABASES[self.proto.db.class_name](
+            self.proto.db.path, **self.db_kwargs)
+
+        return self._DB
+
+    @property
+    def recommendations(self) -> List[int]:
+        """Gets a list of recommended IDs.
+
+        Returns
+        -------
+        List[int]
+            List of known IDs.
+        """
+        if hasattr(self, '_recommendations'):
+            return self._recommendations
+
+        self._recommendations = list(self.proto.recommended_id)
+        return self._recommendations
+
+    def _validate_proto(self):
+        """Checks that the protobuf is valid and enforces constraints.
+
+        Raises
+        ------
+        ValueError
+        """
+        validate_db(self.proto.db)
+
+    def _set_default(self):
+        """Adds default parameters to the protobuf."""
+        pass
+
+    @classmethod
+    def make(
+            cls: type,
+            recommended_ids: Iterable[int],
+            labelled_ids: Iterable[int],
+            db_path: str='',
+            db_class: str='',
+            db_kwargs: dict=None) -> 'Recommendations':
+        """Constructs a LabelPool.
+
+        Parameters
+        ----------
+        recommended_ids
+            Iterable of recommended instance IDs.
+        labelled_ids
+            Iterable of labelled instance IDs used to make recommendations.
+        db_path
+            Path to database file.
+        db_class
+            Name of database class.
+        db_kwargs
+            Keyword arguments for the database constructor. Values must be
+            JSON-stringifiable.
+
+        Returns
+        -------
+        Recommendations
+        """
+        proto = acton_pb.Recommendations()
+
+        # Handle default mutable arguments.
+        db_kwargs = db_kwargs or {}
+
+        # Store single data first.
+        proto.db.path = db_path
+        proto.db.class_name = db_class
+
+        # Store the IDs.
+        for id_ in recommended_ids:
+            proto.recommended_id.append(id_)
+        for id_ in labelled_ids:
+            proto.labelled_id.append(id_)
 
         # Store the db_kwargs.
         for key, value in db_kwargs.items():

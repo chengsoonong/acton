@@ -177,6 +177,7 @@ def simulate_active_learning(
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(
             test_ids,
+            labelled_ids,
             test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
             db_path=db.path,
@@ -324,6 +325,8 @@ def predict(predictor: str):
     labels = sys.stdin.buffer.read()
     labels = acton.proto.wrappers.LabelPool.deserialise(labels)
 
+    # TODO(MatthewJA): Use the labels as a training set.
+
     with labels.DB() as db:
         ids = db.get_known_instance_ids()
 
@@ -342,6 +345,7 @@ def predict(predictor: str):
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(
             ids,
+            train_ids,
             predictions.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
             db_path=db.path,

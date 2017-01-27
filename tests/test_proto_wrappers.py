@@ -75,8 +75,9 @@ class TestPredictions(unittest.TestCase):
         ids = [0, 2]
         predictions = numpy.array([0.1, 0.5, 0.5, 0.9]).reshape((2, 2, 1))
         preds = acton.proto.wrappers.Predictions.make(
-            ids=ids, predictions=predictions, db_path=self.db_path,
-            db_class=self.db_class, db_kwargs=self.db_kwargs)
+            predicted_ids=ids, labelled_ids=ids, predictions=predictions,
+            db_path=self.db_path, db_class=self.db_class,
+            db_kwargs=self.db_kwargs)
         self.assertEqual([0, 2], preds.ids)
         with preds.DB() as db:
             self.assertEqual([0, 1, 2], db.get_known_instance_ids())

@@ -305,7 +305,8 @@ class Predictions(object):
     @classmethod
     def make(
             cls: type,
-            ids: Iterable[int],
+            predicted_ids: Iterable[int],
+            labelled_ids: Iterable[int],
             predictions: numpy.ndarray,
             predictor: str='',
             db_path: str='',
@@ -315,8 +316,10 @@ class Predictions(object):
 
         Parameters
         ----------
-        ids
-            Iterable of instance IDs.
+        predicted_ids
+            Iterable of instance IDs corresponding to predictions.
+        labelled_ids
+            Iterable of instance IDs used to train the predictor.
         predictions
             T x N x D array of corresponding predictions.
         predictor
@@ -348,10 +351,16 @@ class Predictions(object):
 
         # Store the predictions array. We can do this by looping over the
         # instances.
-        for id_, prediction in zip(ids, predictions.transpose((1, 0, 2))):
+        for id_, prediction in zip(
+                predicted_ids, predictions.transpose((1, 0, 2))):
             prediction_ = proto.prediction.add()
             prediction_.id = int(id_)  # numpy.int64 -> int
             prediction_.prediction.extend(prediction.ravel())
+
+        # Store the labelled IDs.
+        for id_ in labelled_ids:
+            # int() here takes numpy.int64 to int, for protobuf compatibility.
+            proto.labelled_id.append(int(id_))
 
         # Store the db_kwargs.
         for key, value in db_kwargs.items():

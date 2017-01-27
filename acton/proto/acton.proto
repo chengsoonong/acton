@@ -57,22 +57,25 @@ message Predictions {
 
     // Predictions for instances.
     repeated Prediction prediction = 1;
+
+    // IDs of instances used to train the predictor.
+    repeated int64 labelled_id = 2;
     
     // By having the data type and shape of the predictions outside the
     // Prediction itself, we force all predictions to be the same shape, but
     // also save space.
 
     // Number of predictors.
-    int32 n_predictors = 2;
+    int32 n_predictors = 3;
 
     // Dimensionality of the predictions.
-    int32 n_prediction_dimensions = 3;
+    int32 n_prediction_dimensions = 4;
 
     // Predictor used to generate these predictions.
-    string predictor = 4;
-
+    string predictor = 5;
+    
     // Database that instances are stored in.
-    Database db = 5;
+    Database db = 6;
 }
 
 
@@ -83,6 +86,9 @@ message Recommendations {
     // IDs of recommendations.
     repeated int64 id = 1;
 
+    // IDs of instances used to train the predictor used to recommend.
+    repeated int64 labelled_id = 2;
+    
     // Database that instances are stored in.
-    Database db = 2;
+    Database db = 3;
 }

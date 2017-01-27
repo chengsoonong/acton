@@ -409,6 +409,10 @@ def label(
     Notes
     -----
     Reads recommendations from stdin and outputs a LabelPool protobuf to stdout.
+    If no arguments are specified, the input recommendations will be a
+    Recommendations protobuf. If any database arguments are specified, all
+    database arguments must be specified, and recommendations will be read from
+    stdin.
 
     Parameters
     ---------
@@ -418,24 +422,42 @@ def label(
         List of column names of features. If empty, all columns will be used.
     label_col
         Column name of the labels.
-    output_path
-        Path to output file. Will be overwritten.
     pandas_key
         Key for pandas HDF5. Specify iff using pandas.
     """
-    DB, db_kwargs = get_DB(data_path)
-    db_kwargs['label_col'] = label_col
-    db_kwargs['feature_cols'] = ''
+    if data_path or label_col or pandas_key:
+        if not data_path or not label_col:
+            raise ValueError('If any arguments are specified, all arguments '
+                             'must be specified.')
 
-    ids = [int(i) for i in lines_from_stdin()]
+        # Read recommendations from stdin and store the given arguments.
+        DB, db_kwargs = get_DB(data_path)
+        db_kwargs['label_col'] = label_col
+        db_kwargs['feature_cols'] = ''
+        db_class = DB.__name__
+
+        ids = [int(i) for i in lines_from_stdin()]
+        existing_ids = []
+    else:
+        # Read a protobuf from stdin.
+        recs = sys.stdin.buffer.read()
+        recs = acton.proto.wrappers.Recommendations.deserialise(recs)
+        ids = recs.recommendations
+        existing_ids = recs.labelled_ids
+        db_kwargs = recs.db_kwargs
+        db_class = recs.proto.db.class_name
+        data_path = recs.proto.db.path
 
     # We'd store the labels here, except that we just read them from the DB.
     # Instead, we'll record that we've labelled them.
     # # labeller = acton.labellers.DatabaseLabeller(db)
     # # labels = [labeller.query(id_) for id_ in ids]
 
+    # TODO(MatthewJA): Consider optimising this (doesn't really need a sort).
+    ids = sorted(set(ids) | set(existing_ids))
+
     # Output to stdout.
     proto = acton.proto.wrappers.LabelPool.make(
-        ids=ids, db_path=data_path, db_class=DB.__name__,
+        ids=ids, db_path=data_path, db_class=db_class,
         db_kwargs=db_kwargs)
     sys.stdout.buffer.write(proto.proto.SerializeToString())

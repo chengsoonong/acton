@@ -162,14 +162,14 @@ def recommend(
 @click.option('--data',
               type=click.Path(exists=True, dir_okay=False),
               help='Path to labels file',
-              required=True)
+              required=False)
 @click.option('-l', '--label',
               type=str,
               help='Column name of labels',
-              required=True)
+              required=False)
 @click.option('-f', '--feature',
               type=str,
-              multiple=True,
+              multiple=False,
               help='Column names of features')
 @click.option('--labeller-accuracy',
               type=float,

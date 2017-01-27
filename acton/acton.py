@@ -349,38 +349,44 @@ def predict(predictor: str):
         sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
-def recommend(
-        predictions_path: str,
-        recommender: str='RandomRecommender',
-        output_path: str=None,
-        n_recommendations: int=1):
+def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
     """Recommends instances to label based on predictions.
+
+    Notes
+    -----
+    Reads a Predictions protobuf from stdin and outputs a Recommendations
+    protobuf.
 
     Parameters
     ---------
-    data_path
-        Path to predictions file.
     recommender
         Name of recommender to make recommendations.
-    output_path
-        Path to output file. Will be overwritten. If not specified, will output
-        to stdout.
     n_recommendations
         Number of recommendations to make at once. Default 1.
     """
     validate_recommender(recommender)
 
-    predictions = acton.proto.wrappers.PredictorOutput(predictions_path)
+    predictions = sys.stdin.buffer.read()
+    predictions = acton.proto.wrappers.Predictions.deserialise(predictions)
+
     with predictions.DB() as db:
+        recommender_name = recommender
         recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
         recommendations = recommender.recommend(
             predictions.ids, predictions.predictions, n=n_recommendations)
-        if output_path:
-            with open(output_path, 'w') as output_file:
-                output_file.write('\n'.join(str(r) for r in recommendations))
-        else:
-            for r in recommendations:
-                print(r)
+
+        logging.debug('Recommending: {}'.format(list(recommendations)))
+
+        # Construct a protobuf for outputting recommendations.
+        proto = acton.proto.wrappers.Recommendations.make(
+            [int(r) for r in recommendations],
+            predictions.proto.labelled_id,
+            recommender=recommender_name,
+            db_path=db.path,
+            db_class=db.__class__.__name__,
+            db_kwargs=predictions.db_kwargs)
+
+        sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
 def lines_from_stdin() -> Iterable[str]:

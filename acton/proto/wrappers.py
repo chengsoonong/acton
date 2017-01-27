@@ -370,6 +370,28 @@ class Predictions(object):
 
         return cls(proto)
 
+    @classmethod
+    def deserialise(cls, proto: bytes, json: bool=False) -> 'Predictions':
+        """Deserialises a protobuf into Predictions.
+
+        Parameters
+        ----------
+        proto
+            Serialised protobuf.
+        json
+            Whether the serialised protobuf is in JSON format.
+
+        Returns
+        -------
+        Predictions
+        """
+        if not json:
+            predictions = acton_pb.Predictions()
+            predictions.ParseFromString(proto)
+            return cls(predictions)
+
+        return cls(json_format.Parse(proto, acton_pb.Predictions()))
+
 
 class Recommendations(object):
     """Wrapper for the Recommendations protobuf.
@@ -449,13 +471,28 @@ class Recommendations(object):
         Returns
         -------
         List[int]
-            List of known IDs.
+            List of recommended IDs.
         """
         if hasattr(self, '_recommendations'):
             return self._recommendations
 
         self._recommendations = list(self.proto.recommended_id)
         return self._recommendations
+
+    @property
+    def labelled_ids(self) -> List[int]:
+        """Gets a list of labelled IDs.
+
+        Returns
+        -------
+        List[int]
+            List of labelled IDs.
+        """
+        if hasattr(self, '_labelled_ids'):
+            return self._labelled_ids
+
+        self._labelled_ids = list(self.proto.labelled_id)
+        return self._labelled_ids
 
     def _validate_proto(self):
         """Checks that the protobuf is valid and enforces constraints.
@@ -475,6 +512,7 @@ class Recommendations(object):
             cls: type,
             recommended_ids: Iterable[int],
             labelled_ids: Iterable[int],
+            recommender: str,
             db_path: str='',
             db_class: str='',
             db_kwargs: dict=None) -> 'Recommendations':
@@ -486,6 +524,8 @@ class Recommendations(object):
             Iterable of recommended instance IDs.
         labelled_ids
             Iterable of labelled instance IDs used to make recommendations.
+        recommender
+            Name of the recommender used to make recommendations.
         db_path
             Path to database file.
         db_class
@@ -504,6 +544,7 @@ class Recommendations(object):
         db_kwargs = db_kwargs or {}
 
         # Store single data first.
+        proto.recommender = recommender
         proto.db.path = db_path
         proto.db.class_name = db_class
 

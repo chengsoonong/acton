@@ -125,14 +125,6 @@ def predict(
 
 
 @click.command()
-@click.option('--predictions',
-              type=click.Path(exists=True, dir_okay=False),
-              help='Path to predictions file',
-              required=True)
-@click.option('-o', '--output',
-              type=click.Path(dir_okay=False),
-              help='Path to output file',
-              required=False)
 @click.option('--diversity',
               type=float,
               help='Diversity of recommendations',
@@ -149,8 +141,6 @@ def predict(
               is_flag=True,
               help='Verbose output')
 def recommend(
-        predictions: str,
-        output: str,
         diversity: float,
         recommendation_count: int,
         recommender: str,
@@ -161,8 +151,6 @@ def recommend(
     if verbose:
         logging.root.setLevel(logging.DEBUG)
     return acton.acton.recommend(
-        predictions_path=predictions,
-        output_path=output,
         recommender=recommender,
         n_recommendations=recommendation_count)
 

@@ -88,7 +88,10 @@ message Recommendations {
 
     // IDs of instances used to train the predictor used to recommend.
     repeated int64 labelled_id = 2;
+
+    // Recommender used to generate these recommendations.
+    string recommender = 3;
     
     // Database that instances are stored in.
-    Database db = 3;
+    Database db = 4;
 }

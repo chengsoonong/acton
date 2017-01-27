@@ -90,6 +90,7 @@ class TestRecommendations(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'recommendations.proto')
+        self.recommender = 'UncertaintyRecommender'
         self.db_path = os.path.join(self.tempdir.name, 'db.txt')
         self.db_class = 'ASCIIReader'
         self.db_kwargs = {
@@ -107,10 +108,13 @@ class TestRecommendations(unittest.TestCase):
 
     def test_integration(self):
         """Recommendations.make returns Recommendations with correct values."""
-        ids = [0, 2]
+        recommended_ids = [0, 2]
+        labelled_ids = [1, 2]
         recs = acton.proto.wrappers.Recommendations.make(
-            recommended_ids=ids, labelled_ids=ids, db_path=self.db_path,
+            recommended_ids=recommended_ids, labelled_ids=labelled_ids,
+            recommender=self.recommender, db_path=self.db_path,
             db_class=self.db_class, db_kwargs=self.db_kwargs)
         self.assertEqual([0, 2], recs.recommendations)
+        self.assertEqual([1, 2], recs.labelled_ids)
         with recs.DB() as db:
             self.assertEqual([0, 1, 2], db.get_known_instance_ids())

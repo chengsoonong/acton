@@ -2,9 +2,11 @@
 
 import logging
 import sys
+from typing import Iterable
 
 import acton.acton
 import acton.predictors
+import acton.proto.wrappers
 import acton.recommenders
 import click
 
@@ -158,6 +160,16 @@ def recommend(
 # acton-label
 
 
+def lines_from_stdin() -> Iterable[str]:
+    """Yields lines from stdin."""
+    while True:
+        line = input()
+        if not line:
+            break
+
+        yield line
+
+
 @click.command()
 @click.option('--data',
               type=click.Path(exists=True, dir_okay=False),
@@ -190,15 +202,50 @@ def label(
         verbose: bool,
         pandas_key: str,
 ):
+    # Logging setup.
     logging.warning('Not implemented: labeller_accuracy')
     logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
-    return acton.acton.label(
-        data_path=data,
-        feature_cols=feature,
-        label_col=label,
+
+    # If any arguments are specified, expect all arguments.
+    if data or label or pandas_key:
+        if not data or not label:
+            raise ValueError('--data, --label, or --pandas-key specified, but '
+                             'missing --data or --label.')
+
+        # Handle database arguments.
+        data_path = data
+        feature_cols = feature
+        label_col = label
+
+        # Read IDs from stdin.
+        ids_to_label = [int(i) for i in lines_from_stdin()]
+
+        # There wasn't a recommendations protobuf given, so we have no existing
+        # labelled instances.
+        labelled_ids = []
+    else:
+        # Read a recommendations protobuf from stdin.
+        recs = sys.stdin.buffer.read()
+        recs = acton.proto.wrappers.Recommendations.deserialise(recs)
+        ids_to_label = recs.recommendations
+        labelled_ids = recs.labelled_ids
+
+        # Recover the database information from the protobuf.
+        data_path = recs.proto.db.path
+        feature_cols = recs.db_kwargs['feature_cols']
+        label_col = recs.db_kwargs['label_col']
+        pandas_key = recs.db_kwargs.get('pandas_key', '')
+
+    proto = acton.acton.label(
+        ids_to_label=ids_to_label,
+        labelled_ids=labelled_ids,
+        data_path=data_path,
+        feature_cols=feature_cols,
+        label_col=label_col,
         pandas_key=pandas_key)
+    sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
 if __name__ == '__main__':

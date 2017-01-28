@@ -379,7 +379,7 @@ def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
             ids.append(id_)
             indices.append(pred_index)
     # Array of predictions for unlabelled instances.
-    predictions_array = predictions.predictions[indices]
+    predictions_array = predictions.predictions[:, indices]
 
     with predictions.DB() as db:
         recommender_name = recommender
@@ -401,30 +401,14 @@ def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
         sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
-def lines_from_stdin() -> Iterable[str]:
-    """Yields lines from stdin."""
-    while True:
-        line = input()
-        if not line:
-            break
-
-        yield line
-
-
 def label(
+        ids_to_label: List[int],
+        labelled_ids: List[int],
         data_path: str,
         feature_cols: List[str],
         label_col: str,
-        pandas_key: str=''):
+        pandas_key: str='') -> acton.proto.wrappers.LabelPool:
     """Simulates a labelling task.
-
-    Notes
-    -----
-    Reads recommendations from stdin and outputs a LabelPool protobuf to stdout.
-    If no arguments are specified, the input recommendations will be a
-    Recommendations protobuf. If any database arguments are specified, all
-    database arguments must be specified, and recommendations will be read from
-    stdin.
 
     Parameters
     ---------
@@ -436,29 +420,15 @@ def label(
         Column name of the labels.
     pandas_key
         Key for pandas HDF5. Specify iff using pandas.
+
+    Returns
+    -------
+    acton.proto.wrappers.LabelPool
     """
-    if data_path or label_col or pandas_key:
-        if not data_path or not label_col:
-            raise ValueError('If any arguments are specified, all arguments '
-                             'must be specified.')
-
-        # Read recommendations from stdin and store the given arguments.
-        DB, db_kwargs = get_DB(data_path)
-        db_kwargs['label_col'] = label_col
-        db_kwargs['feature_cols'] = ''
-        db_class = DB.__name__
-
-        ids = [int(i) for i in lines_from_stdin()]
-        existing_ids = []
-    else:
-        # Read a protobuf from stdin.
-        recs = sys.stdin.buffer.read()
-        recs = acton.proto.wrappers.Recommendations.deserialise(recs)
-        ids = recs.recommendations
-        existing_ids = recs.labelled_ids
-        db_kwargs = recs.db_kwargs
-        db_class = recs.proto.db.class_name
-        data_path = recs.proto.db.path
+    DB, db_kwargs = get_DB(data_path, pandas_key=pandas_key)
+    db_kwargs['label_col'] = label_col
+    db_kwargs['feature_cols'] = ''
+    db_class = DB.__name__
 
     # We'd store the labels here, except that we just read them from the DB.
     # Instead, we'll record that we've labelled them.
@@ -466,10 +436,10 @@ def label(
     # # labels = [labeller.query(id_) for id_ in ids]
 
     # TODO(MatthewJA): Consider optimising this (doesn't really need a sort).
-    ids = sorted(set(ids) | set(existing_ids))
+    ids = sorted(set(ids_to_label) | set(labelled_ids))
 
-    # Output to stdout.
+    # Return a protobuf.
     proto = acton.proto.wrappers.LabelPool.make(
         ids=ids, db_path=data_path, db_class=db_class,
         db_kwargs=db_kwargs)
-    sys.stdout.buffer.write(proto.proto.SerializeToString())
+    return proto

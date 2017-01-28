@@ -399,13 +399,8 @@ def recommend(
         return proto
 
 
-def label(
-        ids_to_label: List[int],
-        labelled_ids: List[int],
-        data_path: str,
-        feature_cols: List[str],
-        label_col: str,
-        pandas_key: str='') -> acton.proto.wrappers.LabelPool:
+def label(recommendations: acton.proto.wrappers.Recommendations
+          ) -> acton.proto.wrappers.LabelPool:
     """Simulates a labelling task.
 
     Parameters
@@ -423,21 +418,19 @@ def label(
     -------
     acton.proto.wrappers.LabelPool
     """
-    DB, db_kwargs = get_DB(data_path, pandas_key=pandas_key)
-    db_kwargs['label_col'] = label_col
-    db_kwargs['feature_cols'] = ''
-    db_class = DB.__name__
-
     # We'd store the labels here, except that we just read them from the DB.
     # Instead, we'll record that we've labelled them.
     # # labeller = acton.labellers.DatabaseLabeller(db)
     # # labels = [labeller.query(id_) for id_ in ids]
 
     # TODO(MatthewJA): Consider optimising this (doesn't really need a sort).
+    ids_to_label = recommendations.recommendations
+    labelled_ids = recommendations.labelled_ids
     ids = sorted(set(ids_to_label) | set(labelled_ids))
 
     # Return a protobuf.
     proto = acton.proto.wrappers.LabelPool.make(
-        ids=ids, db_path=data_path, db_class=db_class,
-        db_kwargs=db_kwargs)
+        ids=ids, db_path=recommendations.proto.db.path,
+        db_class=recommendations.proto.db.class_name,
+        db_kwargs=recommendations.db_kwargs)
     return proto

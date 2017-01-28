@@ -234,26 +234,25 @@ def label(
         # There wasn't a recommendations protobuf given, so we have no existing
         # labelled instances.
         labelled_ids = []
+
+        # Construct the recommendations protobuf.
+        DB, db_kwargs = acton.acton.get_DB(data_path, pandas_key=pandas_key)
+        db_kwargs['label_col'] = label_col
+        db_kwargs['feature_cols'] = feature_cols
+        recs = acton.proto.wrappers.Recommendations.make(
+            recommended_ids=ids_to_label,
+            labelled_ids=labelled_ids,
+            recommender='None',
+            db_path=data_path,
+            db_class=DB.__name__,
+            db_kwargs=db_kwargs,
+        )
     else:
         # Read a recommendations protobuf from stdin.
         recs = sys.stdin.buffer.read()
         recs = acton.proto.wrappers.Recommendations.deserialise(recs)
-        ids_to_label = recs.recommendations
-        labelled_ids = recs.labelled_ids
 
-        # Recover the database information from the protobuf.
-        data_path = recs.proto.db.path
-        feature_cols = recs.db_kwargs['feature_cols']
-        label_col = recs.db_kwargs['label_col']
-        pandas_key = recs.db_kwargs.get('pandas_key', '')
-
-    proto = acton.acton.label(
-        ids_to_label=ids_to_label,
-        labelled_ids=labelled_ids,
-        data_path=data_path,
-        feature_cols=feature_cols,
-        label_col=label_col,
-        pandas_key=pandas_key)
+    proto = acton.acton.label(recs)
     sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 

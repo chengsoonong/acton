@@ -532,7 +532,7 @@ class Recommendations(object):
             db_path: str='',
             db_class: str='',
             db_kwargs: dict=None) -> 'Recommendations':
-        """Constructs a LabelPool.
+        """Constructs a Recommendations.
 
         Parameters
         ----------

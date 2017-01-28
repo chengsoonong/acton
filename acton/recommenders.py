@@ -307,4 +307,5 @@ RECOMMENDERS = {
     'RandomRecommender': RandomRecommender,
     'QBCRecommender': QBCRecommender,
     'UncertaintyRecommender': UncertaintyRecommender,
+    'None': RandomRecommender,
 }

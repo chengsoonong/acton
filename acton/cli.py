@@ -148,13 +148,22 @@ def recommend(
         recommender: str,
         verbose: bool,
 ):
+    # Logging setup.
     logging.warning('Not implemented: diversity')
     logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
-    return acton.acton.recommend(
+
+    # Read the predictions protobuf.
+    predictions = sys.stdin.buffer.read()
+    predictions = acton.proto.wrappers.Predictions.deserialise(predictions)
+
+    # Write the recommendations protobuf.
+    proto = acton.acton.recommend(
+        predictions=predictions,
         recommender=recommender,
         n_recommendations=recommendation_count)
+    sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
 # acton-label

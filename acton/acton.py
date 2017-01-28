@@ -349,13 +349,11 @@ def predict(predictor: str):
         sys.stdout.buffer.write(proto.proto.SerializeToString())
 
 
-def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
+def recommend(
+        predictions: acton.proto.wrappers.Predictions,
+        recommender: str='RandomRecommender',
+        n_recommendations: int=1) -> acton.proto.wrappers.Recommendations:
     """Recommends instances to label based on predictions.
-
-    Notes
-    -----
-    Reads a Predictions protobuf from stdin and outputs a Recommendations
-    protobuf.
 
     Parameters
     ---------
@@ -363,11 +361,12 @@ def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
         Name of recommender to make recommendations.
     n_recommendations
         Number of recommendations to make at once. Default 1.
+
+    Returns
+    -------
+    acton.proto.wrappers.Recommendations
     """
     validate_recommender(recommender)
-
-    predictions = sys.stdin.buffer.read()
-    predictions = acton.proto.wrappers.Predictions.deserialise(predictions)
 
     # Make a list of IDs that do not have labels and the indices of the
     # corresponding predictions.
@@ -397,8 +396,7 @@ def recommend(recommender: str='RandomRecommender', n_recommendations: int=1):
             db_path=db.path,
             db_class=db.__class__.__name__,
             db_kwargs=predictions.db_kwargs)
-
-        sys.stdout.buffer.write(proto.proto.SerializeToString())
+        return proto
 
 
 def label(

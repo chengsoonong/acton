@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This script simulates active learning using the component CLI. The same task
+# is accomplished in Python in simulate_active_learning.py.
+
 # Label some initial data points.
 echo "1
 2

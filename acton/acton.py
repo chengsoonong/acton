@@ -1,7 +1,6 @@
 """Main processing script for Acton."""
 
 import logging
-import sys
 from typing import Iterable, List, TypeVar
 
 import acton.database
@@ -308,22 +307,19 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
                                         n_recommendations=n_recommendations)
 
 
-def predict(predictor: str):
+def predict(
+        labels: acton.proto.wrappers.LabelPool,
+        predictor: str) -> acton.proto.wrappers.Predictions:
     """Train a predictor and predict labels.
-
-    Notes
-    -----
-    Reads a LabelPool protobuf from stdin and outputs a Predictions protobuf.
 
     Parameters
     ---------
+    labels
+        IDs of labelled instances.
     predictor
         Name of predictor to make predictions.
     """
     validate_predictor(predictor)
-
-    labels = sys.stdin.buffer.read()
-    labels = acton.proto.wrappers.LabelPool.deserialise(labels)
 
     with labels.DB() as db:
         ids = db.get_known_instance_ids()
@@ -332,6 +328,7 @@ def predict(predictor: str):
         predictor_name = predictor
         predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)
 
+        logging.debug('Training predictor with IDs: {}'.format(train_ids))
         predictor.fit(train_ids)
 
         predictions = predictor.reference_predict(ids)
@@ -345,8 +342,7 @@ def predict(predictor: str):
             db_path=db.path,
             db_class=db.__class__.__name__,
             db_kwargs=labels.db_kwargs)
-
-        sys.stdout.buffer.write(proto.proto.SerializeToString())
+        return proto
 
 
 def recommend(
@@ -426,7 +422,10 @@ def label(recommendations: acton.proto.wrappers.Recommendations
     # TODO(MatthewJA): Consider optimising this (doesn't really need a sort).
     ids_to_label = recommendations.recommendations
     labelled_ids = recommendations.labelled_ids
+    logging.debug('Recommended IDs: {}'.format(ids_to_label))
+    logging.debug('Already labelled IDs: {}'.format(labelled_ids))
     ids = sorted(set(ids_to_label) | set(labelled_ids))
+    logging.debug('Now labelled IDs: {}'.format(ids))
 
     # Return a protobuf.
     proto = acton.proto.wrappers.LabelPool.make(

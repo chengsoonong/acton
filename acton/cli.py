@@ -1,14 +1,71 @@
 """Command-line interface for Acton."""
 
 import logging
+import struct
 import sys
-from typing import Iterable
+from typing import BinaryIO, Iterable
 
 import acton.acton
 import acton.predictors
 import acton.proto.wrappers
 import acton.recommenders
 import click
+
+
+def read_bytes_from_buffer(n: int, buffer: BinaryIO) -> bytes:
+    """Reads n bytes from stdin, blocking until all bytes are received.
+
+    Parameters
+    ----------
+    n
+        How many bytes to read.
+    buffer
+        Which buffer to read from.
+
+    Returns
+    -------
+    bytes
+        Exactly n bytes.
+    """
+    b = b''
+    while len(b) < n:
+        b += buffer.read(n - len(b))
+    assert len(b) == n
+    return b
+
+
+def read_binary() -> bytes:
+    """Reads binary data from stdin.
+
+    Notes
+    -----
+    The first eight bytes are expected to be the length of the input data as an
+    unsigned long long.
+
+    Returns
+    -------
+    bytes
+        Binary data.
+    """
+    logging.debug('Reading 8 bytes from stdin.')
+    length = read_bytes_from_buffer(8, sys.stdin.buffer)
+    length, = struct.unpack('<Q', length)
+    logging.debug('Reading {} bytes from stdin.'.format(length))
+    return read_bytes_from_buffer(length, sys.stdin.buffer)
+
+
+def write_binary(string: bytes):
+    """Writes binary data to stdout.
+
+    Notes
+    -----
+    The output will be preceded by the length as an unsigned long long.
+    """
+    logging.debug('Writing 8 + {} bytes to stdout.'.format(len(string)))
+    length = struct.pack('<Q', len(string))
+    sys.stdout.buffer.write(length)
+    sys.stdout.buffer.write(string)
+    sys.stdout.buffer.flush()
 
 
 # acton
@@ -117,10 +174,18 @@ def predict(
         predictor: str,
         verbose: bool,
 ):
+    # Logging setup.
     logging.captureWarnings(True)
     if verbose:
         logging.root.setLevel(logging.DEBUG)
-    return acton.acton.predict(predictor=predictor)
+
+    # Read labels.
+    labels = read_binary()
+    labels = acton.proto.wrappers.LabelPool.deserialise(labels)
+
+    # Write predictions.
+    proto = acton.acton.predict(labels=labels, predictor=predictor)
+    write_binary(proto.proto.SerializeToString())
 
 
 # acton-recommend
@@ -155,7 +220,7 @@ def recommend(
         logging.root.setLevel(logging.DEBUG)
 
     # Read the predictions protobuf.
-    predictions = sys.stdin.buffer.read()
+    predictions = read_binary()
     predictions = acton.proto.wrappers.Predictions.deserialise(predictions)
 
     # Write the recommendations protobuf.
@@ -163,7 +228,7 @@ def recommend(
         predictions=predictions,
         recommender=recommender,
         n_recommendations=recommendation_count)
-    sys.stdout.buffer.write(proto.proto.SerializeToString())
+    write_binary(proto.proto.SerializeToString())
 
 
 # acton-label
@@ -171,12 +236,11 @@ def recommend(
 
 def lines_from_stdin() -> Iterable[str]:
     """Yields lines from stdin."""
-    while True:
-        line = input()
-        if not line:
-            break
-
-        yield line
+    for line in sys.stdin:
+        line = line.strip()
+        logging.debug('Read line {} from stdin.'.format(repr(line)))
+        if line:
+            yield line
 
 
 @click.command()
@@ -249,11 +313,11 @@ def label(
         )
     else:
         # Read a recommendations protobuf from stdin.
-        recs = sys.stdin.buffer.read()
+        recs = read_binary()
         recs = acton.proto.wrappers.Recommendations.deserialise(recs)
 
     proto = acton.acton.label(recs)
-    sys.stdout.buffer.write(proto.proto.SerializeToString())
+    write_binary(proto.proto.SerializeToString())
 
 
 if __name__ == '__main__':

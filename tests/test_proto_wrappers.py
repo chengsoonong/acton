@@ -47,6 +47,7 @@ class TestLabelPool(unittest.TestCase):
         self.assertEqual([0, 2], lp.ids)
         with lp.DB() as db:
             self.assertEqual([0, 1, 2], db.get_known_instance_ids())
+        self.assertEqual(self.db_class, lp.proto.db.class_name)
 
 
 class TestPredictions(unittest.TestCase):

@@ -291,9 +291,6 @@ class ManagedHDF5Database(HDF5Database):
         # Store the feature vectors.
         # TODO(MatthewJA): Vectorise this. This could be tricky as HDF5 doesn't
         # fully support NumPy's fancy indexing.
-        logging.debug('Writing IDs: {}'.format(ids))
-        logging.debug('Max allowed ID: {}'.format(
-            self._h5_file['features'].shape[0]))
         for id_, feature in zip(ids, features):
             self._h5_file['features'][id_, :] = feature
 

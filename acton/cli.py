@@ -3,7 +3,7 @@
 import logging
 import struct
 import sys
-from typing import BinaryIO, Iterable
+from typing import BinaryIO, Iterable, List
 
 import acton.acton
 import acton.predictors
@@ -63,6 +63,7 @@ def write_binary(string: bytes):
     """
     logging.debug('Writing 8 + {} bytes to stdout.'.format(len(string)))
     length = struct.pack('<Q', len(string))
+    logging.debug('Writing length {} ({}).'.format(length, len(string)))
     sys.stdout.buffer.write(length)
     sys.stdout.buffer.write(string)
     sys.stdout.buffer.flush()
@@ -254,7 +255,7 @@ def lines_from_stdin() -> Iterable[str]:
               required=False)
 @click.option('-f', '--feature',
               type=str,
-              multiple=False,
+              multiple=True,
               help='Column names of features')
 @click.option('--labeller-accuracy',
               type=float,
@@ -269,7 +270,7 @@ def lines_from_stdin() -> Iterable[str]:
               help='Verbose output')
 def label(
         data: str,
-        feature: str,
+        feature: List[str],
         label: str,
         labeller_accuracy: float,
         verbose: bool,

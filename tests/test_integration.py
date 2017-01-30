@@ -8,12 +8,16 @@ Integration tests.
 """
 
 import os.path
+import struct
 import unittest
+import unittest.mock
 
 import acton.cli
 import acton.proto.io
+import acton.proto.wrappers
 import acton.proto.acton_pb2
 from click.testing import CliRunner
+import numpy
 
 
 class TestIntegration(unittest.TestCase):
@@ -243,3 +247,164 @@ class TestIntegration(unittest.TestCase):
             self.assertEqual(
                 2, len(protos),
                 msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
+
+class TestComponentCLI(unittest.TestCase):
+    """Tests the CLI to the label/predict/recommend components."""
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+    def test_label_args(self):
+        """acton-label takes arguments and outputs a protobuf."""
+        db_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_pandas.h5'))
+
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.label,
+                ['--data', db_path,
+                 '--label', 'col20',
+                 '--feature', 'col10',
+                 '--feature', 'col11',
+                 '--pandas-key', 'classification'],
+                input='1\n2\n3\n\n')
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            output = result.output_bytes
+            length, = struct.unpack('<Q', output[:8])
+            proto = output[8:]
+            self.assertEqual(len(proto), length)
+            labels = acton.proto.wrappers.LabelPool.deserialise(proto)
+            self.assertEqual([1, 2, 3], labels.ids)
+            self.assertTrue(labels.proto.db.path.endswith('_pandas.h5'))
+            self.assertEqual({
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }, labels.db_kwargs)
+
+    def test_label_protobuf(self):
+        """acton-label takes and outputs a protobuf."""
+        db_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_pandas.h5'))
+
+        with self.runner.isolated_filesystem():
+            proto = acton.proto.wrappers.Recommendations.make(
+                labelled_ids=[1, 2, 3],
+                recommended_ids=[4],
+                recommender='UncertaintyRecommender',
+                db_path=db_path,
+                db_class='PandasReader',
+                db_kwargs={
+                    'feature_cols': ['col10', 'col11'],
+                    'label_col': 'col20',
+                    'key': 'classification',
+                }).proto.SerializeToString()
+            assert isinstance(proto, bytes)
+            length = struct.pack('<Q', len(proto))
+            result = self.runner.invoke(
+                acton.cli.label,
+                input=length + proto)
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            output = result.output_bytes
+            length, = struct.unpack('<Q', output[:8])
+            proto = output[8:]
+            self.assertEqual(len(proto), length)
+            labels = acton.proto.wrappers.LabelPool.deserialise(proto)
+            self.assertEqual([1, 2, 3, 4], labels.ids)
+            self.assertTrue(labels.proto.db.path.endswith('_pandas.h5'))
+            self.assertEqual({
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }, labels.db_kwargs)
+
+    def test_predict(self):
+        """acton-predict takes and outputs a protobuf."""
+        db_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_pandas.h5'))
+
+        with self.runner.isolated_filesystem():
+            proto = acton.proto.wrappers.LabelPool.make(
+                ids=[1, 2, 3],
+                db_path=db_path,
+                db_class='PandasReader',
+                db_kwargs={
+                    'feature_cols': ['col10', 'col11'],
+                    'label_col': 'col20',
+                    'key': 'classification',
+                })
+            proto = proto.proto.SerializeToString()
+            assert isinstance(proto, bytes)
+            length = struct.pack('<Q', len(proto))
+            result = self.runner.invoke(
+                acton.cli.predict,
+                input=length + proto)
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            output = result.output_bytes
+            length, = struct.unpack('<Q', output[:8])
+            proto = output[8:]
+            self.assertEqual(len(proto), length)
+            predictions = acton.proto.wrappers.Predictions.deserialise(proto)
+            self.assertEqual([1, 2, 3], predictions.labelled_ids)
+            self.assertTrue(predictions.proto.db.path.endswith('_pandas.h5'))
+            self.assertEqual({
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }, predictions.db_kwargs)
+
+    def test_recommend(self):
+        """acton-recommend takes and outputs a protobuf."""
+        db_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_pandas.h5'))
+
+        with self.runner.isolated_filesystem():
+            predictions = numpy.random.random(size=(1, 2, 1))
+            proto = acton.proto.wrappers.Predictions.make(
+                labelled_ids=[1, 2, 3],
+                predicted_ids=[4, 5],
+                predictions=predictions,
+                predictor='LogisticRegression',
+                db_path=db_path,
+                db_class='PandasReader',
+                db_kwargs={
+                    'feature_cols': ['col10', 'col11'],
+                    'label_col': 'col20',
+                    'key': 'classification',
+                })
+            proto = proto.proto.SerializeToString()
+            assert isinstance(proto, bytes)
+            length = struct.pack('<Q', len(proto))
+            result = self.runner.invoke(
+                acton.cli.recommend,
+                input=length + proto)
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            output = result.output_bytes
+            length, = struct.unpack('<Q', output[:8])
+            proto = output[8:]
+            self.assertEqual(len(proto), length)
+            recs = acton.proto.wrappers.Recommendations.deserialise(proto)
+            self.assertEqual([1, 2, 3], recs.labelled_ids)
+            self.assertTrue(recs.proto.db.path.endswith('_pandas.h5'))
+            self.assertEqual({
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }, recs.db_kwargs)

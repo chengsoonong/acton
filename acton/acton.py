@@ -1,6 +1,7 @@
 """Main processing script for Acton."""
 
 import logging
+import time
 from typing import Iterable, List, TypeVar
 
 import acton.database
@@ -120,6 +121,8 @@ def simulate_active_learning(
     metadata = '{} | {}'.format(recommender, predictor).encode('ascii')
 
     # Split into training and testing sets.
+    logging.debug('Found {} instances.'.format(len(ids)))
+    logging.debug('Splitting into training/testing sets.')
     train_ids, test_ids = sklearn.cross_validation.train_test_split(
         ids, test_size=test_size)
     test_ids.sort()
@@ -133,6 +136,7 @@ def simulate_active_learning(
     recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
 
     # Draw some initial labels.
+    logging.debug('Drawing initial labels.')
     recommendations = draw(n_initial_labels, train_ids, replace=False)
     logging.debug('Recommending: {}'.format(recommendations))
 
@@ -151,15 +155,19 @@ def simulate_active_learning(
     for epoch in range(n_epochs):
         logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))
         # Label the recommendations.
+        logging.debug('Labelling recommendations.')
         new_labels = numpy.array([
             labeller.query(id_) for id_ in recommendations]).reshape((-1, 1))
 
         if not hasattr(label_encoder, 'classes_'):
+            logging.debug('Fitting a label encoder.')
             label_encoder.fit(new_labels)
 
+        logging.debug('Encoding labels.')
         new_labels = label_encoder.transform(new_labels).reshape((-1, 1))
 
         labelled_ids.extend(recommendations)
+        logging.debug('Sorting label IDs.')
         labelled_ids.sort()
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
@@ -168,10 +176,17 @@ def simulate_active_learning(
         pass
 
         # Pass the labels to the predictor.
+        logging.debug('Fitting predictor.')
+        then = time.time()
         predictor.fit(labelled_ids)
+        logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         # Evaluate the predictor.
+        logging.debug(
+            'Making predictions (reference, n = {}).'.format(len(test_ids)))
+        then = time.time()
         test_pred = predictor.reference_predict(test_ids)
+        logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(
@@ -183,6 +198,7 @@ def simulate_active_learning(
             db_class=db.__class__.__name__,
             db_kwargs=db_kwargs)
         # Then write them to a file.
+        logging.debug('Writing predictions.')
         writer.send(proto.proto)
 
         # Pass the predictions to the recommender.
@@ -193,7 +209,13 @@ def simulate_active_learning(
 
         unlabelled_ids.sort()
 
+        logging.debug(
+            'Making predictions (unlabelled, n = {}).'.format(
+                len(unlabelled_ids)))
+        then = time.time()
         predictions = predictor.predict(unlabelled_ids)
+        logging.debug('(Took {:.02} s.)'.format(time.time() - then))
+        logging.debug('Making recommendations.')
         recommendations = recommender.recommend(
             unlabelled_ids, predictions, n=n_recommendations)
         logging.debug('Recommending: {}'.format(recommendations))

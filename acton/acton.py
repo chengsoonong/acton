@@ -145,9 +145,6 @@ def simulate_active_learning(
     # This will store all the corresponding labels.
     labels = numpy.zeros((0, 1))
 
-    # This will encode labels as integers.
-    label_encoder = sklearn.preprocessing.LabelEncoder()
-
     # Simulation loop.
     logging.debug('Writing protobufs to {}.'.format(output_path))
     writer = acton.proto.io.write_protos(output_path, metadata=metadata)
@@ -158,13 +155,6 @@ def simulate_active_learning(
         logging.debug('Labelling recommendations.')
         new_labels = numpy.array([
             labeller.query(id_) for id_ in recommendations]).reshape((-1, 1))
-
-        if not hasattr(label_encoder, 'classes_'):
-            logging.debug('Fitting a label encoder.')
-            label_encoder.fit(new_labels)
-
-        logging.debug('Encoding labels.')
-        new_labels = label_encoder.transform(new_labels).reshape((-1, 1))
 
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')

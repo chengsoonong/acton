@@ -6,7 +6,7 @@ from typing import Iterable
 from typing.io import BinaryIO
 
 import acton.proto.io
-from acton.proto.predictors_pb2 import Predictions
+from acton.proto.acton_pb2 import Predictions
 import acton.proto.wrappers
 import click
 import matplotlib.pyplot as plt
@@ -32,13 +32,13 @@ def plot(predictions: Iterable[BinaryIO]):
     for meta, proto_file in zip(metadata, predictions):
         # Read in the first protobuf to get the database file.
         protobuf = next(acton.proto.io.read_protos(proto_file, Predictions))
-        protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
+        protobuf = acton.proto.wrappers.Predictions(protobuf)
         with protobuf.DB() as db:
             accuracies = []
             for protobuf in acton.proto.io.read_protos(
                     proto_file, Predictions):
-                protobuf = acton.proto.wrappers.PredictorOutput(protobuf)
-                ids = protobuf.ids
+                protobuf = acton.proto.wrappers.Predictions(protobuf)
+                ids = protobuf.predicted_ids
                 predictions_ = protobuf.predictions
                 assert predictions_.shape[0] == 1
                 predictions_ = predictions_[0]

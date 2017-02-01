@@ -5,6 +5,7 @@ from typing import Iterable, Sequence
 
 import acton.database
 import acton.kde_predictor
+import GPy as gpy
 import numpy
 import sklearn.base
 import sklearn.cross_validation
@@ -317,6 +318,88 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
     return predictor
 
 
+class GPClassifier(Predictor):
+    """Classifier using Gaussian processes.
+
+    Attributes
+    ----------
+    max_iters : int
+        Maximum optimisation iterations.
+    model_ : gpy.models.GPClassification
+        GP model.
+    _db : acton.database.Database
+        Database storing features and labels.
+    """
+    def __init__(self, db: acton.database.Database, max_iters: int=50000,
+                 n_jobs: int=1):
+        """
+        Parameters
+        ----------
+        db
+            Database.
+        max_iters
+            Maximum optimisation iterations.
+        n_jobs
+            Does nothing; here for compatibility with sklearn.
+        """
+        self._db = db
+        self.max_iters = max_iters
+
+    def fit(self, ids: Iterable[int]):
+        """Fits the predictor to labelled data.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to train from.
+        """
+        features = self._db.read_features(ids)
+        labels = self._db.read_labels([0], ids).reshape((-1, 1))
+        self.model_ = gpy.models.GPClassification(features, labels)
+        self.model_.optimize('bfgs', max_iters=self.max_iters)
+
+    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
+        """Predicts labels of instances.
+
+        Notes
+        -----
+            Unlike in scikit-learn, predictions are always real-valued.
+            Predicted labels for a classification problem are represented by
+            predicted probabilities of each class.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x 1 x C array of corresponding predictions.
+        """
+        features = self._db.read_features(ids)
+        p_predictions = self.model_.predict(features)[0]
+        n_predictions = 1 - p_predictions
+        predictions = numpy.concatenate([n_predictions, p_predictions], axis=1)
+        assert predictions.shape[1] == 2
+        return predictions.reshape((-1, 1, 2))
+
+    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
+        """Predicts labels using the best possible method.
+
+        Parameters
+        ----------
+        ids
+            List of IDs of instances to predict labels for.
+
+        Returns
+        -------
+        numpy.ndarray
+            An N x 1 x C array of corresponding predictions.
+        """
+        return self.predict(ids)
+
+
 # Helper functions to generate predictor classes.
 
 
@@ -339,4 +422,5 @@ PREDICTORS = {
     'LogisticRegression': _logistic_regression(),
     'LogisticRegressionCommittee': _logistic_regression_committee(),
     'KDE': _kde(),
+    'GPC': GPClassifier,
 }

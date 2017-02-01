@@ -10,6 +10,7 @@ import numpy
 import sklearn.base
 import sklearn.cross_validation
 import sklearn.linear_model
+import sklearn.preprocessing
 
 
 class Predictor(ABC):
@@ -325,6 +326,8 @@ class GPClassifier(Predictor):
     ----------
     max_iters : int
         Maximum optimisation iterations.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers.
     model_ : gpy.models.GPClassification
         GP model.
     _db : acton.database.Database
@@ -355,6 +358,11 @@ class GPClassifier(Predictor):
         """
         features = self._db.read_features(ids)
         labels = self._db.read_labels([0], ids).reshape((-1, 1))
+        self.label_encoder_ = sklearn.preprocessing.LabelEncoder()
+        labels = self.label_encoder_.fit_transform(labels).reshape((-1, 1))
+        if len(self.label_encoder_.classes) > 2:
+            raise ValueError(
+                'GPClassifier only supports binary classification.')
         self.model_ = gpy.models.GPClassification(features, labels)
         self.model_.optimize('bfgs', max_iters=self.max_iters)
 

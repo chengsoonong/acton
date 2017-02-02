@@ -357,10 +357,10 @@ class GPClassifier(Predictor):
             List of IDs of instances to train from.
         """
         features = self._db.read_features(ids)
-        labels = self._db.read_labels([0], ids).reshape((-1, 1))
+        labels = self._db.read_labels([0], ids).ravel()
         self.label_encoder_ = sklearn.preprocessing.LabelEncoder()
         labels = self.label_encoder_.fit_transform(labels).reshape((-1, 1))
-        if len(self.label_encoder_.classes) > 2:
+        if len(self.label_encoder_.classes_) > 2:
             raise ValueError(
                 'GPClassifier only supports binary classification.')
         self.model_ = gpy.models.GPClassification(features, labels)

@@ -122,3 +122,28 @@ class TestSklearnWrapper(unittest.TestCase):
             predictor.fit(ids)
             probs = predictor.predict(ids)
             self.assertEqual((2, 1, 2), probs.shape)
+
+
+class TestGPClassifier(unittest.TestCase):
+    """Integration test for GPClassifier."""
+
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def test_str_labels(self):
+        """GPClassifier handles string labels."""
+        self.db_path = os.path.join(self.tempdir.name, 'str.h5')
+        self.n_instances = 2
+        self.ids = [2, 4]
+        self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
+        self.labels = numpy.array(['Class A', 'Class B']).reshape((1, -1, 1))
+
+        with acton.database.ManagedHDF5Database(self.db_path, label_dtype='<S50') as db:
+            db.write_features(self.ids, self.features)
+            db.write_labels([0], self.ids, self.labels)
+
+            gpc = acton.predictors.GPClassifier(db)
+            gpc.fit(self.ids)

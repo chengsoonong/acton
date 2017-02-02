@@ -90,6 +90,68 @@ class TestIntegration(unittest.TestCase):
                 2, len(protos),
                 msg='Expected 2 protobufs; found {}'.format(len(protos)))
 
+    def test_classification_gpc_non_integer_labels(self):
+        """Acton handles non-integer labels with a GPClassifier."""
+        txt_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_str.txt'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', txt_path,
+                 '-o', 'str.pb',
+                 '--recommender', 'RandomRecommender',
+                 '--predictor', 'GPC',
+                 '--epochs', '2',
+                 '--label', 'label'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('str.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'str.pb', acton.proto.acton_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
+    def test_classification_uncrt_non_integer_labels(self):
+        """Acton handles non-integer labels with uncertainty sampling."""
+        txt_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification_str.txt'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', txt_path,
+                 '-o', 'str.pb',
+                 '--recommender', 'UncertaintyRecommender',
+                 '--predictor', 'LogisticRegression',
+                 '--epochs', '2',
+                 '--label', 'label'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('str.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'str.pb', acton.proto.acton_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
     def test_classification_pandas_non_integer_labels(self):
         """Acton handles non-integer labels in a pandas table."""
         txt_path = os.path.realpath(

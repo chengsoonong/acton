@@ -36,5 +36,4 @@ class TestRegression(unittest.TestCase):
             lr = acton.predictors.PREDICTORS['LinearRegression'](db)
             lr.fit(ids)
             predictions = lr.predict(ids)
-            print(ys, predictions.ravel())
             self.assertTrue(numpy.allclose(ys, predictions.ravel(), atol=0.2))

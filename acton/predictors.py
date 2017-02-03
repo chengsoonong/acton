@@ -123,8 +123,15 @@ class _InstancePredictor(Predictor):
             An N x 1 x C array of corresponding predictions.
         """
         features = self._db.read_features(ids)
-        probs = self._instance.predict_proba(features)
-        return probs.reshape((probs.shape[0], 1, probs.shape[1]))
+        try:
+            probs = self._instance.predict_proba(features)
+            return probs.reshape((probs.shape[0], 1, probs.shape[1]))
+        except AttributeError:
+            probs = self._instance.predict(features)
+            if len(probs.shape) == 1:
+                return probs.reshape((probs.shape[0], 1, 1))
+            else:
+                raise NotImplementedError()
 
     def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
         """Predicts labels using the best possible method.
@@ -415,6 +422,10 @@ def _logistic_regression() -> type:
     return from_class(sklearn.linear_model.LogisticRegression)
 
 
+def _linear_regression() -> type:
+    return from_class(sklearn.linear_model.LinearRegression)
+
+
 def _logistic_regression_committee() -> type:
     def make_committee(db, *args, **kwargs):
         return Committee(_logistic_regression(), db, *args, **kwargs)
@@ -429,6 +440,7 @@ def _kde() -> type:
 PREDICTORS = {
     'LogisticRegression': _logistic_regression(),
     'LogisticRegressionCommittee': _logistic_regression_committee(),
+    'LinearRegression': _linear_regression(),
     'KDE': _kde(),
     'GPC': GPClassifier,
 }

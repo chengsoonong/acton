@@ -12,9 +12,9 @@ import acton.proto.wrappers
 import acton.recommenders
 import numpy
 import pandas
-import sklearn.cross_validation
 import sklearn.linear_model
 import sklearn.metrics
+import sklearn.model_selection
 import sklearn.preprocessing
 
 T = TypeVar('T')
@@ -123,7 +123,7 @@ def simulate_active_learning(
     # Split into training and testing sets.
     logging.debug('Found {} instances.'.format(len(ids)))
     logging.debug('Splitting into training/testing sets.')
-    train_ids, test_ids = sklearn.cross_validation.train_test_split(
+    train_ids, test_ids = sklearn.model_selection.train_test_split(
         ids, test_size=test_size)
     test_ids.sort()
 

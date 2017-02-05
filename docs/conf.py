@@ -346,7 +346,7 @@ MOCK_MODULES = [
     'scipy',
     'scipy.stats',
     'sklearn',
-    'sklearn.cross_validation',
+    'sklearn.model_selection',
     'sklearn.datasets',
     'sklearn.linear_model',
     'sklearn.metrics',

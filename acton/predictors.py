@@ -8,8 +8,8 @@ import acton.kde_predictor
 import GPy as gpy
 import numpy
 import sklearn.base
-import sklearn.cross_validation
 import sklearn.linear_model
+import sklearn.model_selection
 import sklearn.preprocessing
 
 
@@ -246,7 +246,7 @@ class Committee(Predictor):
         for classifier in self._committee:
             # Take a subsets to introduce variety.
             try:
-                subset, _ = sklearn.cross_validation.train_test_split(
+                subset, _ = sklearn.model_selection.train_test_split(
                     ids, train_size=self.subset_size, stratify=labels)
             except ValueError:
                 # Too few labels.

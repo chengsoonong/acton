@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    source/modules
-   source/predictor
+   source/dev
 
 
 Indices and tables

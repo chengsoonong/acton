@@ -248,6 +248,37 @@ class TestIntegration(unittest.TestCase):
                 2, len(protos),
                 msg='Expected 2 protobufs; found {}'.format(len(protos)))
 
+    def test_classification_passive_fits(self):
+        """Acton handles a passive classification task with a FITS table."""
+        fits_path = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         'data', 'classification.fits'))
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                acton.cli.main,
+                ['--data', fits_path,
+                 '-o', 'passive.pb',
+                 '--recommender', 'RandomRecommender',
+                 '--predictor', 'LogisticRegression',
+                 '--epochs', '2',
+                 '--label', 'col20'])
+
+            if result.exit_code != 0:
+                raise result.exception
+
+            self.assertEqual('', result.output)
+
+            self.assertTrue(os.path.exists('passive.pb'))
+
+            reader = acton.proto.io.read_protos(
+                'passive.pb', acton.proto.acton_pb2.Predictions)
+
+            protos = list(reader)
+
+            self.assertEqual(
+                2, len(protos),
+                msg='Expected 2 protobufs; found {}'.format(len(protos)))
+
     def test_classification_uncertainty(self):
         """Acton handles a classification task with uncertainty sampling."""
         txt_path = os.path.realpath(

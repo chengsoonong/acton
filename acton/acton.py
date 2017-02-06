@@ -255,8 +255,12 @@ def get_DB(
     """
     db_kwargs = {}
 
+    is_fits = data_path.endswith('.fits')
     is_ascii = not data_path.endswith('.h5')
-    if is_ascii:
+    if is_fits:
+        logging.debug('Reading {} as FITS.'.format(data_path))
+        DB = acton.database.FITSReader
+    elif is_ascii:
         logging.debug('Reading {} as ASCII.'.format(data_path))
         DB = acton.database.ASCIIReader
     else:

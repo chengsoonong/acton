@@ -9,6 +9,7 @@ from typing import Iterable, List, Sequence
 import warnings
 
 import astropy.io.ascii as io_ascii
+import astropy.io.fits as io_fits
 import astropy.table
 import h5py
 import numpy
@@ -1044,10 +1045,149 @@ class PandasReader(Database):
         raise NotImplementedError()
 
 
+class FITSReader(Database):
+    """Reads FITS databases.
+
+    Attributes
+    ----------
+    hdu_index : int
+        Index of HDU in the FITS file.
+    feature_cols : List[str]
+        List of feature columns.
+    label_col : str
+        Name of label column.
+    n_features : int
+        Number of features.
+    n_instances : int
+        Number of instances.
+    n_labels : int
+        Number of labels per instance.
+    path : str
+        Path to FITS file.
+    _hdulist : astropy.io.fits.HDUList
+        FITS HDUList.
+    """
+
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 hdu_index: int=1):
+        """
+        Parameters
+        ----------
+        path
+            Path to FITS file.
+        feature_cols
+            List of feature columns. If none are specified, then all non-label,
+            non-ID columns will be used.
+        label_col
+            Name of label dataset.
+        hdu_index
+            Index of HDU in the FITS file. Default is 1, i.e., the first
+            extension in the FITS file.
+        """
+        self.path = path
+        self.feature_cols = feature_cols
+        self.label_col = label_col
+        self.hdu_index = hdu_index
+
+        # These will be set when the FITS file is opened.
+        self.n_instances = None
+        self.n_features = None
+
+    def __enter__(self):
+        self._hdulist = io_fits.open(self.path)
+
+        # If we haven't specified columns, use all except the label column.
+        cols = self._hdulist[self.hdu_index].columns.names
+        if not self.feature_cols:
+            self.feature_cols = [k for k in cols if k != self.label_col]
+
+        self.n_features = len(self.feature_cols)
+        self.n_instances = \
+            self._hdulist[self.hdu_index].data[self.label_col].ravel().shape[0]
+
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        self._hdulist.close()
+        delattr(self, '_hdulist')
+
+    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+        ids
+            Iterable of IDs.
+
+        Returns
+        -------
+        numpy.ndarray
+            N x D array of feature vectors.
+        """
+        # TODO(MatthewJA): Optimise this.
+        # Allocate output features array.
+        features = numpy.zeros((len(ids), self.n_features))
+        for f_index, col in enumerate(self.feature_cols):
+            col = self._hdulist[self.hdu_index].data[col]
+            features[:, f_index] = col[ids]
+
+        return features
+
+    def read_labels(self,
+                    labeller_ids: Sequence[int],
+                    instance_ids: Sequence[int]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+        labeller_ids
+            Iterable of labeller IDs.
+        instance_ids
+            Iterable of instance IDs.
+
+        Returns
+        -------
+        numpy.p
+            T x N x 1 array of label vectors.
+        """
+        label_col = self._hdulist[self.hdu_index].data[self.label_col]
+        return label_col[instance_ids].reshape((1, -1, 1))
+
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
+                     labels: numpy.ndarray):
+        raise PermissionError('Cannot write to read-only database.')
+
+    def get_known_instance_ids(self) -> List[int]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        return [i for i in range(self.n_instances)]
+
+    def get_known_labeller_ids(self) -> List[int]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        raise NotImplementedError()
+
+
 # For safe string-based access to database classes.
 DATABASES = {
     'ASCIIReader': ASCIIReader,
     'HDF5Reader': HDF5Reader,
+    'FITSReader': FITSReader,
     'ManagedHDF5Database': ManagedHDF5Database,
     'PandasReader': PandasReader,
 }

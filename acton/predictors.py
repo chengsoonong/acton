@@ -153,7 +153,8 @@ class _InstancePredictor(Predictor):
 
 
 def from_instance(predictor: sklearn.base.BaseEstimator,
-                  db: acton.database.Database) -> Predictor:
+                  db: acton.database.Database, regression: bool=False
+                  ) -> Predictor:
     """Converts a scikit-learn predictor instance into a Predictor instance.
 
     Arguments
@@ -162,22 +163,29 @@ def from_instance(predictor: sklearn.base.BaseEstimator,
         scikit-learn predictor.
     db
         Database storing features and labels.
+    regression
+        Whether this predictor does regression (as opposed to classification).
 
     Returns
     -------
     Predictor
         Predictor instance wrapping the scikit-learn predictor.
     """
-    return _InstancePredictor(predictor, db)
+    ip = _InstancePredictor(predictor, db)
+    if regression:
+        ip.prediction_type = 'regression'
+    return ip
 
 
-def from_class(Predictor: type) -> type:
+def from_class(Predictor: type, regression: bool=False) -> type:
     """Converts a scikit-learn predictor class into a Predictor class.
 
     Arguments
     ---------
     Predictor
         scikit-learn predictor class.
+    regression
+        Whether this predictor does regression (as opposed to classification).
 
     Returns
     -------
@@ -189,6 +197,9 @@ def from_class(Predictor: type) -> type:
         def __init__(self, db, **kwargs):
             super().__init__(instance=None, db=db)
             self._instance = Predictor(**kwargs)
+
+    if regression:
+        Predictor_.prediction_type = 'regression'
 
     return Predictor_
 
@@ -426,9 +437,7 @@ def _logistic_regression() -> type:
 
 
 def _linear_regression() -> type:
-    LR = from_class(sklearn.linear_model.LinearRegression)
-    LR.prediction_type = 'regression'
-    return LR
+    return from_class(sklearn.linear_model.LinearRegression, regression=True)
 
 
 def _logistic_regression_committee() -> type:

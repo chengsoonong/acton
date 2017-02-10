@@ -18,7 +18,10 @@ class Predictor(ABC):
 
     Attributes
     ----------
+    prediction_type : str
+        What kind of predictions this class generates, e.g. classification.s
     """
+    prediction_type = 'classification'
 
     @abstractmethod
     def fit(self, ids: Iterable[int]):
@@ -423,7 +426,9 @@ def _logistic_regression() -> type:
 
 
 def _linear_regression() -> type:
-    return from_class(sklearn.linear_model.LinearRegression)
+    LR = from_class(sklearn.linear_model.LinearRegression)
+    LR.prediction_type = 'regression'
+    return LR
 
 
 def _logistic_regression_committee() -> type:

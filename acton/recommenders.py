@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 import logging
-from typing import Iterable, Sequence
+from typing import Sequence, Sequence
 
 import acton.database
 import numpy
@@ -10,7 +10,7 @@ import scipy.stats
 
 
 def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
-               l: float=0.5) -> Iterable[int]:
+               l: float=0.5) -> Sequence[int]:
     """Chooses n scores using maximal marginal relevance.
 
     Notes
@@ -30,7 +30,7 @@ def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
 
     Returns
     -------
-    Iterable[int]
+    Sequence[int]
         List of indices of scores chosen.
     """
     if n < 0:
@@ -76,7 +76,7 @@ def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
 
 
 def choose_boltzmann(features: numpy.ndarray, scores: numpy.ndarray, n: int,
-                     temperature: float=1.0) -> Iterable[int]:
+                     temperature: float=1.0) -> Sequence[int]:
     """Chooses n scores using a Boltzmann distribution.
 
     Notes
@@ -96,7 +96,7 @@ def choose_boltzmann(features: numpy.ndarray, scores: numpy.ndarray, n: int,
 
     Returns
     -------
-    Iterable[int]
+    Sequence[int]
         List of indices of scores chosen.
     """
     if n < 0:
@@ -135,7 +135,7 @@ class Recommender(ABC):
     """
 
     @abstractmethod
-    def recommend(self, ids: Iterable[int],
+    def recommend(self, ids: Sequence[int],
                   predictions: numpy.ndarray,
                   n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
@@ -143,7 +143,7 @@ class Recommender(ABC):
         Parameters
         ----------
         ids
-            Iterable of IDs in the unlabelled data pool.
+            Sequence of IDs in the unlabelled data pool.
         predictions
             N x T x C array of predictions.
         n
@@ -170,7 +170,7 @@ class RandomRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Iterable[int],
+    def recommend(self, ids: Sequence[int],
                   predictions: numpy.ndarray,
                   n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
@@ -178,7 +178,7 @@ class RandomRecommender(Recommender):
         Parameters
         ----------
         ids
-            Iterable of IDs in the unlabelled data pool.
+            Sequence of IDs in the unlabelled data pool.
         predictions
             N x T x C array of predictions.
         n
@@ -206,7 +206,7 @@ class QBCRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Iterable[int],
+    def recommend(self, ids: Sequence[int],
                   predictions: numpy.ndarray,
                   n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
@@ -262,7 +262,7 @@ class UncertaintyRecommender(Recommender):
         """
         self._db = db
 
-    def recommend(self, ids: Iterable[int],
+    def recommend(self, ids: Sequence[int],
                   predictions: numpy.ndarray,
                   n: int=1, diversity: float=0.5) -> Sequence[int]:
         """Recommends an instance to label.
@@ -302,10 +302,67 @@ class UncertaintyRecommender(Recommender):
         return [ids[i] for i in indices]
 
 
+class MarginRecommender(Recommender):
+    """Recommends instances by margin-based uncertainty sampling."""
+
+    def __init__(self, db: acton.database.Database):
+        """
+        Parameters
+        ----------
+        db
+            Features database.
+        """
+        self._db = db
+
+    def recommend(self, ids: Sequence[int],
+                  predictions: numpy.ndarray,
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
+        """Recommends an instance to label.
+
+        Notes
+        -----
+        Assumes predictions are probabilities of positive binary label.
+
+        Parameters
+        ----------
+        ids
+            Sequence of IDs in the unlabelled data pool.
+        predictions
+            N x 1 x C array of predictions. The ith row must correspond with the
+            ith ID in the sequence.
+        n
+            Number of recommendations to make.
+        diversity
+            Recommendation diversity in [0, 1].
+
+        Returns
+        -------
+        Sequence[int]
+            IDs of the instances to label.
+        """
+        if predictions.shape[1] != 1:
+            raise ValueError('Uncertainty sampling must have one predictor')
+
+        assert len(ids) == predictions.shape[0]
+
+        # x* = argmin p(y1^ | x) - p(y2^ | x) where yn^ = argmax p(yn | x)
+        # (Settles 2009).
+        partitioned = numpy.partition(predictions, -2, axis=2)
+        most_likely = partitioned[:, 0, -1]
+        second_most_likely = partitioned[:, 0, -2]
+        assert most_likely.shape == (len(ids),)
+        scores = 1 - (most_likely - second_most_likely)
+
+        indices = choose_boltzmann(self._db.read_features(ids), scores, n,
+                                   temperature=diversity * 2)
+        return [ids[i] for i in indices]
+
+
 # For safe string-based access to recommender classes.
 RECOMMENDERS = {
     'RandomRecommender': RandomRecommender,
     'QBCRecommender': QBCRecommender,
     'UncertaintyRecommender': UncertaintyRecommender,
+    'MarginRecommender': MarginRecommender,
     'None': RandomRecommender,
 }

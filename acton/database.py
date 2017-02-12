@@ -973,7 +973,7 @@ class PandasReader(Database):
         features = numpy.zeros((len(ids), self.n_features))
         # For each ID, get the corresponding features.
         for out_index, id_ in enumerate(ids):
-            sel = self._df.ix[id_]
+            sel = self._df.iloc[id_]
 
             for feature_index, feature in enumerate(self.feature_cols):
                 features[out_index, feature_index] = sel[feature]
@@ -998,7 +998,7 @@ class PandasReader(Database):
             T x N x 1 array of label vectors.
         """
         # Draw a label to get the dtype.
-        dtype = type(self._df.ix[0][self.label_col])
+        dtype = type(self._df.iloc[0][self.label_col])
 
         # Allocate output labels array.
         labels = numpy.zeros(
@@ -1010,7 +1010,7 @@ class PandasReader(Database):
 
         # For each ID, get the corresponding labels.
         for out_index, id_ in enumerate(instance_ids):
-            sel = self._df.ix[int(id_)]
+            sel = self._df.iloc[int(id_)]
             labels[0, out_index, 0] = sel[self.label_col]
 
         return labels

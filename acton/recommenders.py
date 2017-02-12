@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 import logging
-from typing import Sequence, Sequence
+from typing import Sequence
 
 import acton.database
 import numpy

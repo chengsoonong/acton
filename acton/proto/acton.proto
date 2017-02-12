@@ -16,6 +16,18 @@ message KeyVal {
  * This message should be enough to open a new connection to the database.
  */
 message Database {
+    /**
+     * A scikit-learn LabelEncoder.
+     */
+    message LabelEncoder {
+        // Maps label -> integer.
+        message Encoding {
+            string class_label = 1;
+            int32 class_int = 2;
+        }
+        repeated Encoding encoding = 1;
+    }
+
     // Path to database (usually a file).
     string path = 1;
 
@@ -24,6 +36,9 @@ message Database {
 
     // Keyword arguments to pass to the wrapper database constructor.
     repeated KeyVal kwarg = 3;
+
+    // Encodes labels as integers.
+    LabelEncoder label_encoder = 4;
 }
 
 /**

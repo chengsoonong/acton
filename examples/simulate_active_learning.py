@@ -8,16 +8,14 @@ from acton.proto.wrappers import Recommendations
 
 # Initial labels.
 recommendation_indices = list(range(10))
-recommendations = Recommendations.make(
-    recommended_ids=recommendation_indices,
-    labelled_ids=[],
-    recommender='None',
-    db_path='tests/data/classification.txt',
-    db_class='ASCIIReader',
-    db_kwargs={
-        'feature_cols': [],
-        'label_col': 'col20',
-    })
+with acton.database.ASCIIReader(
+        'tests/data/classification.txt',
+        feature_cols=[], label_col='col20') as db:
+    recommendations = Recommendations.make(
+        recommended_ids=recommendation_indices,
+        labelled_ids=[],
+        recommender='None',
+        db=db)
 labels = label(recommendations)
 
 # Main loop.

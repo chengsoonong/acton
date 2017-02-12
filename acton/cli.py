@@ -304,14 +304,12 @@ def label(
         DB, db_kwargs = acton.acton.get_DB(data_path, pandas_key=pandas_key)
         db_kwargs['label_col'] = label_col
         db_kwargs['feature_cols'] = feature_cols
-        recs = acton.proto.wrappers.Recommendations.make(
-            recommended_ids=ids_to_label,
-            labelled_ids=labelled_ids,
-            recommender='None',
-            db_path=data_path,
-            db_class=DB.__name__,
-            db_kwargs=db_kwargs,
-        )
+        with DB(data_path, **db_kwargs) as db:
+            recs = acton.proto.wrappers.Recommendations.make(
+                recommended_ids=ids_to_label,
+                labelled_ids=labelled_ids,
+                recommender='None',
+                db=db)
     else:
         # Read a recommendations protobuf from stdin.
         recs = read_binary()

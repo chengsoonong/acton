@@ -135,7 +135,7 @@ class Database(ABC):
         """
 
     @abstractmethod
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -239,7 +239,7 @@ class ManagedHDF5Database(HDF5Database):
         # List of attributes to keep in sync with the HDF5 file.
         self._sync_attrs = ['label_dtype', 'feature_dtype']
 
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -257,7 +257,7 @@ class ManagedHDF5Database(HDF5Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        proto.label_encoder = NotImplemented
+        #  proto.label_encoder = ...
         return proto
 
     def _open_hdf5(self):
@@ -630,7 +630,7 @@ class HDF5Reader(HDF5Database):
             else:
                 self.n_features = len(feature_cols)
 
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -648,7 +648,7 @@ class HDF5Reader(HDF5Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        proto.label_encoder = NotImplemented
+        #  proto.label_encoder = ...
         return proto
 
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
@@ -816,7 +816,7 @@ class ASCIIReader(Database):
         self.feature_cols = feature_cols
         self.label_col = label_col
 
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -834,7 +834,7 @@ class ASCIIReader(Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        proto.label_encoder = NotImplemented
+        #  proto.label_encoder = ...
         return proto
 
     @staticmethod
@@ -1024,7 +1024,7 @@ class PandasReader(Database):
         self.n_instances = len(self._df[self.label_col])
         self.n_features = len(self.feature_cols)
 
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -1043,7 +1043,7 @@ class PandasReader(Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        proto.label_encoder = NotImplemented
+        #  proto.label_encoder = ...
         return proto
 
     def __enter__(self):
@@ -1190,7 +1190,7 @@ class FITSReader(Database):
         self.n_instances = None
         self.n_features = None
 
-    def serialise(self) -> DatabasePB:
+    def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
 
         Returns
@@ -1209,7 +1209,7 @@ class FITSReader(Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        proto.label_encoder = NotImplemented
+        #  proto.label_encoder = ...
         return proto
 
     def __enter__(self):

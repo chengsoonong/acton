@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='acton.proto',
   package='acton',
   syntax='proto3',
-  serialized_pb=_b('\n\x0b\x61\x63ton.proto\x12\x05\x61\x63ton\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"J\n\x08\x44\x61tabase\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x1c\n\x05kwarg\x18\x03 \x03(\x0b\x32\r.acton.KeyVal\"4\n\tLabelPool\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x1b\n\x02\x64\x62\x18\x02 \x01(\x0b\x32\x0f.acton.Database\"\xea\x01\n\x0bPredictions\x12\x31\n\nprediction\x18\x01 \x03(\x0b\x32\x1d.acton.Predictions.Prediction\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x14\n\x0cn_predictors\x18\x03 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x04 \x01(\x05\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x06 \x01(\x0b\x32\x0f.acton.Database\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\"p\n\x0fRecommendations\x12\x16\n\x0erecommended_id\x18\x01 \x03(\x03\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x13\n\x0brecommender\x18\x03 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x04 \x01(\x0b\x32\x0f.acton.Databaseb\x06proto3')
+  serialized_pb=_b('\n\x0b\x61\x63ton.proto\x12\x05\x61\x63ton\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xfc\x01\n\x08\x44\x61tabase\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x1c\n\x05kwarg\x18\x03 \x03(\x0b\x32\r.acton.KeyVal\x12\x33\n\rlabel_encoder\x18\x04 \x01(\x0b\x32\x1c.acton.Database.LabelEncoder\x1a{\n\x0cLabelEncoder\x12\x37\n\x08\x65ncoding\x18\x01 \x03(\x0b\x32%.acton.Database.LabelEncoder.Encoding\x1a\x32\n\x08\x45ncoding\x12\x13\n\x0b\x63lass_label\x18\x01 \x01(\t\x12\x11\n\tclass_int\x18\x02 \x01(\x05\"4\n\tLabelPool\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x1b\n\x02\x64\x62\x18\x02 \x01(\x0b\x32\x0f.acton.Database\"\xea\x01\n\x0bPredictions\x12\x31\n\nprediction\x18\x01 \x03(\x0b\x32\x1d.acton.Predictions.Prediction\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x14\n\x0cn_predictors\x18\x03 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x04 \x01(\x05\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x06 \x01(\x0b\x32\x0f.acton.Database\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\"p\n\x0fRecommendations\x12\x16\n\x0erecommended_id\x18\x01 \x03(\x03\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x13\n\x0brecommender\x18\x03 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x04 \x01(\x0b\x32\x0f.acton.Databaseb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -64,6 +64,73 @@ _KEYVAL = _descriptor.Descriptor(
 )
 
 
+_DATABASE_LABELENCODER_ENCODING = _descriptor.Descriptor(
+  name='Encoding',
+  full_name='acton.Database.LabelEncoder.Encoding',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='class_label', full_name='acton.Database.LabelEncoder.Encoding.class_label', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='class_int', full_name='acton.Database.LabelEncoder.Encoding.class_int', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=263,
+  serialized_end=313,
+)
+
+_DATABASE_LABELENCODER = _descriptor.Descriptor(
+  name='LabelEncoder',
+  full_name='acton.Database.LabelEncoder',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='encoding', full_name='acton.Database.LabelEncoder.encoding', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_DATABASE_LABELENCODER_ENCODING, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=190,
+  serialized_end=313,
+)
+
 _DATABASE = _descriptor.Descriptor(
   name='Database',
   full_name='acton.Database',
@@ -92,10 +159,17 @@ _DATABASE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='label_encoder', full_name='acton.Database.label_encoder', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_DATABASE_LABELENCODER, ],
   enum_types=[
   ],
   options=None,
@@ -104,8 +178,8 @@ _DATABASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=60,
-  serialized_end=134,
+  serialized_start=61,
+  serialized_end=313,
 )
 
 
@@ -142,8 +216,8 @@ _LABELPOOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=136,
-  serialized_end=188,
+  serialized_start=315,
+  serialized_end=367,
 )
 
 
@@ -180,8 +254,8 @@ _PREDICTIONS_PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=381,
-  serialized_end=425,
+  serialized_start=560,
+  serialized_end=604,
 )
 
 _PREDICTIONS = _descriptor.Descriptor(
@@ -245,8 +319,8 @@ _PREDICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=191,
-  serialized_end=425,
+  serialized_start=370,
+  serialized_end=604,
 )
 
 
@@ -297,11 +371,15 @@ _RECOMMENDATIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=427,
-  serialized_end=539,
+  serialized_start=606,
+  serialized_end=718,
 )
 
+_DATABASE_LABELENCODER_ENCODING.containing_type = _DATABASE_LABELENCODER
+_DATABASE_LABELENCODER.fields_by_name['encoding'].message_type = _DATABASE_LABELENCODER_ENCODING
+_DATABASE_LABELENCODER.containing_type = _DATABASE
 _DATABASE.fields_by_name['kwarg'].message_type = _KEYVAL
+_DATABASE.fields_by_name['label_encoder'].message_type = _DATABASE_LABELENCODER
 _LABELPOOL.fields_by_name['db'].message_type = _DATABASE
 _PREDICTIONS_PREDICTION.containing_type = _PREDICTIONS
 _PREDICTIONS.fields_by_name['prediction'].message_type = _PREDICTIONS_PREDICTION
@@ -321,11 +399,27 @@ KeyVal = _reflection.GeneratedProtocolMessageType('KeyVal', (_message.Message,),
 _sym_db.RegisterMessage(KeyVal)
 
 Database = _reflection.GeneratedProtocolMessageType('Database', (_message.Message,), dict(
+
+  LabelEncoder = _reflection.GeneratedProtocolMessageType('LabelEncoder', (_message.Message,), dict(
+
+    Encoding = _reflection.GeneratedProtocolMessageType('Encoding', (_message.Message,), dict(
+      DESCRIPTOR = _DATABASE_LABELENCODER_ENCODING,
+      __module__ = 'acton_pb2'
+      # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder.Encoding)
+      ))
+    ,
+    DESCRIPTOR = _DATABASE_LABELENCODER,
+    __module__ = 'acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder)
+    ))
+  ,
   DESCRIPTOR = _DATABASE,
   __module__ = 'acton_pb2'
   # @@protoc_insertion_point(class_scope:acton.Database)
   ))
 _sym_db.RegisterMessage(Database)
+_sym_db.RegisterMessage(Database.LabelEncoder)
+_sym_db.RegisterMessage(Database.LabelEncoder.Encoding)
 
 LabelPool = _reflection.GeneratedProtocolMessageType('LabelPool', (_message.Message,), dict(
   DESCRIPTOR = _LABELPOOL,

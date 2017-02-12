@@ -184,9 +184,7 @@ def simulate_active_learning(
             labelled_ids,
             test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
-            db_path=db.path,
-            db_class=db.__class__.__name__,
-            db_kwargs=db_kwargs)
+            db=db)
         # Then write them to a file.
         logging.debug('Writing predictions.')
         writer.send(proto.proto)
@@ -355,9 +353,7 @@ def predict(
             train_ids,
             predictions.transpose([1, 0, 2]),  # T x N x C -> N x T x C
             predictor=predictor_name,
-            db_path=db.path,
-            db_class=db.__class__.__name__,
-            db_kwargs=labels.db_kwargs)
+            db=db)
         return proto
 
 
@@ -405,9 +401,7 @@ def recommend(
             [int(r) for r in recommendations],
             predictions.labelled_ids,
             recommender=recommender_name,
-            db_path=db.path,
-            db_class=db.__class__.__name__,
-            db_kwargs=predictions.db_kwargs)
+            db=db)
         return proto
 
 
@@ -444,8 +438,6 @@ def label(recommendations: acton.proto.wrappers.Recommendations
     logging.debug('Now labelled IDs: {}'.format(ids))
 
     # Return a protobuf.
-    proto = acton.proto.wrappers.LabelPool.make(
-        ids=ids, db_path=recommendations.proto.db.path,
-        db_class=recommendations.proto.db.class_name,
-        db_kwargs=recommendations.db_kwargs)
+    with recommendations.DB() as db:
+        proto = acton.proto.wrappers.LabelPool.make(ids=ids, db=db)
     return proto

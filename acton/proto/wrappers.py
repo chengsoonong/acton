@@ -152,22 +152,15 @@ class LabelPool(object):
     def make(
             cls: type,
             ids: Iterable[int],
-            db_path: str='',
-            db_class: str='',
-            db_kwargs: dict=None) -> 'LabelPool':
+            db: acton.database.Database) -> 'LabelPool':
         """Constructs a LabelPool.
 
         Parameters
         ----------
         ids
             Iterable of instance IDs.
-        db_path
-            Path to database file.
-        db_class
-            Name of database class.
-        db_kwargs
-            Keyword arguments for the database constructor. Values must be
-            JSON-stringifiable.
+        db
+            Database
 
         Returns
         -------
@@ -175,22 +168,12 @@ class LabelPool(object):
         """
         proto = acton_pb.LabelPool()
 
-        # Handle default mutable arguments.
-        db_kwargs = db_kwargs or {}
-
-        # Store single data first.
-        proto.db.path = db_path
-        proto.db.class_name = db_class
-
         # Store the IDs.
         for id_ in ids:
             proto.id.append(id_)
 
-        # Store the db_kwargs.
-        for key, value in db_kwargs.items():
-            kwarg = proto.db.kwarg.add()
-            kwarg.key = key
-            kwarg.value = json.dumps(value)
+        # Store the database.
+        proto.db.CopyFrom(db.to_proto())
 
         return cls(proto)
 
@@ -324,10 +307,8 @@ class Predictions(object):
             predicted_ids: Iterable[int],
             labelled_ids: Iterable[int],
             predictions: numpy.ndarray,
-            predictor: str='',
-            db_path: str='',
-            db_class: str='',
-            db_kwargs: dict=None) -> 'Predictions':
+            db: acton.database.Database,
+            predictor: str='') -> 'Predictions':
         """Converts NumPy predictions to a Predictions object.
 
         Parameters
@@ -340,13 +321,8 @@ class Predictions(object):
             T x N x D array of corresponding predictions.
         predictor
             Name of predictor used to generate predictions.
-        db_path
-            Path to database file.
-        db_class
-            Name of database class.
-        db_kwargs
-            Keyword arguments for the database constructor. Values must be
-            JSON-stringifiable.
+        db
+            Database.
 
         Returns
         -------
@@ -354,16 +330,14 @@ class Predictions(object):
         """
         proto = acton_pb.Predictions()
 
-        # Handle default mutable arguments.
-        db_kwargs = db_kwargs or {}
-
         # Store single data first.
         n_predictors, n_instances, n_prediction_dimensions = predictions.shape
         proto.n_predictors = n_predictors
         proto.n_prediction_dimensions = n_prediction_dimensions
         proto.predictor = predictor
-        proto.db.path = db_path
-        proto.db.class_name = db_class
+
+        # Store the database.
+        proto.db.CopyFrom(db.to_proto())
 
         # Store the predictions array. We can do this by looping over the
         # instances.
@@ -377,12 +351,6 @@ class Predictions(object):
         for id_ in labelled_ids:
             # int() here takes numpy.int64 to int, for protobuf compatibility.
             proto.labelled_id.append(int(id_))
-
-        # Store the db_kwargs.
-        for key, value in db_kwargs.items():
-            kwarg = proto.db.kwarg.add()
-            kwarg.key = key
-            kwarg.value = json.dumps(value)
 
         return cls(proto)
 
@@ -529,9 +497,7 @@ class Recommendations(object):
             recommended_ids: Iterable[int],
             labelled_ids: Iterable[int],
             recommender: str,
-            db_path: str='',
-            db_class: str='',
-            db_kwargs: dict=None) -> 'Recommendations':
+            db: acton.database.Database) -> 'Recommendations':
         """Constructs a Recommendations.
 
         Parameters
@@ -542,13 +508,8 @@ class Recommendations(object):
             Iterable of labelled instance IDs used to make recommendations.
         recommender
             Name of the recommender used to make recommendations.
-        db_path
-            Path to database file.
-        db_class
-            Name of database class.
-        db_kwargs
-            Keyword arguments for the database constructor. Values must be
-            JSON-stringifiable.
+        db
+            Database.
 
         Returns
         -------
@@ -556,13 +517,8 @@ class Recommendations(object):
         """
         proto = acton_pb.Recommendations()
 
-        # Handle default mutable arguments.
-        db_kwargs = db_kwargs or {}
-
         # Store single data first.
         proto.recommender = recommender
-        proto.db.path = db_path
-        proto.db.class_name = db_class
 
         # Store the IDs.
         for id_ in recommended_ids:
@@ -570,10 +526,7 @@ class Recommendations(object):
         for id_ in labelled_ids:
             proto.labelled_id.append(id_)
 
-        # Store the db_kwargs.
-        for key, value in db_kwargs.items():
-            kwarg = proto.db.kwarg.add()
-            kwarg.key = key
-            kwarg.value = json.dumps(value)
+        # Store the database.
+        proto.db.CopyFrom(db.to_proto())
 
         return cls(proto)

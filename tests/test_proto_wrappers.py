@@ -12,6 +12,7 @@ import tempfile
 import unittest
 import unittest.mock
 
+import acton.database
 import acton.proto.wrappers
 import numpy
 
@@ -23,7 +24,6 @@ class TestLabelPool(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'labelpool.proto')
         self.db_path = os.path.join(self.tempdir.name, 'db.txt')
-        self.db_class = 'ASCIIReader'
         self.db_kwargs = {
             'feature_cols': ['feature'],
             'label_col': 'label',
@@ -40,14 +40,13 @@ class TestLabelPool(unittest.TestCase):
     def test_integration(self):
         """LabelPool.make returns a LabelPool with correct values."""
         ids = [0, 2]
-        lp = acton.proto.wrappers.LabelPool.make(
-            ids=ids, db_path=self.db_path, db_class=self.db_class,
-            db_kwargs=self.db_kwargs)
+        with acton.database.ASCIIReader(self.db_path, **self.db_kwargs) as db:
+            lp = acton.proto.wrappers.LabelPool.make(ids=ids, db=db)
         self.assertTrue(([b'0', b'1'] == lp.labels.ravel()).all())
         self.assertEqual([0, 2], lp.ids)
         with lp.DB() as db:
             self.assertEqual([0, 1, 2], db.get_known_instance_ids())
-        self.assertEqual(self.db_class, lp.proto.db.class_name)
+        self.assertEqual('ASCIIReader', lp.proto.db.class_name)
 
 
 class TestPredictions(unittest.TestCase):
@@ -57,7 +56,6 @@ class TestPredictions(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'predictions.proto')
         self.db_path = os.path.join(self.tempdir.name, 'db.txt')
-        self.db_class = 'ASCIIReader'
         self.db_kwargs = {
             'feature_cols': ['feature'],
             'label_col': 'label',
@@ -76,10 +74,10 @@ class TestPredictions(unittest.TestCase):
         predicted_ids = [0, 2]
         labelled_ids = [1, 2]
         predictions = numpy.array([0.1, 0.5, 0.5, 0.9]).reshape((2, 2, 1))
-        preds = acton.proto.wrappers.Predictions.make(
-            predicted_ids=predicted_ids, labelled_ids=labelled_ids,
-            predictions=predictions, db_path=self.db_path,
-            db_class=self.db_class, db_kwargs=self.db_kwargs)
+        with acton.database.ASCIIReader(self.db_path, **self.db_kwargs) as db:
+            preds = acton.proto.wrappers.Predictions.make(
+                predicted_ids=predicted_ids, labelled_ids=labelled_ids,
+                predictions=predictions, db=db)
         self.assertEqual([0, 2], preds.predicted_ids)
         self.assertEqual([1, 2], preds.labelled_ids)
         with preds.DB() as db:
@@ -95,7 +93,6 @@ class TestRecommendations(unittest.TestCase):
         self.path = os.path.join(self.tempdir.name, 'recommendations.proto')
         self.recommender = 'UncertaintyRecommender'
         self.db_path = os.path.join(self.tempdir.name, 'db.txt')
-        self.db_class = 'ASCIIReader'
         self.db_kwargs = {
             'feature_cols': ['feature'],
             'label_col': 'label',
@@ -113,10 +110,10 @@ class TestRecommendations(unittest.TestCase):
         """Recommendations.make returns Recommendations with correct values."""
         recommended_ids = [0, 2]
         labelled_ids = [1, 2]
-        recs = acton.proto.wrappers.Recommendations.make(
-            recommended_ids=recommended_ids, labelled_ids=labelled_ids,
-            recommender=self.recommender, db_path=self.db_path,
-            db_class=self.db_class, db_kwargs=self.db_kwargs)
+        with acton.database.ASCIIReader(self.db_path, **self.db_kwargs) as db:
+            recs = acton.proto.wrappers.Recommendations.make(
+                recommended_ids=recommended_ids, labelled_ids=labelled_ids,
+                recommender=self.recommender, db=db)
         self.assertEqual([0, 2], recs.recommendations)
         self.assertEqual([1, 2], recs.labelled_ids)
         with recs.DB() as db:

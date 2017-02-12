@@ -13,6 +13,7 @@ import unittest
 import unittest.mock
 
 import acton.cli
+import acton.database
 import acton.proto.io
 import acton.proto.wrappers
 import acton.proto.acton_pb2
@@ -387,17 +388,17 @@ class TestComponentCLI(unittest.TestCase):
                          'data', 'classification_pandas.h5'))
 
         with self.runner.isolated_filesystem():
-            proto = acton.proto.wrappers.Recommendations.make(
-                labelled_ids=[1, 2, 3],
-                recommended_ids=[4],
-                recommender='UncertaintyRecommender',
-                db_path=db_path,
-                db_class='PandasReader',
-                db_kwargs={
-                    'feature_cols': ['col10', 'col11'],
-                    'label_col': 'col20',
-                    'key': 'classification',
-                }).proto.SerializeToString()
+            db_kwargs = {
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }
+            with acton.database.PandasReader(db_path, **db_kwargs) as db:
+                proto = acton.proto.wrappers.Recommendations.make(
+                    labelled_ids=[1, 2, 3],
+                    recommended_ids=[4],
+                    recommender='UncertaintyRecommender',
+                    db=db).proto.SerializeToString()
             assert isinstance(proto, bytes)
             length = struct.pack('<Q', len(proto))
             result = self.runner.invoke(
@@ -427,15 +428,15 @@ class TestComponentCLI(unittest.TestCase):
                          'data', 'classification_pandas.h5'))
 
         with self.runner.isolated_filesystem():
-            proto = acton.proto.wrappers.LabelPool.make(
-                ids=[1, 2, 3],
-                db_path=db_path,
-                db_class='PandasReader',
-                db_kwargs={
-                    'feature_cols': ['col10', 'col11'],
-                    'label_col': 'col20',
-                    'key': 'classification',
-                })
+            db_kwargs = {
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }
+            with acton.database.PandasReader(db_path, **db_kwargs) as db:
+                proto = acton.proto.wrappers.LabelPool.make(
+                    ids=[1, 2, 3],
+                    db=db)
             proto = proto.proto.SerializeToString()
             assert isinstance(proto, bytes)
             length = struct.pack('<Q', len(proto))
@@ -467,18 +468,18 @@ class TestComponentCLI(unittest.TestCase):
 
         with self.runner.isolated_filesystem():
             predictions = numpy.random.random(size=(1, 2, 1))
-            proto = acton.proto.wrappers.Predictions.make(
-                labelled_ids=[1, 2, 3],
-                predicted_ids=[4, 5],
-                predictions=predictions,
-                predictor='LogisticRegression',
-                db_path=db_path,
-                db_class='PandasReader',
-                db_kwargs={
-                    'feature_cols': ['col10', 'col11'],
-                    'label_col': 'col20',
-                    'key': 'classification',
-                })
+            db_kwargs = {
+                'feature_cols': ['col10', 'col11'],
+                'label_col': 'col20',
+                'key': 'classification',
+            }
+            with acton.database.PandasReader(db_path, **db_kwargs) as db:
+                proto = acton.proto.wrappers.Predictions.make(
+                    labelled_ids=[1, 2, 3],
+                    predicted_ids=[4, 5],
+                    predictions=predictions,
+                    predictor='LogisticRegression',
+                    db=db)
             proto = proto.proto.SerializeToString()
             assert isinstance(proto, bytes)
             length = struct.pack('<Q', len(proto))

@@ -379,6 +379,7 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }, labels.db_kwargs)
 
     def test_label_protobuf(self):
@@ -392,6 +393,7 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }
             with acton.database.PandasReader(db_path, **db_kwargs) as db:
                 proto = acton.proto.wrappers.Recommendations.make(
@@ -419,6 +421,7 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }, labels.db_kwargs)
 
     def test_predict(self):
@@ -432,6 +435,7 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }
             with acton.database.PandasReader(db_path, **db_kwargs) as db:
                 proto = acton.proto.wrappers.LabelPool.make(
@@ -454,11 +458,14 @@ class TestComponentCLI(unittest.TestCase):
             predictions = acton.proto.wrappers.Predictions.deserialise(proto)
             self.assertEqual([1, 2, 3], predictions.labelled_ids)
             self.assertTrue(predictions.proto.db.path.endswith('_pandas.h5'))
+            output_db_kwargs = predictions.db_kwargs
+            del output_db_kwargs['label_encoder']
             self.assertEqual({
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
-            }, predictions.db_kwargs)
+                'encode_labels': True,
+            }, output_db_kwargs)
 
     def test_recommend(self):
         """acton-recommend takes and outputs a protobuf."""
@@ -472,6 +479,7 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }
             with acton.database.PandasReader(db_path, **db_kwargs) as db:
                 proto = acton.proto.wrappers.Predictions.make(
@@ -501,4 +509,5 @@ class TestComponentCLI(unittest.TestCase):
                 'feature_cols': ['col10', 'col11'],
                 'label_col': 'col20',
                 'key': 'classification',
+                'encode_labels': True,
             }, recs.db_kwargs)

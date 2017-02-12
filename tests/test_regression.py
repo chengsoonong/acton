@@ -1,5 +1,6 @@
 """Tests for regression functionality."""
 
+import logging
 import os.path
 import tempfile
 import unittest
@@ -36,4 +37,6 @@ class TestRegression(unittest.TestCase):
             lr = acton.predictors.PREDICTORS['LinearRegression'](db)
             lr.fit(ids)
             predictions = lr.predict(ids)
+            logging.debug('Labels: {}'.format(ys))
+            logging.debug('Predictions: {}'.format(predictions))
             self.assertTrue(numpy.allclose(ys, predictions.ravel(), atol=0.2))

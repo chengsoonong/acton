@@ -16,6 +16,10 @@ import astropy.table
 import h5py
 import numpy
 import pandas
+import sklearn.preprocessing
+
+
+LabelEncoderPB = DatabasePB.LabelEncoder
 
 
 def product(seq: Iterable[int]):
@@ -35,6 +39,31 @@ def product(seq: Iterable[int]):
     for i in seq:
         prod *= i
     return prod
+
+
+def serialise_encoder(
+        encoder: sklearn.preprocessing.LabelEncoder) -> LabelEncoderPB:
+    """Serialises a LabelEncoder as a protobuf.
+
+    Parameters
+    ----------
+    encoder
+        LabelEncoder.
+
+    Returns
+    -------
+    LabelEncoderPB
+        Protobuf representing the LabelEncoder.
+    """
+    proto = LabelEncoderPB()
+    if not hasattr(encoder, 'classes_'):
+        return proto
+
+    for i, class_label in enumerate(encoder.classes_):
+        encoding = proto.encoding.add()
+        encoding.class_label = str(class_label)
+        encoding.class_int = i
+    return proto
 
 
 class Database(ABC):
@@ -257,7 +286,8 @@ class ManagedHDF5Database(HDF5Database):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        #  proto.label_encoder = ...
+        # No encoder for a managed DB - assume that labels are encoded already.
+        # proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
         return proto
 
     def _open_hdf5(self):
@@ -580,13 +610,19 @@ class HDF5Reader(HDF5Database):
         Number of labels per instance.
     path : str
         Path to HDF5 file.
+    encode_labels : bool
+        Whether to encode labels as integers.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers.
     _h5_file : h5py.File
         HDF5 file object.
     _is_multidimensional : bool
         Whether the features are in a multidimensional dataset.
     """
 
-    def __init__(self, path: str, feature_cols: List[str], label_col: str):
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 encode_labels: bool=True,
+                 label_encoder: sklearn.preprocessing.LabelEncoder=None):
         """
         Parameters
         ----------
@@ -598,6 +634,11 @@ class HDF5Reader(HDF5Database):
             multiple features.
         label_col
             Name of label dataset.
+        encode_labels
+            Whether to encode labels as integers.
+        label_encoder
+            Encodes labels as integers. If not specified, the label column will
+            be read and a label encoding generated.
         """
         super().__init__(path)
 
@@ -606,6 +647,16 @@ class HDF5Reader(HDF5Database):
 
         self.feature_cols = feature_cols
         self.label_col = label_col
+        self.encode_labels = encode_labels
+        self.label_encoder = label_encoder
+
+        if self.label_encoder and not self.encode_labels:
+            raise ValueError('label_encoder specified but encode_labels is '
+                             'False')
+
+        if self.label_encoder is None:
+            self.label_encoder = sklearn.preprocessing.LabelEncoder()
+
         with h5py.File(self.path, 'r') as data:
             is_multidimensional = any(len(data[f_col].shape) > 1 or
                                       not product(data[f_col].shape[1:]) == 1
@@ -643,12 +694,13 @@ class HDF5Reader(HDF5Database):
         proto.class_name = 'HDF5Reader'
         db_kwargs = {
             'feature_cols': self.feature_cols,
-            'label_col': self.label_col}
+            'label_col': self.label_col,
+            'encode_labels': self.encode_labels}
         for key, value in db_kwargs.items():
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        #  proto.label_encoder = ...
+        proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
         return proto
 
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
@@ -741,6 +793,19 @@ class HDF5Reader(HDF5Database):
         for index, id_ in enumerate(instance_ids):
             index_ = id_to_index[id_]
             labels[0, index, :] = labels_[0, index_, :]
+
+        if labels.shape[2] != 1:
+            raise NotImplementedError('Multidimensional labels not currently '
+                                      'supported.')
+
+        # Encode labels.
+        if self.encode_labels:
+            labels = numpy.apply_along_axis(
+                self.label_encoder.fit_transform,
+                axis=1,
+                arr=labels.reshape(labels.shape[:2])
+                ).reshape(labels.shape)
+
         return labels
 
     def write_features(self, ids: Sequence[int], features: numpy.ndarray):
@@ -793,6 +858,10 @@ class ASCIIReader(Database):
         Number of labels per instance.
     path : str
         Path to ASCII file.
+    encode_labels : bool
+        Whether to encode labels as integers.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers.
     _db : Database
         Underlying ManagedHDF5Database.
     _db_filepath : str
@@ -801,7 +870,9 @@ class ASCIIReader(Database):
         Temporary directory where the underlying HDF5 database is stored.
     """
 
-    def __init__(self, path: str, feature_cols: List[str], label_col: str):
+    def __init__(self, path: str, feature_cols: List[str], label_col: str,
+                 encode_labels: bool=True,
+                 label_encoder: sklearn.preprocessing.LabelEncoder=None):
         """
         Parameters
         ----------
@@ -811,10 +882,24 @@ class ASCIIReader(Database):
             List of feature columns.
         label_col
             Name of label column.
+        encode_labels
+            Whether to encode labels as integers.
+        label_encoder
+            Encodes labels as integers. If not specified, the label column will
+            be read and a label encoding generated.
         """
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
+        self.encode_labels = encode_labels
+        self.label_encoder = label_encoder
+
+        if self.label_encoder and not self.encode_labels:
+            raise ValueError('label_encoder specified but encode_labels is '
+                             'False')
+
+        if self.label_encoder is None:
+            self.label_encoder = sklearn.preprocessing.LabelEncoder()
 
     def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
@@ -829,21 +914,21 @@ class ASCIIReader(Database):
         proto.class_name = 'ASCIIReader'
         db_kwargs = {
             'feature_cols': self.feature_cols,
-            'label_col': self.label_col}
+            'label_col': self.label_col,
+            'encode_labels': self.encode_labels}
         for key, value in db_kwargs.items():
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        #  proto.label_encoder = ...
+        proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
         return proto
 
-    @staticmethod
-    def _db_from_ascii(
-            db: Database,
-            data: astropy.table.Table,
-            feature_cols: Sequence[str],
-            label_col: str,
-            ids: Sequence[int]):
+    def _db_from_ascii(self,
+                       db: Database,
+                       data: astropy.table.Table,
+                       feature_cols: Sequence[str],
+                       label_col: str,
+                       ids: Sequence[int]):
         """Reads an ASCII table into a database.
 
         Notes
@@ -882,6 +967,14 @@ class ASCIIReader(Database):
         # don't. So every labeller is the same, ID = 0.
         labeller_ids = [0]
 
+        # Encode labels.
+        if self.encode_labels:
+            labels = numpy.apply_along_axis(
+                self.label_encoder.fit_transform,
+                axis=1,
+                arr=labels.reshape(labels.shape[:2])
+                ).reshape(labels.shape)
+
         # Write to database.
         db.write_features(ids, features)
         db.write_labels(labeller_ids, ids, labels)
@@ -902,8 +995,14 @@ class ASCIIReader(Database):
             label_dtype=label_dtype,
             feature_dtype='float64')
         self._db.__enter__()
-        self._db_from_ascii(self._db, data, self.feature_cols, self.label_col,
-                            ids)
+        try:
+            # We want to handle the encoding ourselves.
+            self._db_from_ascii(self._db, data, self.feature_cols,
+                                self.label_col, ids, encode_labels=False)
+        except TypeError:
+            # Encoding isn't supported in the underlying database.
+            self._db_from_ascii(self._db, data, self.feature_cols,
+                                self.label_col, ids)
         return self
 
     def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
@@ -943,6 +1042,7 @@ class ASCIIReader(Database):
         numpy.ndarray
             T x N x F array of label vectors.
         """
+        # N.B. Labels are encoded in _db_from_ascii.
         return self._db.read_labels(labeller_ids, instance_ids)
 
     def write_features(self, ids: Sequence[int], features: numpy.ndarray):
@@ -992,12 +1092,17 @@ class PandasReader(Database):
         Number of labels per instance.
     path : str
         Path to HDF5 file.
+    encode_labels : bool
+        Whether to encode labels as integers.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers.
     _df : pandas.DataFrame
         Pandas dataframe.
     """
 
     def __init__(self, path: str, feature_cols: List[str], label_col: str,
-                 key: str):
+                 key: str, encode_labels: bool=True,
+                 label_encoder: sklearn.preprocessing.LabelEncoder=None):
         """
         Parameters
         ----------
@@ -1010,12 +1115,26 @@ class PandasReader(Database):
             Name of label dataset.
         key
             Pandas key.
+        encode_labels
+            Whether to encode labels as integers.
+        label_encoder
+            Encodes labels as integers. If not specified, the label column will
+            be read and a label encoding generated.
         """
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
         self.key = key
         self._df = pandas.read_hdf(self.path, self.key)
+        self.encode_labels = encode_labels
+        self.label_encoder = label_encoder
+
+        if self.label_encoder and not self.encode_labels:
+            raise ValueError('label_encoder specified but encode_labels is '
+                             'False')
+
+        if self.label_encoder is None:
+            self.label_encoder = sklearn.preprocessing.LabelEncoder()
 
         if not self.feature_cols:
             self.feature_cols = [k for k in self._df.keys()
@@ -1038,12 +1157,13 @@ class PandasReader(Database):
         db_kwargs = {
             'feature_cols': self.feature_cols,
             'label_col': self.label_col,
-            'key': self.key}
+            'key': self.key,
+            'encode_labels': self.encode_labels}
         for key, value in db_kwargs.items():
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        #  proto.label_encoder = ...
+        proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
         return proto
 
     def __enter__(self):
@@ -1110,6 +1230,18 @@ class PandasReader(Database):
             sel = self._df.iloc[int(id_)]
             labels[0, out_index, 0] = sel[self.label_col]
 
+        if labels.shape[2] != 1:
+            raise NotImplementedError('Multidimensional labels not currently '
+                                      'supported.')
+
+        # Encode labels.
+        if self.encode_labels:
+            labels = numpy.apply_along_axis(
+                self.label_encoder.fit_transform,
+                axis=1,
+                arr=labels.reshape(labels.shape[:2])
+                ).reshape(labels.shape)
+
         return labels
 
     def write_features(self, ids: Sequence[int], features: numpy.ndarray):
@@ -1161,12 +1293,17 @@ class FITSReader(Database):
         Number of labels per instance.
     path : str
         Path to FITS file.
+    encode_labels : bool
+        Whether to encode labels as integers.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers.
     _hdulist : astropy.io.fits.HDUList
         FITS HDUList.
     """
 
     def __init__(self, path: str, feature_cols: List[str], label_col: str,
-                 hdu_index: int=1):
+                 hdu_index: int=1, encode_labels: bool=True,
+                 label_encoder: sklearn.preprocessing.LabelEncoder=None):
         """
         Parameters
         ----------
@@ -1180,11 +1317,25 @@ class FITSReader(Database):
         hdu_index
             Index of HDU in the FITS file. Default is 1, i.e., the first
             extension in the FITS file.
+        encode_labels
+            Whether to encode labels as integers.
+        label_encoder
+            Encodes labels as integers. If not specified, the label column will
+            be read and a label encoding generated.
         """
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
         self.hdu_index = hdu_index
+        self.encode_labels = encode_labels
+        self.label_encoder = label_encoder
+
+        if self.label_encoder and not self.encode_labels:
+            raise ValueError('label_encoder specified but encode_labels is '
+                             'False')
+
+        if self.label_encoder is None:
+            self.label_encoder = sklearn.preprocessing.LabelEncoder()
 
         # These will be set when the FITS file is opened.
         self.n_instances = None
@@ -1204,12 +1355,13 @@ class FITSReader(Database):
         db_kwargs = {
             'feature_cols': self.feature_cols,
             'label_col': self.label_col,
-            'hdu_index': self.hdu_index}
+            'hdu_index': self.hdu_index,
+            'encode_labels': self.encode_labels}
         for key, value in db_kwargs.items():
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        #  proto.label_encoder = ...
+        proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
         return proto
 
     def __enter__(self):
@@ -1270,7 +1422,17 @@ class FITSReader(Database):
             T x N x 1 array of label vectors.
         """
         label_col = self._hdulist[self.hdu_index].data[self.label_col]
-        return label_col[instance_ids].reshape((1, -1, 1))
+        labels = label_col[instance_ids].reshape((1, -1, 1))
+
+        # Encode labels.
+        if self.encode_labels:
+            labels = numpy.apply_along_axis(
+                self.label_encoder.fit_transform,
+                axis=1,
+                arr=labels.reshape(labels.shape[:2])
+                ).reshape(labels.shape)
+
+        return labels
 
     def write_features(self, ids: Sequence[int], features: numpy.ndarray):
         raise PermissionError('Cannot write to read-only database.')

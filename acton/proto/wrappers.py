@@ -8,6 +8,8 @@ import acton.proto.acton_pb2 as acton_pb
 import acton.proto.io
 import google.protobuf.json_format as json_format
 import numpy
+import sklearn.preprocessing
+from sklearn.preprocessing import LabelEncoder as SKLabelEncoder
 
 
 def validate_db(db: acton_pb.Database):
@@ -30,6 +32,32 @@ def validate_db(db: acton_pb.Database):
         raise ValueError('Must specify db.path.')
 
 
+def deserialise_encoder(
+            encoder: acton_pb.Database.LabelEncoder
+        ) -> sklearn.preprocessing.LabelEncoder:
+    """Deserialises a LabelEncoder protobuf.
+
+    Parameters
+    ----------
+    encoder
+        LabelEncoder protobuf.
+
+    Returns
+    -------
+    sklearn.preprocessing.LabelEncoder
+        LabelEncoder (or None if no encodings were specified).
+    """
+    encodings = []
+    for encoding in encoder.encoding:
+        encodings.append((encoding.class_int, encoding.class_label))
+    encodings.sort()
+    encodings = numpy.array([c[1] for c in encodings])
+
+    encoder = SKLabelEncoder()
+    encoder.classes_ = encodings
+    return encoder
+
+
 class LabelPool(object):
     """Wrapper for the LabelPool protobuf.
 
@@ -39,6 +67,8 @@ class LabelPool(object):
         Protobuf representing the label pool.
     db_kwargs : dict
         Key-value pairs of keyword arguments for the database constructor.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers. May be None.
     """
 
     def __init__(self, proto: Union[str, acton_pb.LabelPool]):
@@ -58,6 +88,12 @@ class LabelPool(object):
         self._validate_proto()
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
+        if len(self.proto.db.label_encoder.encoding) > 0:
+            self.label_encoder = deserialise_encoder(
+                self.proto.db.label_encoder)
+            self.db_kwargs['label_encoder'] = self.label_encoder
+        else:
+            self.label_encoder = None
         self._set_default()
 
     @classmethod
@@ -185,6 +221,10 @@ class Predictions(object):
     ----------
     proto : acton_pb.Predictions
         Protobuf representing predictions.
+    db_kwargs : dict
+        Dictionary of database keyword arguments.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers. May be None.
     """
 
     def __init__(self, proto: Union[str, acton_pb.Predictions]):
@@ -205,6 +245,12 @@ class Predictions(object):
         self._validate_proto()
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
+        if len(self.proto.db.label_encoder.encoding) > 0:
+            self.label_encoder = deserialise_encoder(
+                self.proto.db.label_encoder)
+            self.db_kwargs['label_encoder'] = self.label_encoder
+        else:
+            self.label_encoder = None
         self._set_default()
 
     @property
@@ -386,6 +432,8 @@ class Recommendations(object):
         Protobuf representing recommendations.
     db_kwargs : dict
         Key-value pairs of keyword arguments for the database constructor.
+    label_encoder : sklearn.preprocessing.LabelEncoder
+        Encodes labels as integers. May be None.
     """
 
     def __init__(self, proto: Union[str, acton_pb.Recommendations]):
@@ -407,6 +455,12 @@ class Recommendations(object):
         self._validate_proto()
         self.db_kwargs = {kwa.key: json.loads(kwa.value)
                           for kwa in self.proto.db.kwarg}
+        if len(self.proto.db.label_encoder.encoding) > 0:
+            self.label_encoder = deserialise_encoder(
+                self.proto.db.label_encoder)
+            self.db_kwargs['label_encoder'] = self.label_encoder
+        else:
+            self.label_encoder = None
         self._set_default()
 
     @classmethod

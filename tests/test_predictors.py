@@ -141,7 +141,8 @@ class TestGPClassifier(unittest.TestCase):
         self.features = numpy.array([2, 5, 3, 7]).reshape((self.n_instances, 2))
         self.labels = numpy.array(['Class A', 'Class B']).reshape((1, -1, 1))
 
-        with acton.database.ManagedHDF5Database(self.db_path, label_dtype='<S50') as db:
+        with acton.database.ManagedHDF5Database(
+                self.db_path, label_dtype='<S50') as db:
             db.write_features(self.ids, self.features)
             db.write_labels([0], self.ids, self.labels)
 

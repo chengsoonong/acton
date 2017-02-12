@@ -2,12 +2,14 @@
 
 from abc import ABC, abstractmethod
 from inspect import Traceback
+import json
 import logging
 import os.path
 import tempfile
 from typing import Iterable, List, Sequence
 import warnings
 
+from acton.proto.acton_pb2 import Database as DatabasePB
 import astropy.io.ascii as io_ascii
 import astropy.io.fits as io_fits
 import astropy.table
@@ -132,6 +134,16 @@ class Database(ABC):
             A list of known labeller IDs.
         """
 
+    @abstractmethod
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+
 
 class HDF5Database(Database):
     """Database wrapping an HDF5 file as a context manager.
@@ -226,6 +238,27 @@ class ManagedHDF5Database(HDF5Database):
 
         # List of attributes to keep in sync with the HDF5 file.
         self._sync_attrs = ['label_dtype', 'feature_dtype']
+
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'ManagedHDF5Database'
+        db_kwargs = {
+            'label_dtype': self.label_dtype,
+            'feature_dtype': self.feature_dtype}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        proto.label_encoder = NotImplemented
+        return proto
 
     def _open_hdf5(self):
         """Opens the HDF5 file and creates it if it doesn't exist.
@@ -597,6 +630,27 @@ class HDF5Reader(HDF5Database):
             else:
                 self.n_features = len(feature_cols)
 
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'HDF5Reader'
+        db_kwargs = {
+            'feature_cols': self.feature_cols,
+            'label_col': self.label_col}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        proto.label_encoder = NotImplemented
+        return proto
+
     def read_features(self, ids: Sequence[int]) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
@@ -761,6 +815,27 @@ class ASCIIReader(Database):
         self.path = path
         self.feature_cols = feature_cols
         self.label_col = label_col
+
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'ASCIIReader'
+        db_kwargs = {
+            'feature_cols': self.feature_cols,
+            'label_col': self.label_col}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        proto.label_encoder = NotImplemented
+        return proto
 
     @staticmethod
     def _db_from_ascii(
@@ -949,6 +1024,28 @@ class PandasReader(Database):
         self.n_instances = len(self._df[self.label_col])
         self.n_features = len(self.feature_cols)
 
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'PandasReader'
+        db_kwargs = {
+            'feature_cols': self.feature_cols,
+            'label_col': self.label_col,
+            'key': self.key}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        proto.label_encoder = NotImplemented
+        return proto
+
     def __enter__(self):
         return self
 
@@ -1092,6 +1189,28 @@ class FITSReader(Database):
         # These will be set when the FITS file is opened.
         self.n_instances = None
         self.n_features = None
+
+    def serialise(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'FITSReader'
+        db_kwargs = {
+            'feature_cols': self.feature_cols,
+            'label_col': self.label_col,
+            'hdu_index': self.hdu_index}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        proto.label_encoder = NotImplemented
+        return proto
 
     def __enter__(self):
         self._hdulist = io_fits.open(self.path)

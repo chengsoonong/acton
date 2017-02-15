@@ -7,8 +7,8 @@ from acton import __version__
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+# with open('HISTORY.rst') as history_file:
+#     history = history_file.read()
 
 requirements = [
 ]
@@ -23,7 +23,7 @@ setup(
     name='acton',
     version=__version__,
     description="A scientific research assistant",
-    long_description=readme + '\n\n' + history,
+    long_description=readme,  # + '\n\n' + history,
     url='https://github.com/chengsoonong/acton',
     # Setup scripts don't support multiple authors, so this should be the main
     # author or the author that should be contacted regarding the module.

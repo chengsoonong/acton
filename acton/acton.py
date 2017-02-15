@@ -117,6 +117,9 @@ def simulate_active_learning(
     validate_recommender(recommender)
     validate_predictor(predictor)
 
+    # Seed RNG.
+    numpy.random.seed(0)
+
     # Bytestring describing this run.
     metadata = '{} | {}'.format(recommender, predictor).encode('ascii')
 

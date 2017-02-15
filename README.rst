@@ -6,8 +6,10 @@ Acton is a modular Python library for active learning.
 is a suburb in Canberra, where Australian National University is
 located.
 
-|Build Status| |Documentation Status|
+|PyPI| |Build Status| |Documentation Status|
 
+.. |PyPI| image:: https://img.shields.io/pypi/v/acton.svg
+   :target: https://pypi.python.org/pypi/acton
 .. |Build Status| image:: https://travis-ci.org/chengsoonong/acton.svg?branch=master
    :target: https://travis-ci.org/chengsoonong/acton
 .. |Documentation Status| image:: http://readthedocs.org/projects/acton/badge/?version=latest

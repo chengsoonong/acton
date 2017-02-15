@@ -2,7 +2,7 @@ Acton - A scientific research assistant
 =======================================
 
 Acton is a modular Python library for active learning.
-`Acton <https://en.wikipedia.org/wiki/Acton,_Australian_Capital_Territory>`__
+`Acton <https://en.wikipedia.org/wiki/Acton,_Australian_Capital_Territory>`_
 is a suburb in Canberra, where Australian National University is
 located.
 
@@ -19,7 +19,7 @@ Dependencies
 Most dependencies will be installed by pip. You will need to manually install:
 
 - Python 3.4+
-- `Protobuf <https://github.com/google/protobuf/tree/master/python>`__
+- `Protobuf <https://github.com/google/protobuf/tree/master/python>`_
 
 Setup
 -----

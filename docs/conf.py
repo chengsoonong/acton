@@ -318,25 +318,49 @@ skbm = MagicMock()
 skbm.BaseEstimator = BaseEstimator
 skbm.ClassifierMixin = ClassifierMixin
 
+# This is a hack to get the autodocs building with the typing module and C
+# extensions. If you have C extensions (notably protobuf) then ReadTheDocs can't
+# build docs, so they need to be mocked out. However, mocks break the typing
+# module, because typing checks isinstance(arg, type) in generics like Optional
+# and Union. Finally, mocking individual protobuf modules is difficult and
+# fragile. Thus this hack: A subclass of MagicMock that has class attributes
+# that are also subclasses of MagicMock (and so on).
+class MockedClassAttributes(type):
+    def __getattr__(cls, key):
+        return get_mock_type(key)
+
+def get_mock_type(name):
+    newtype = MockedClassAttributes(name, (MagicMock,), {})
+    return newtype
+
+# This hooks the mock into the protobuf library.
+def GeneratedProtocolMessageType(name, *args, **kwargs):
+    return get_mock_type(name)
+
+gp = MagicMock()
+gp.reflection = gpr = MagicMock()
+gpr.GeneratedProtocolMessageType = GeneratedProtocolMessageType
+
+
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
-        if name != 'base':
-            return MagicMock()
+        if name == 'base':
+            return skbm
 
-        return skbm
+        return MagicMock()
 
 
 MOCK_MODULES = [
     'astropy',
     'astropy.io',
     'astropy.io.ascii',
+    'astropy.io.fits',
     'astropy.table',
     'click',
+    'GPy',
     'google',
-    'google.protobuf',
     'google.protobuf.json_format',
-    'google.protobuf.reflection',
     'h5py',
     'matplotlib',
     'matplotlib.pyplot',
@@ -360,3 +384,5 @@ MOCK_MODULES = [
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 sys.modules.update([('sklearn.base', skbm)])
+sys.modules.update([('google.protobuf.reflection', gpr)])
+sys.modules.update([('google.protobuf', gp)])

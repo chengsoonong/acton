@@ -4,18 +4,18 @@ acton.proto package
 Submodules
 ----------
 
-acton.proto.io module
----------------------
+acton.proto.acton_pb2 module
+----------------------------
 
-.. automodule:: acton.proto.io
+.. automodule:: acton.proto.acton_pb2
     :members:
     :undoc-members:
     :show-inheritance:
 
-acton.proto.predictors_pb2 module
----------------------------------
+acton.proto.io module
+---------------------
 
-.. automodule:: acton.proto.predictors_pb2
+.. automodule:: acton.proto.io
     :members:
     :undoc-members:
     :show-inheritance:

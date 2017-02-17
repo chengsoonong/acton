@@ -1,6 +1,7 @@
 """Predictor classes."""
 
 from abc import ABC, abstractmethod
+import logging
 from typing import Iterable, Sequence
 
 import acton.database
@@ -34,7 +35,7 @@ class Predictor(ABC):
         """
 
     @abstractmethod
-    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels of instances.
 
         Notes
@@ -52,10 +53,13 @@ class Predictor(ABC):
         -------
         numpy.ndarray
             An N x T x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
 
     @abstractmethod
-    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def reference_predict(
+            self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels using the best possible method.
 
         Parameters
@@ -67,6 +71,8 @@ class Predictor(ABC):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
 
 
@@ -106,7 +112,7 @@ class _InstancePredictor(Predictor):
         labels = self._db.read_labels([0], ids)
         self._instance.fit(features, labels.ravel())
 
-    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):
         """Predicts labels of instances.
 
         Notes
@@ -124,19 +130,21 @@ class _InstancePredictor(Predictor):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
         features = self._db.read_features(ids)
         try:
             probs = self._instance.predict_proba(features)
-            return probs.reshape((probs.shape[0], 1, probs.shape[1]))
+            return probs.reshape((probs.shape[0], 1, probs.shape[1])), None
         except AttributeError:
             probs = self._instance.predict(features)
             if len(probs.shape) == 1:
-                return probs.reshape((probs.shape[0], 1, 1))
+                return probs.reshape((probs.shape[0], 1, 1)), None
             else:
                 raise NotImplementedError()
 
-    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def reference_predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):
         """Predicts labels using the best possible method.
 
         Parameters
@@ -148,6 +156,8 @@ class _InstancePredictor(Predictor):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
         return self.predict(ids)
 
@@ -268,7 +278,7 @@ class Committee(Predictor):
             classifier.fit(subset)
         self._reference_predictor.fit(ids)
 
-    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels of instances.
 
         Notes
@@ -286,15 +296,19 @@ class Committee(Predictor):
         -------
         numpy.ndarray
             An N x T x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
         predictions = numpy.concatenate(
-            [classifier.predict(ids)
+            [classifier.predict(ids)[0]
              for classifier in self._committee],
             axis=1)
         assert predictions.shape[:2] == (len(ids), len(self._committee))
-        return predictions
+        stdevs = predictions.std(axis=1).mean(axis=1)
+        return predictions, stdevs
 
-    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def reference_predict(
+            self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels using the best possible method.
 
         Parameters
@@ -306,8 +320,11 @@ class Committee(Predictor):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
-        return self._reference_predictor.predict(ids)
+        _, stdevs = self.predict(ids)
+        return self._reference_predictor.predict(ids)[0], stdevs
 
 
 def AveragePredictions(predictor: Predictor) -> Predictor:
@@ -329,11 +346,11 @@ def AveragePredictions(predictor: Predictor) -> Predictor:
     """
     predictor.predict_ = predictor.predict
 
-    def predict(features: numpy.ndarray) -> numpy.ndarray:
-        predictions = predictor.predict_(features)
+    def predict(features: numpy.ndarray) -> (numpy.ndarray, numpy.ndarray):
+        predictions, stdevs = predictor.predict_(features)
         predictions = predictions.mean(axis=1)
         return predictions.reshape(
-            (predictions.shape[0], 1, predictions.shape[1]))
+            (predictions.shape[0], 1, predictions.shape[1])), stdevs
 
     predictor.predict = predict
 
@@ -387,7 +404,7 @@ class GPClassifier(Predictor):
         self.model_ = gpy.models.GPClassification(features, labels)
         self.model_.optimize('bfgs', max_iters=self.max_iters)
 
-    def predict(self, ids: Sequence[int]) -> numpy.ndarray:
+    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels of instances.
 
         Notes
@@ -405,15 +422,25 @@ class GPClassifier(Predictor):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
         features = self._db.read_features(ids)
-        p_predictions = self.model_.predict(features)[0]
+        p_predictions, variances = self.model_.predict(features)
         n_predictions = 1 - p_predictions
         predictions = numpy.concatenate([n_predictions, p_predictions], axis=1)
-        assert predictions.shape[1] == 2
-        return predictions.reshape((-1, 1, 2))
 
-    def reference_predict(self, ids: Sequence[int]) -> numpy.ndarray:
+        logging.debug('Variance: {}'.format(variances))
+        if isinstance(variances, float) and numpy.isnan(variances):
+            variances = None
+        else:
+            variances = variances.ravel()
+            assert variances.shape == (len(ids),)
+        assert predictions.shape[1] == 2
+        return predictions.reshape((-1, 1, 2)), variances
+
+    def reference_predict(
+            self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):
         """Predicts labels using the best possible method.
 
         Parameters
@@ -425,6 +452,8 @@ class GPClassifier(Predictor):
         -------
         numpy.ndarray
             An N x 1 x C array of corresponding predictions.
+        numpy.ndarray
+            A N array of confidences (or None if not applicable).
         """
         return self.predict(ids)
 

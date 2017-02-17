@@ -36,7 +36,7 @@ class TestRegression(unittest.TestCase):
             db.write_labels([0], ids, ts)
             lr = acton.predictors.PREDICTORS['LinearRegression'](db)
             lr.fit(ids)
-            predictions = lr.predict(ids)
+            predictions, _variances = lr.predict(ids)
             logging.debug('Labels: {}'.format(ys))
             logging.debug('Predictions: {}'.format(predictions))
             self.assertTrue(numpy.allclose(ys, predictions.ravel(), atol=0.2))

@@ -178,8 +178,10 @@ def simulate_active_learning(
         logging.debug(
             'Making predictions (reference, n = {}).'.format(len(test_ids)))
         then = time.time()
-        test_pred = predictor.reference_predict(test_ids)
+        test_pred, _test_var = predictor.reference_predict(test_ids)
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
+
+        logging.debug(test_pred)
 
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(
@@ -204,7 +206,7 @@ def simulate_active_learning(
             'Making predictions (unlabelled, n = {}).'.format(
                 len(unlabelled_ids)))
         then = time.time()
-        predictions = predictor.predict(unlabelled_ids)
+        predictions, _variances = predictor.predict(unlabelled_ids)
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
         logging.debug('Making recommendations.')
         recommendations = recommender.recommend(
@@ -348,7 +350,7 @@ def predict(
         logging.debug('Training predictor with IDs: {}'.format(train_ids))
         predictor.fit(train_ids)
 
-        predictions = predictor.reference_predict(ids)
+        predictions, _variances = predictor.reference_predict(ids)
 
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(

@@ -61,7 +61,7 @@ class TestIntegrationCommittee(unittest.TestCase):
                 n_classifiers=10)
             ids = pred_input.ids
             lrc.fit(ids)
-            probs = lrc.predict(ids)
+            probs, variances = lrc.predict(ids)
             self.assertEqual((self.n_instances, 10, 2), probs.shape)
 
 
@@ -106,7 +106,7 @@ class TestSklearnWrapper(unittest.TestCase):
             predictor = acton.predictors.from_instance(classifier, db)
             ids = pred_input.ids
             predictor.fit(ids)
-            probs = predictor.predict(ids)
+            probs, variances = predictor.predict(ids)
             self.assertEqual((2, 1, 2), probs.shape)
 
     def testFromClass(self):
@@ -120,7 +120,7 @@ class TestSklearnWrapper(unittest.TestCase):
             predictor = Predictor(db, C=50.0)
             ids = pred_input.ids
             predictor.fit(ids)
-            probs = predictor.predict(ids)
+            probs, variances = predictor.predict(ids)
             self.assertEqual((2, 1, 2), probs.shape)
 
 

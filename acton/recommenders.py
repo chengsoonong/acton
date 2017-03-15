@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 import logging
 from typing import Sequence
+import warnings
 
 import acton.database
 import numpy
@@ -105,7 +106,7 @@ def choose_boltzmann(features: numpy.ndarray, scores: numpy.ndarray, n: int,
     if n == 0:
         return []
 
-    boltzmann_scores = numpy.exp(-scores / temperature)
+    boltzmann_scores = numpy.exp(scores / temperature)
     boltzmann_scores /= boltzmann_scores.sum()
     not_chosen = list(range(len(boltzmann_scores)))
     chosen = []
@@ -302,6 +303,59 @@ class UncertaintyRecommender(Recommender):
         return [ids[i] for i in indices]
 
 
+class EntropyRecommender(Recommender):
+    """Recommends instances by confidence-based uncertainty sampling."""
+
+    def __init__(self, db: acton.database.Database):
+        """
+        Parameters
+        ----------
+        db
+            Features database.
+        """
+        self._db = db
+
+    def recommend(self, ids: Sequence[int],
+                  predictions: numpy.ndarray,
+                  n: int=1, diversity: float=0.5) -> Sequence[int]:
+        """Recommends an instance to label.
+
+        Parameters
+        ----------
+        ids
+            Sequence of IDs in the unlabelled data pool.
+        predictions
+            N x 1 x C array of predictions. The ith row must correspond with the
+            ith ID in the sequence.
+        n
+            Number of recommendations to make.
+        diversity
+            Recommendation diversity in [0, 1].
+
+        Returns
+        -------
+        Sequence[int]
+            IDs of the instances to label.
+        """
+        if predictions.shape[1] != 1:
+            raise ValueError('Uncertainty sampling must have one predictor')
+
+        assert len(ids) == predictions.shape[0]
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings(action='ignore', category=RuntimeWarning)
+            proximities = -predictions * numpy.log(predictions)
+
+        proximities = proximities.sum(axis=1).max(axis=1).ravel()
+        proximities[numpy.isnan(proximities)] = float('-inf')
+
+        assert proximities.shape == (len(ids),)
+
+        indices = choose_boltzmann(self._db.read_features(ids), proximities, n,
+                                   temperature=diversity * 2)
+        return [ids[i] for i in indices]
+
+
 class MarginRecommender(Recommender):
     """Recommends instances by margin-based uncertainty sampling."""
 
@@ -363,6 +417,7 @@ RECOMMENDERS = {
     'RandomRecommender': RandomRecommender,
     'QBCRecommender': QBCRecommender,
     'UncertaintyRecommender': UncertaintyRecommender,
+    'EntropyRecommender': EntropyRecommender,
     'MarginRecommender': MarginRecommender,
     'None': RandomRecommender,
 }

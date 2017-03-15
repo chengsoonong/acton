@@ -4,6 +4,7 @@
 # task is accomplished in bash in simulate_active_learning.
 
 from acton.acton import predict, recommend, label
+import acton.database
 from acton.proto.wrappers import Recommendations
 
 # Initial labels.

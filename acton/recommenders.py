@@ -342,13 +342,6 @@ class EntropyRecommender(Recommender):
 
         assert len(ids) == predictions.shape[0]
 
-        # print(predictions.shape)
-        # print((-predictions * numpy.log(predictions)).shape)
-        # print((-predictions * numpy.log(predictions)).sum(axis=1).shape)
-        # print((-predictions * numpy.log(predictions)).sum(axis=1).max(axis=1).shape)
-        # print((-predictions * numpy.log(predictions)).sum(axis=1).max(axis=1).ravel().shape)
-        # exit()
-
         with warnings.catch_warnings():
             warnings.filterwarnings(action='ignore', category=RuntimeWarning)
             proximities = -predictions * numpy.log(predictions)

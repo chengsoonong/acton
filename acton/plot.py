@@ -28,6 +28,7 @@ def plot(predictions: Iterable[BinaryIO]):
     predictions, predictions_ = itertools.tee(predictions)
     for proto_file in predictions_:
         metadata.append(acton.proto.io.read_metadata(proto_file))
+        proto_file.seek(0)
 
     for meta, proto_file in zip(metadata, predictions):
         # Read in the first protobuf to get the database file.
@@ -44,6 +45,9 @@ def plot(predictions: Iterable[BinaryIO]):
                 predictions_ = predictions_[0]
                 labels = db.read_labels([0], ids).ravel()
                 predicted_labels = predictions_.argmax(axis=1).ravel()
+                predicted_labels = [str(p).encode('ascii')      # quick and
+                                    for p in predicted_labels]  # dirty hack
+                print(labels, predicted_labels)
                 accuracies.append(sklearn.metrics.accuracy_score(
                     labels, predicted_labels))
 

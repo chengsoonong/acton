@@ -23,3 +23,5 @@ for (( epoch = 0; epoch < 10; epoch++ )); do
     acton-predict -v < labels.pb | acton-recommend -v | acton-label -v > labels_.pb
     mv labels_.pb labels.pb
 done
+
+acton-predict -v < labels.pb > predictions.pb

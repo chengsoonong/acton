@@ -98,3 +98,8 @@ data/
 
 # Mac
 *.DS_Store
+
+# LaTeX
+*.aux
+*.fdb_latexmk
+*.fls

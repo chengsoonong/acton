@@ -79,3 +79,9 @@ To show the learning curve, use `acton.plot`:
     python3 -m acton.plot passive.pb
 
 Look at the directory ``examples`` for more examples.
+
+
+Acknowledgements
+----------------
+
+Matthew Alger was funded in late 2016 by `CAASTRO <http://www.caastro.org/>`_.

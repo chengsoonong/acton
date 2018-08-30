@@ -21,7 +21,6 @@ Dependencies
 Most dependencies will be installed by pip. You will need to manually install:
 
 - Python 3.4+
-- `Protobuf <https://github.com/google/protobuf/tree/master/python>`_
 
 Setup
 -----

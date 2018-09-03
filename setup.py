@@ -33,7 +33,7 @@ requirements = [
 	'tables>=3.3.0',
 	'sphinx_rtd_theme==0.1.9',
 	'mock==2.0.0',
-	'GPy == 1.9.2',
+	'GPy',
 	'matplotlib==2.0.0',
 	#'paramz==0.7.4'
 ]

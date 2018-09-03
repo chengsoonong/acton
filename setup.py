@@ -33,9 +33,9 @@ requirements = [
 	'tables>=3.3.0',
 	'sphinx_rtd_theme==0.1.9',
 	'mock==2.0.0',
-	'GPy>=1.5.6',
+	'GPy == 1.9.2',
 	'matplotlib==2.0.0',
-	'paramz==0.7.4'
+	#'paramz==0.7.4'
 ]
 
 test_requirements = [

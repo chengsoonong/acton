@@ -26,7 +26,7 @@ requirements = [
 	'coverage==4.1',
 	'Sphinx==1.4.8',
 	'numpydoc==0.6.0',
-	'pyflakes>=1.3.0',
+	'pyflakes<1.4.0,>=1.3.0',
 	'pandas>=0.15.2',
 	'nose==1.3.7',
 	'click==6.6',

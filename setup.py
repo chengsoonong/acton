@@ -35,6 +35,7 @@ requirements = [
 	'mock==2.0.0',
 	'GPy>=1.5.6',
 	'matplotlib==2.0.0',
+	'paramz==0.7.4'
 ]
 
 test_requirements = [

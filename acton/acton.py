@@ -16,8 +16,13 @@ import sklearn.linear_model
 import sklearn.metrics
 import sklearn.model_selection
 import sklearn.preprocessing
+from sklearn.metrics import mean_squared_error, roc_auc_score
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import time
 
 T = TypeVar('T')
+budget = 100
 
 
 def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
@@ -88,7 +93,10 @@ def simulate_active_learning(
         test_size: int=0.2,
         recommender: str='RandomRecommender',
         predictor: str='LogisticRegression',
-        n_recommendations: int=1):
+        labeller: str = 'DatabaseLabeller', 
+        n_recommendations: int=1,
+        diversity : float = 0.5,
+        repeated_labelling : bool = True):
     """Simulates an active learning task.
 
     Parameters
@@ -109,20 +117,26 @@ def simulate_active_learning(
         Percentage size of testing set.
     recommender
         Name of recommender to make recommendations.
+    labeller
+        Name of labeller to label 
     predictor
         Name of predictor to make predictions.
     n_recommendations
         Number of recommendations to make at once.
+    repeated_labelling
+        whether allow one instance to be labelled more than once
     """
     validate_recommender(recommender)
     validate_predictor(predictor)
+
+    true_labels = db.read_labels([])
 
     # Seed RNG.
     numpy.random.seed(0)
 
     # Bytestring describing this run.
     metadata = '{} | {}'.format(recommender, predictor).encode('ascii')
-
+        
     # Split into training and testing sets.
     logging.debug('Found {} instances.'.format(len(ids)))
     logging.debug('Splitting into training/testing sets.')
@@ -133,16 +147,32 @@ def simulate_active_learning(
     # Set up predictor, labeller, and recommender.
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
     predictor_name = predictor  # For saving.
-    predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)
-
-    labeller = acton.labellers.DatabaseLabeller(db)
+    #predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)
+    predictor = acton.predictors.PREDICTORS[predictor](db=db)
+    
+    labeller_name = labeller
+    labeller = acton.labellers.LABELLERS[labeller](db)
     recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
 
     # Draw some initial labels.
     logging.debug('Drawing initial labels.')
-    recommendations = draw(n_initial_labels, train_ids, replace=False)
+    recommendations = draw( n_initial_labels,train_ids, replace=False)
+
+    if labeller_name == 'LabelOnlyDatabaseLabeller':  
+        tensor_ids = ids.reshape((db.n_relations, db.n_entities, db.n_entities))
+
+        rec_x,rec_y, rec_z = numpy.unravel_index(recommendations,tensor_ids.shape)
+        recommendations = list(zip(rec_x, rec_y, rec_z))
+
+        train_x,train_y, train_z = numpy.unravel_index(ids[train_ids], tensor_ids.shape)
+        train_ids = list(zip(train_x, train_y, train_z))
+
+        test_x, test_y, test_z = numpy.unravel_index(ids[test_ids], tensor_ids.shape)
+        test_ids = list(zip(test_x, test_y, test_z))
+
     logging.debug('Recommending: {}'.format(recommendations))
 
+    
     # This will store all IDs of things we have already labelled.
     labelled_ids = []
     # This will store all the corresponding labels.
@@ -152,6 +182,12 @@ def simulate_active_learning(
     logging.debug('Writing protobufs to {}.'.format(output_path))
     writer = acton.proto.io.write_protos(output_path, metadata=metadata)
     next(writer)  # Prime the coroutine.
+
+    train_error_list = []
+    test_error_list = []
+
+    gain_ts = []
+
     for epoch in range(n_epochs):
         logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))
         # Label the recommendations.
@@ -161,7 +197,10 @@ def simulate_active_learning(
 
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')
-        labelled_ids.sort()
+
+        if all(isinstance(x, int) for x in labelled_ids):       
+            labelled_ids.sort()
+            
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
         # Here, we would write the labels to the database, but they're already
@@ -179,10 +218,10 @@ def simulate_active_learning(
             'Making predictions (reference, n = {}).'.format(len(test_ids)))
         then = time.time()
         test_pred, _test_var = predictor.reference_predict(test_ids)
+        
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
-        logging.debug(test_pred)
-
+        '''
         # Construct a protobuf for outputting predictions.
         proto = acton.proto.wrappers.Predictions.make(
             test_ids,
@@ -193,9 +232,12 @@ def simulate_active_learning(
         # Then write them to a file.
         logging.debug('Writing predictions.')
         writer.send(proto.proto)
-
+        '''
         # Pass the predictions to the recommender.
-        unlabelled_ids = list(set(ids) - set(labelled_ids))
+        # unlabelled_ids = list(set(ids) - set(labelled_ids))
+        # should only recommend train ids?
+
+        unlabelled_ids = list(set(train_ids) - set(labelled_ids))
         if not unlabelled_ids:
             logging.info('Labelled all instances.')
             break
@@ -207,13 +249,79 @@ def simulate_active_learning(
                 len(unlabelled_ids)))
         then = time.time()
         predictions, _variances = predictor.predict(unlabelled_ids)
+        
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
+        
+        # compute ROC_AUC_SCORE
+        train_error = roc_auc_score(true_labels[train_x,train_y,train_z].flatten(),
+                                    predictions[train_x,train_y,train_z].flatten())
+        test_error = roc_auc_score(true_labels[test_x, test_y, test_z].flatten(),
+                                   predictions[test_x, test_y, test_z].flatten())
+
+        train_error_list.append(train_error)
+        test_error_list.append(test_error)
+
         logging.debug('Making recommendations.')
         recommendations = recommender.recommend(
-            unlabelled_ids, predictions, n=n_recommendations)
+            unlabelled_ids, predictions, n=n_recommendations, 
+            diversity= diversity, repreated_labelling= repeated_labelling)
         logging.debug('Recommending: {}'.format(recommendations))
 
-    return 0
+        if labeller_name == 'LabelOnlyDatabaseLabeller': 
+            # compute cumulative gain
+            '''
+            seq = list()
+            for i in range(budget):
+                idx = numpy.unravel_index(predictions.argmax(), predictions.shape)
+                seq.append(idx)
+                predictions[idx] = -1000000
+            '''
+            idx = numpy.unravel_index(predictions.argmax(), predictions.shape)
+            if true_labels[idx] == 1:
+                gain_ts.append(1)
+            else:
+                gain_ts.append(0)
+            # regret_ts = compute_regret(true_labels, seq)
+            # gain_ts = 1 - numpy.array(regret_ts)
+
+
+    return train_error_list, test_error_list, gain_ts
+
+def compute_regret(T, seq):
+    mask = numpy.ones_like(T)
+    regret = list()
+    for s in seq:
+        best = numpy.max(T[mask == 1])
+        regret.append(best - T[s])
+        mask[s] = 0
+    return regret
+
+def plot(TS_train_error_list, TS_test_error_list, TS_gain, 
+             RD_train_error_list, RD_test_error_list, RD_gain):
+    '''
+    Plot train and test error for predictions
+    '''
+
+    plt.figure(figsize= (10,20))
+    
+    plt.subplot(211)
+    plt.plot(TS_train_error_list, label = 'ts_train')
+    plt.plot(TS_test_error_list, label = 'ts_test')
+    plt.plot(RD_train_error_list, label = 'rd_train')
+    plt.plot(RD_test_error_list, label = 'rd_test')
+    plt.xlabel('n_iterations')
+    plt.ylabel('ROC_AUC_SCORE')
+    plt.title('Simulate Thompson Sampling (with PRESCAL on NATIONS)')
+    plt.legend()
+    
+
+    plt.subplot(212)
+    plt.plot(numpy.cumsum(TS_gain), label = 'TS_gain')
+    plt.plot(numpy.cumsum(RD_gain), label = 'RD_gain')
+    plt.ylabel('Culmulative Gain')
+    plt.xlabel('n_iterations')
+    plt.legend()
+    plt.show()
 
 
 def try_pandas(data_path: str) -> bool:

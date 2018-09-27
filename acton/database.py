@@ -602,8 +602,9 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
     -----------
     path: str
         Path to HDF5 file.
-    
+
     """
+
     def __init__(self, path: str):
         """
         Parameters
@@ -649,7 +650,6 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         h5_file.attrs['n_relations'] = -1
         h5_file.attrs['n_dim'] = -1
         h5_file.attrs['n_particles'] = -1
-
 
     def _validate_hdf5(self):
         """Checks that self._h5_file has the correct schema.
@@ -710,7 +710,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         # Store the labels.
         # TODO(MatthewJA): Vectorise this.
         for i in range(labels.shape[0]):
-            self._h5_file['labels'][i,:]= labels[i,:]
+            self._h5_file['labels'][i, :] = labels[i, :]
 
         logging.debug(
             'New label array size: {}'.format(self._h5_file['labels'].shape))
@@ -781,17 +781,16 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
                 'Expected number of partibles {}, glot {}'.format(
                     self._h5_file.attrs['n_particles'], n_particles))
 
-
         # Resize the feature array if we need to store more IDs than before.
 
         if (features_E.shape[0] > self._h5_file['features_E'].shape[0] or
             features_E.shape[1] > self._h5_file['features_E'].shape[1] or
-            features_E.shape[2] > self._h5_file['features_E'].shape[2]):
+                features_E.shape[2] > self._h5_file['features_E'].shape[2]):
             self._h5_file['features_E'].resize(features_E.shape)
 
         if (features_R.shape[0] > self._h5_file['features_R'].shape[0] or
             features_R.shape[1] > self._h5_file['features_R'].shape[1] or
-            features_R.shape[2] > self._h5_file['features_R'].shape[2]):
+                features_R.shape[2] > self._h5_file['features_R'].shape[2]):
             self._h5_file['features_R'].resize(features_R.shape)
 
         # Store the feature vectors.
@@ -847,7 +846,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
 
         Parameters
         ----------
-        
+
         Returns
         -------
         E
@@ -866,7 +865,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         # Allocate the features array.
         features_E = numpy.zeros((self._h5_file.attrs['n_particles'],
                                   self._h5_file.attrs['n_entities']),
-                                  self._h5_file.attrs['n_dim'])
+                                 self._h5_file.attrs['n_dim'])
         features_R = numpy.zeros((self._h5_file.attrs['n_particles'],
                                   self._h5_file.attrs['n_relations'],
                                   self._h5_file.attrs['n_dim'],
@@ -1093,7 +1092,7 @@ class HDF5Reader(HDF5Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 
@@ -1262,7 +1261,7 @@ class ASCIIReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         # Write to database.
         db.write_features(ids, features)
@@ -1366,7 +1365,7 @@ class ASCIIReader(Database):
 
 class LabelOnlyASCIIReader(ASCIIReader):
     """Reads ASCII databases for graph based structure
-    
+
        Input file:
        List of known facts, 
        formatted as relation_id \tab entity_id1 \tab entity_id2,
@@ -1414,9 +1413,9 @@ class LabelOnlyASCIIReader(ASCIIReader):
         Given features R if any
     """
 
-    def __init__(self, path: str, n_dim: int, n_particles : int = 5,
-                 gibbs_init: bool = True, _var_r : int = 1, _var_e: int = 1,
-                 var_x : float = 0.01, obs_mask :numpy.ndarray= None,
+    def __init__(self, path: str, n_dim: int, n_particles: int = 5,
+                 gibbs_init: bool = True, _var_r: int = 1, _var_e: int = 1,
+                 var_x: float = 0.01, obs_mask: numpy.ndarray= None,
                  givenR: numpy.ndarray = None):
         """
         Parameters
@@ -1463,7 +1462,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
         proto.class_name = 'LabelOnlyASCIIReader'
         db_kwargs = {
             'n_dim': self.n_dim,
-            'n_particles': self.n_particles,}
+            'n_particles': self.n_particles, }
         for key, value in db_kwargs.items():
             kwarg = proto.kwarg.add()
             kwarg.key = key
@@ -1475,7 +1474,6 @@ class LabelOnlyASCIIReader(ASCIIReader):
                        db: Database,
                        data: astropy.table.Table,
                        ):
-
         """Reads an ASCII table into a database.
 
         Notes
@@ -1493,11 +1491,11 @@ class LabelOnlyASCIIReader(ASCIIReader):
         # triples: relation_id  entity_id1  entity_id2
         # e.g. (0,2,4) represents entity 2 and 4 have relation 0
         triples = data.as_array()
-        triples = triples.view(numpy.int).reshape((triples.shape[0],3))
+        triples = triples.view(numpy.int).reshape((triples.shape[0], 3))
 
-        self.n_relations = max(triples[:,0]) + 1
-        self.n_entities = max(triples[:,1]) + 1
-        assert self.n_entities == max(triples[:,-1]) + 1
+        self.n_relations = max(triples[:, 0]) + 1
+        self.n_entities = max(triples[:, 1]) + 1
+        assert self.n_entities == max(triples[:, -1]) + 1
 
         # only support one labeller
 
@@ -1517,7 +1515,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
             self.obs_mask = numpy.zeros_like(X)
         else:
             logging.info("Initial Total, Positive, Negative Observation: %d / %d / %d", numpy.sum(self.obs_mask),
-                        numpy.sum(X[self.obs_mask == 1]), numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
+                         numpy.sum(X[self.obs_mask == 1]), numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
 
         cur_obs = numpy.zeros_like(X)
         for k in range(self.n_relations):
@@ -1608,7 +1606,6 @@ class LabelOnlyASCIIReader(ASCIIReader):
         # N.B. Labels are encoded in _db_from_ascii.
         return self._db.read_labels(instance_ids)
 
-
     def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):
         RE = self.RE
         RTE = self.RTE
@@ -1651,7 +1648,6 @@ class LabelOnlyASCIIReader(ASCIIReader):
 
         numpy.mean(numpy.diag(inv_lambda))
         # logging.info('Mean variance E, %d, %f', i, mean_var)
-
 
     def _sample_relations(self, X, mask, E, R, var_r):
         EXE = numpy.kron(E, E)
@@ -1851,7 +1847,7 @@ class PandasReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 
@@ -2041,7 +2037,7 @@ class FITSReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 

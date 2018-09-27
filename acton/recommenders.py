@@ -439,13 +439,14 @@ class MarginRecommender(Recommender):
                                    temperature=diversity * 2)
         return [ids[i] for i in indices]
 
+
 class ThompsonSamplingRecommender(Recommender):
     """Recommends instances by Thompson Sampling.
        Input:
            K x N x N predictions.
        Output 
            IDs of the instances to label.
-       
+
        Only support one recommendation
 
     Attributes
@@ -521,6 +522,7 @@ class ThompsonSamplingRecommender(Recommender):
                 if mask[sample] == 0:
                     correct = True
             return [sample]
+
 
 # For safe string-based access to recommender classes.
 RECOMMENDERS = {

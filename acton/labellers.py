@@ -113,6 +113,7 @@ class DatabaseLabeller(Labeller):
         """
         return self._db.read_labels([0], [id_]).reshape((1, 1))
 
+
 class LabelOnlyDatabaseLabeller(Labeller):
     """Labeller that obtains labels from a Database.
 

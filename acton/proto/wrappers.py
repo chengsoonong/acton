@@ -33,8 +33,8 @@ def validate_db(db: acton_pb.Database):
 
 
 def deserialise_encoder(
-            encoder: acton_pb.Database.LabelEncoder
-        ) -> sklearn.preprocessing.LabelEncoder:
+    encoder: acton_pb.Database.LabelEncoder
+) -> sklearn.preprocessing.LabelEncoder:
     """Deserialises a LabelEncoder protobuf.
 
     Parameters

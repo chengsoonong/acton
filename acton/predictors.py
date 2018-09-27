@@ -15,7 +15,6 @@ import sklearn.preprocessing
 from numpy.random import multivariate_normal, gamma, multinomial
 
 
-
 class Predictor(ABC):
     """Base class for predictors.
 
@@ -373,6 +372,7 @@ class GPClassifier(Predictor):
     _db : acton.database.Database
         Database storing features and labels.
     """
+
     def __init__(self, db: acton.database.Database, max_iters: int=50000,
                  n_jobs: int=1):
         """
@@ -459,6 +459,7 @@ class GPClassifier(Predictor):
         """
         return self.predict(ids)
 
+
 class TensorPredictor(Predictor):
     """Predict labels for each tensor entry.
 
@@ -492,10 +493,10 @@ class TensorPredictor(Predictor):
 
     def __init__(self,
                  db: acton.database.Database,
-                 n_particles : int = 5,
-                 _var_r : int = 1, _var_e: int = 1,
-                 var_x : float = 0.1,
-                 sample_prior : bool = False,
+                 n_particles: int = 5,
+                 _var_r: int = 1, _var_e: int = 1,
+                 var_x: float = 0.1,
+                 sample_prior: bool = False,
                  n_jobs: int=1):
         """
         Arguments
@@ -530,8 +531,7 @@ class TensorPredictor(Predictor):
         #X : numpy.ndarray
         #    Fully observed tensor with shape (n_relations, n_entities, n_entities)
         all_ = []
-        self.X = self._db.read_labels(all_) # read all labels
-
+        self.X = self._db.read_labels(all_)  # read all labels
 
     def fit(self, ids: Iterable[tuple]):
         """Update posteriors.
@@ -575,7 +575,6 @@ class TensorPredictor(Predictor):
 
         self.p_weights *= self.compute_particle_weight(next_idx, cur_obs, obs_mask)
         self.p_weights /= numpy.sum(self.p_weights)
-
 
         ESS = 1. / numpy.sum((self.p_weights ** 2))
 
@@ -625,7 +624,6 @@ class TensorPredictor(Predictor):
 
         return X, None
 
-
     def reference_predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):
         """Predicts labels using the best possible method.
 
@@ -642,7 +640,6 @@ class TensorPredictor(Predictor):
             A N array of confidences (or None if not applicable).
         """
         return self.predict(ids)
-
 
     def _sample_prior(self):
         self._sample_var_r()
@@ -735,7 +732,6 @@ class TensorPredictor(Predictor):
 
         numpy.mean(numpy.diag(inv_lambda))
         # logging.info('Mean variance E, %d, %f', i, mean_var)
-
 
     def _sample_relations(self, X, mask, E, R, var_r):
         EXE = numpy.kron(E, E)

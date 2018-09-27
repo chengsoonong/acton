@@ -126,8 +126,6 @@ def simulate_active_learning(
     validate_recommender(recommender)
     validate_predictor(predictor)
 
-    true_labels = db.read_labels([])
-
     # Seed RNG.
     numpy.random.seed(0)
 
@@ -248,17 +246,6 @@ def simulate_active_learning(
 
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
-        # compute ROC_AUC_SCORE
-        train_error = \
-            roc_auc_score(true_labels[train_x, train_y, train_z].flatten(),
-                          predictions[train_x, train_y, train_z].flatten())
-        test_error = \
-            roc_auc_score(true_labels[test_x, test_y, test_z].flatten(),
-                          predictions[test_x, test_y, test_z].flatten())
-
-        train_error_list.append(train_error)
-        test_error_list.append(test_error)
-
         logging.debug('Making recommendations.')
         recommendations = recommender.recommend(
             unlabelled_ids, predictions, n=n_recommendations,
@@ -266,8 +253,20 @@ def simulate_active_learning(
         logging.debug('Recommending: {}'.format(recommendations))
 
         if labeller_name == 'LabelOnlyDatabaseLabeller':
-            # compute cumulative gain
+            true_labels = db.read_labels([])
 
+            # compute ROC_AUC_SCORE
+            train_error = \
+                roc_auc_score(true_labels[train_x, train_y, train_z].flatten(),
+                              predictions[train_x, train_y, train_z].flatten())
+            test_error = \
+                roc_auc_score(true_labels[test_x, test_y, test_z].flatten(),
+                              predictions[test_x, test_y, test_z].flatten())
+
+            train_error_list.append(train_error)
+            test_error_list.append(test_error)
+
+            # compute cumulative gain
             idx = numpy.unravel_index(
                 predictions.argmax(),
                 predictions.shape
@@ -279,7 +278,9 @@ def simulate_active_learning(
             # regret_ts = compute_regret(true_labels, seq)
             # gain_ts = 1 - numpy.array(regret_ts)
 
-    return train_error_list, test_error_list, gain_ts
+            return train_error_list, test_error_list, gain_ts
+        else:
+            return 0
 
 
 def compute_regret(T, seq):

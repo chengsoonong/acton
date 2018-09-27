@@ -1649,7 +1649,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
         mu = numpy.dot(inv_lambda, xi)
         E[i] = multivariate_normal(mu, inv_lambda)
 
-        mean_var = numpy.mean(numpy.diag(inv_lambda))
+        numpy.mean(numpy.diag(inv_lambda))
         # logging.info('Mean variance E, %d, %f', i, mean_var)
 
 
@@ -1680,7 +1680,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
         try:
             # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
             R[k] = multivariate_normal(mu, inv_lambda).reshape([self.n_dim, self.n_dim])
-            mean_var = numpy.mean(numpy.diag(inv_lambda))
+            numpy.mean(numpy.diag(inv_lambda))
             # logging.info('Mean variance R, %d, %f', k, mean_var)
         except:
             pass

@@ -296,33 +296,6 @@ def compute_regret(T, seq):
         mask[s] = 0
     return regret
 
-def plot(TS_train_error_list, TS_test_error_list, TS_gain, 
-             RD_train_error_list, RD_test_error_list, RD_gain):
-    '''
-    Plot train and test error for predictions
-    '''
-
-    plt.figure(figsize= (10,20))
-    
-    plt.subplot(211)
-    plt.plot(TS_train_error_list, label = 'ts_train')
-    plt.plot(TS_test_error_list, label = 'ts_test')
-    plt.plot(RD_train_error_list, label = 'rd_train')
-    plt.plot(RD_test_error_list, label = 'rd_test')
-    plt.xlabel('n_iterations')
-    plt.ylabel('ROC_AUC_SCORE')
-    plt.title('Simulate Thompson Sampling (with PRESCAL on NATIONS)')
-    plt.legend()
-    
-
-    plt.subplot(212)
-    plt.plot(numpy.cumsum(TS_gain), label = 'TS_gain')
-    plt.plot(numpy.cumsum(RD_gain), label = 'RD_gain')
-    plt.ylabel('Culmulative Gain')
-    plt.xlabel('n_iterations')
-    plt.legend()
-    plt.show()
-
 
 def try_pandas(data_path: str) -> bool:
     """Guesses if a file is a pandas file.

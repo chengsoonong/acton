@@ -677,7 +677,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         Parameters
         ----------
         labels
-            K x N x N array of label vectors. 
+            K x N x N array of label vectors.
             K is the number of relations, N is the number of entities.
         """
         self._assert_open()
@@ -723,7 +723,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         Parameters
         ----------
         features_E:
-            P x N x D array of entity feature vectors. 
+            P x N x D array of entity feature vectors.
             P is the number of particles.
             N is the number of entities.
             D is the number of latent variable dimensions.
@@ -855,7 +855,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             numpy.ndarray
             P x N x D array of feature vectors.
         R
-            list 
+            list
             each element is numpy.ndarray
             P x K x D x D array of feature vectors.
         """
@@ -1369,15 +1369,15 @@ class LabelOnlyASCIIReader(ASCIIReader):
     """Reads ASCII databases for graph based structure
 
        Input file:
-       List of known facts, 
+       List of known facts,
        formatted as relation_id \tab entity_id1 \tab entity_id2,
        means entity_id1 has relation_id relation with entity_id2,
        Both entity-id and relation-id start from 0.
 
        Output labels:
-       K x N x N ndarrays, 
-       where K is the number of relations, 
-       N is the number of entities. 
+       K x N x N ndarrays,
+       where K is the number of relations,
+       N is the number of entities.
        0 represents invalid facts, 1 represents valid facts.
 
        Output features:
@@ -1401,12 +1401,12 @@ class LabelOnlyASCIIReader(ASCIIReader):
         Number of latent features (size of latent dimension).
     n_particles:
         Number of particles for Thompson sampling.
-    gibbs_init 
-        Indicates how to sample features (gibbs/random). 
+    gibbs_init
+        Indicates how to sample features (gibbs/random).
     _var_r
         variance of prior of R
-    _var_e 
-        variance of prior of E 
+    _var_e
+        variance of prior of E
     var_x
         variance of X
     obs_mask
@@ -1428,12 +1428,12 @@ class LabelOnlyASCIIReader(ASCIIReader):
             Number of latent features (size of latent dimension).
         n_particles:
             Number of particles for Thompson sampling.
-        gibbs_init 
-           Indicates how to sample features (gibbs/random). 
+        gibbs_init
+           Indicates how to sample features (gibbs/random).
         _var_r
             variance of prior of R
-        _var_e 
-            variance of prior of E 
+        _var_e
+            variance of prior of E
         var_x
             variance of X
         obs_mask
@@ -1516,8 +1516,9 @@ class LabelOnlyASCIIReader(ASCIIReader):
         if isinstance(self.obs_mask, type(None)):
             self.obs_mask = numpy.zeros_like(X)
         else:
-            logging.info("Initial Total, Positive, Negative Observation: "
-                + "%d / %d / %d", numpy.sum(self.obs_mask),
+            logging.info(
+                "Initial Total, Positive, Negative Obs : %d / %d / %d",
+                numpy.sum(self.obs_mask),
                 numpy.sum(X[self.obs_mask == 1]),
                 numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
 
@@ -1594,7 +1595,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
             numpy.ndarray
             P x N x D array of feature vectors.
         R
-            list 
+            list
             each element is numpy.ndarray
             P x K x D x D array of feature vectors.
             N x D array of feature vectors.
@@ -1648,7 +1649,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
 
         _lambda = numpy.identity(self.n_dim) / var_e
         _lambda += numpy.dot(
-            self.features[:nnz_all].T, 
+            self.features[:nnz_all].T,
             self.features[:nnz_all]) / self.var_x
 
         # mu = numpy.linalg.solve(_lambda, xi)
@@ -1686,14 +1687,12 @@ class LabelOnlyASCIIReader(ASCIIReader):
 
         inv_lambda = numpy.linalg.inv(_lambda)
         mu = numpy.dot(inv_lambda, xi) / self.var_x
-        try:
-            # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
-            R[k] = multivariate_normal(
-                mu, inv_lambda).reshape([self.n_dim, self.n_dim])
-            numpy.mean(numpy.diag(inv_lambda))
-            # logging.info('Mean variance R, %d, %f', k, mean_var)
-        except:
-            pass
+
+        # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
+        R[k] = multivariate_normal(
+            mu, inv_lambda).reshape([self.n_dim, self.n_dim])
+        numpy.mean(numpy.diag(inv_lambda))
+        # logging.info('Mean variance R, %d, %f', k, mean_var)
 
 
 class PandasReader(Database):

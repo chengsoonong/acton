@@ -444,7 +444,7 @@ class ThompsonSamplingRecommender(Recommender):
     """Recommends instances by Thompson Sampling.
        Input:
            K x N x N predictions.
-       Output 
+       Output
            IDs of the instances to label.
 
        Only support one recommendation
@@ -480,7 +480,7 @@ class ThompsonSamplingRecommender(Recommender):
         ids
             Sequence of IDs in the unlabelled data pool.
         predictions
-            K x N x N array of predictions. 
+            K x N x N array of predictions.
         n
             Number of recommendations to make.
         diversity
@@ -514,11 +514,11 @@ class ThompsonSamplingRecommender(Recommender):
         if diversity == 0.0:
             predictions[mask == 1] = MIN_VAL
             return [numpy.unravel_index(predictions.argmax(),
-                     predictions.shape)]
+                    predictions.shape)]
         else:
             correct = False
             while not correct:
-                sample = (numpy.random.randint(n_relations), 
+                sample = (numpy.random.randint(n_relations),
                           numpy.random.randint(n_entities),
                           numpy.random.randint(n_entities))
                 if mask[sample] == 0:

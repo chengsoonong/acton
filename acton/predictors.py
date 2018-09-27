@@ -477,8 +477,8 @@ class TensorPredictor(Predictor):
         Number of latent dimensions (D)
     _var_r
         variance of prior of R
-    _var_e 
-        variance of prior of E 
+    _var_e
+        variance of prior of E
     var_x
         variance of X
     sample_prior
@@ -487,7 +487,7 @@ class TensorPredictor(Predictor):
         P x N x D entity features
     R
         P x K x D x D relation features
-    X 
+    X
         K x N x N labels
     """
 
@@ -507,8 +507,8 @@ class TensorPredictor(Predictor):
             Number of particles for Thompson sampling.
         _var_r
             variance of prior of R
-        _var_e 
-            variance of prior of E 
+        _var_e
+            variance of prior of E
         var_x
             variance of X
         sample_prior
@@ -528,9 +528,9 @@ class TensorPredictor(Predictor):
         self.sample_prior = sample_prior
 
         self.E, self.R = self._db.read_features()
-        #X : numpy.ndarray
-        #    Fully observed tensor with shape 
-        #    (n_relations, n_entities, n_entities)
+        # X : numpy.ndarray
+        #     Fully observed tensor with shape
+        #     (n_relations, n_entities, n_entities)
         all_ = []
         self.X = self._db.read_labels(all_)  # read all labels
 
@@ -567,7 +567,7 @@ class TensorPredictor(Predictor):
         # cur_obs[cur_obs.nonzero()] = 1
         self.obs_sum = numpy.sum(numpy.sum(obs_mask, 1), 1)
         self.valid_relations = \
-                numpy.nonzero(numpy.sum(numpy.sum(self.X, 1), 1))[0]
+            numpy.nonzero(numpy.sum(numpy.sum(self.X, 1), 1))[0]
 
         self.features = numpy.zeros(
             [2 * self.n_entities * self.n_relations, self.n_dim])
@@ -577,7 +577,7 @@ class TensorPredictor(Predictor):
         next_idx = ids[-1]
 
         self.p_weights *= \
-                self.compute_particle_weight(next_idx, cur_obs, obs_mask)
+            self.compute_particle_weight(next_idx, cur_obs, obs_mask)
         self.p_weights /= numpy.sum(self.p_weights)
 
         ESS = 1. / numpy.sum((self.p_weights ** 2))
@@ -600,7 +600,7 @@ class TensorPredictor(Predictor):
                 self.var_e[p]
                 )
 
-        if self.sample_prior and i != 0 and i % self.prior_sample_gap == 0:
+        if self.sample_prior:
             self._sample_prior()
 
     def predict(self, ids: Sequence[int] = None) -> (numpy.ndarray, None):
@@ -630,7 +630,7 @@ class TensorPredictor(Predictor):
         for k in range(self.n_relations):
             X[k] = numpy.dot(numpy.dot(self.E[p], self.R[p][k]), self.E[p].T)
 
-        #logging.critical('R[0, 2,4]: {}'.format(self.R[0,2,4]))
+        # logging.critical('R[0, 2,4]: {}'.format(self.R[0,2,4]))
 
         return X, None
 
@@ -680,10 +680,9 @@ class TensorPredictor(Predictor):
         for p in range(self.n_particles):
 
             mean = numpy.dot(
-                numpy.dot(self.E[p][e_i],
-                self.R[p][r_k]),
-                self.E[p][e_j]
-                )
+                    numpy.dot(self.E[p][e_i], self.R[p][r_k]),
+                    self.E[p][e_j]
+                    )
             log_weight[p] = norm.logpdf(X[next_idx], mean, self.var_x)
 
         log_weight -= numpy.max(log_weight)
@@ -738,7 +737,7 @@ class TensorPredictor(Predictor):
 
         _lambda = numpy.identity(self.n_dim) / var_e
         _lambda += numpy.dot(
-            self.features[:nnz_all].T, 
+            self.features[:nnz_all].T,
             self.features[:nnz_all]) / self.var_x
 
         # mu = numpy.linalg.solve(_lambda, xi)
@@ -776,14 +775,12 @@ class TensorPredictor(Predictor):
 
         inv_lambda = numpy.linalg.inv(_lambda)
         mu = numpy.dot(inv_lambda, xi) / self.var_x
-        try:
-            # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
-            R[k] = multivariate_normal(
-                mu, inv_lambda).reshape([self.n_dim, self.n_dim])
-            numpy.mean(numpy.diag(inv_lambda))
-            # logging.info('Mean variance R, %d, %f', k, mean_var)
-        except:
-            pass
+        # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
+        R[k] = multivariate_normal(
+            mu, inv_lambda).reshape([self.n_dim, self.n_dim])
+        numpy.mean(numpy.diag(inv_lambda))
+        # logging.info('Mean variance R, %d, %f', k, mean_var)
+
 # Helper functions to generate predictor classes.
 
 

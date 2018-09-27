@@ -17,7 +17,6 @@ import sklearn.metrics
 import sklearn.model_selection
 import sklearn.preprocessing
 from sklearn.metrics import roc_auc_score
-import time
 
 T = TypeVar('T')
 budget = 100

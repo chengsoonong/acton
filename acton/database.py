@@ -18,7 +18,7 @@ import h5py
 import numpy
 import pandas
 import sklearn.preprocessing
-from numpy.random import multivariate_normal, gamma, multinomial
+from numpy.random import multivariate_normal
 
 
 LabelEncoderPB = DatabasePB.LabelEncoder

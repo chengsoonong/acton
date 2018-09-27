@@ -8,7 +8,6 @@ Tests for `labellers` module.
 """
 
 import os.path
-import sys
 import tempfile
 import unittest
 

@@ -1,15 +1,8 @@
 # direct to parent folder
-import sys
 #sys.path.append("..")
 
-from acton.database import LabelOnlyASCIIReader, LabelOnlyManagedHDF5Database
-from acton.predictors import TensorPredictor
-from acton.recommenders import ThompsonSamplingRecommender
-from acton.labellers import LabelOnlyDatabaseLabeller
+from acton.database import LabelOnlyASCIIReader
 import acton.acton
-import tempfile
-import astropy.io.ascii as io_ascii
-import os.path
 import numpy as np
 import logging
 

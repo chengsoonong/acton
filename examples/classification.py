@@ -3,7 +3,6 @@
 
 import logging
 import os.path
-import shutil
 import tempfile
 
 import acton.acton

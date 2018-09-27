@@ -13,7 +13,6 @@ import sklearn.linear_model
 import sklearn.model_selection
 import sklearn.preprocessing
 from numpy.random import multivariate_normal, gamma, multinomial
-import time
 
 
 
@@ -496,7 +495,8 @@ class TensorPredictor(Predictor):
                  n_particles : int = 5,
                  _var_r : int = 1, _var_e: int = 1,
                  var_x : float = 0.1,
-                 sample_prior : bool = False):
+                 sample_prior : bool = False,
+                 n_jobs: int=1):
         """
         Arguments
         ---------
@@ -583,12 +583,12 @@ class TensorPredictor(Predictor):
             self.resample()
  
         for p in range(self.n_particles): 
-            time_before_sample_relations = time.time()    
+            #time_before_sample_relations = time.time()    
             self._sample_relations(cur_obs, obs_mask, self.E[p], self.R[p], self.var_r[p])
-            time_after_sample_relations = time.time()   
+            #time_after_sample_relations = time.time()   
             #logging.debug('Sample all relations took: {} s'.format(time_after_sample_relations - time_before_sample_relations)) 
             self._sample_entities(cur_obs, obs_mask, self.E[p], self.R[p], self.var_e[p])
-            time_after_sample_entities = time.time()    
+            #time_after_sample_entities = time.time()    
             #logging.debug('Sample all entities took: {} s'.format(time_after_sample_entities - time_after_sample_relations))
         
         if self.sample_prior and i != 0 and i % self.prior_sample_gap == 0:

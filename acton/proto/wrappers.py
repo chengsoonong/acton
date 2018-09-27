@@ -182,7 +182,6 @@ class LabelPool(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(
@@ -345,7 +344,6 @@ class Predictions(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(
@@ -543,7 +541,6 @@ class Recommendations(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(

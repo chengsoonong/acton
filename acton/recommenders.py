@@ -6,8 +6,36 @@ from typing import Sequence
 import warnings
 
 import acton.database
-import numpy
+import numpy 
 import scipy.stats
+
+_E_ALPHA = 1.
+_E_BETA = 1.
+_R_ALPHA = 1.
+_R_BETA = 1.
+_P_SAMPLE_GAP = 5
+_P_SAMPLE = False
+_PARALLEL = False
+_MAX_THREAD = 4
+_POS_VAL = 1
+_MC_MOVE = 1
+_SGLD = False
+_NMINI = 1
+_GIBBS_INIT = True
+_SAMPLE_ALL = True
+
+_VAR_E = 1.
+_VAR_R = 1.
+_VAR_X = 0.01
+
+_DEST = ''
+_LOG = ''
+
+a = 0.001
+b = 0.01
+tau = -0.55
+
+MIN_VAL = numpy.iinfo(numpy.int32).min
 
 
 def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,
@@ -411,6 +439,88 @@ class MarginRecommender(Recommender):
                                    temperature=diversity * 2)
         return [ids[i] for i in indices]
 
+class ThompsonSamplingRecommender(Recommender):
+    """Recommends instances by Thompson Sampling.
+       Input:
+           K x N x N predictions.
+       Output 
+           IDs of the instances to label.
+       
+       Only support one recommendation
+
+    Attributes
+    -----------------
+    db
+        Features database.
+
+    """
+
+    def __init__(self, db: acton.database.Database):
+        """
+        Parameters
+        ----------
+        db
+            Features database.
+        """
+        self._db = db
+
+    def recommend(self, ids: Sequence[tuple],
+                  predictions: numpy.ndarray,
+                  n: int=1, diversity: float=0.0,
+                  repreated_labelling: bool = True) -> Sequence[int]:
+        """Recommends an instance to label.
+
+        Notes
+        -----
+        Predictions are reconstruct enties equal to e_i R_k e_j^T.
+
+        Parameters
+        ----------
+        ids
+            Sequence of IDs in the unlabelled data pool.
+        predictions
+            K x N x N array of predictions. 
+        n
+            Number of recommendations to make.
+        diversity
+            recommend methods selection.
+            0.5 represents Thompson Samplig;
+            1.0 represents Random Sampling
+        repeated_labelling
+            whether allow one instance to be labelled more than once
+
+        Returns
+        -------
+        Sequence[int]
+            IDs of the instances to label.
+        """
+
+        n_relations, n_entities, _ = predictions.shape
+
+        MIN_VAL = numpy.iinfo(numpy.int32).min
+
+        # mask tensor: 0 represents unlabelled, 1 represents labelled
+
+        if repreated_labelling:
+            # test: allow repeated labelling
+            mask = numpy.zeros_like(predictions)
+        else:
+            mask = numpy.ones_like(predictions)
+            for _tuple in ids:
+                r_k, e_i, e_j = _tuple
+                mask[r_k, e_i, e_j] = 0
+
+        if diversity == 0.0:
+            predictions[mask == 1] = MIN_VAL
+            return [numpy.unravel_index(predictions.argmax(), predictions.shape)]
+        else:
+            correct = False
+            while not correct:
+                sample = (numpy.random.randint(n_relations), numpy.random.randint(n_entities),
+                          numpy.random.randint(n_entities))
+                if mask[sample] == 0:
+                    correct = True
+            return [sample]
 
 # For safe string-based access to recommender classes.
 RECOMMENDERS = {
@@ -419,5 +529,6 @@ RECOMMENDERS = {
     'UncertaintyRecommender': UncertaintyRecommender,
     'EntropyRecommender': EntropyRecommender,
     'MarginRecommender': MarginRecommender,
+    'ThompsonSamplingRecommender': ThompsonSamplingRecommender,
     'None': RandomRecommender,
 }

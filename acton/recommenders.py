@@ -513,11 +513,13 @@ class ThompsonSamplingRecommender(Recommender):
 
         if diversity == 0.0:
             predictions[mask == 1] = MIN_VAL
-            return [numpy.unravel_index(predictions.argmax(), predictions.shape)]
+            return [numpy.unravel_index(predictions.argmax(),
+                     predictions.shape)]
         else:
             correct = False
             while not correct:
-                sample = (numpy.random.randint(n_relations), numpy.random.randint(n_entities),
+                sample = (numpy.random.randint(n_relations), 
+                          numpy.random.randint(n_entities),
                           numpy.random.randint(n_entities))
                 if mask[sample] == 0:
                     correct = True

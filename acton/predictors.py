@@ -529,7 +529,8 @@ class TensorPredictor(Predictor):
 
         self.E, self.R = self._db.read_features()
         #X : numpy.ndarray
-        #    Fully observed tensor with shape (n_relations, n_entities, n_entities)
+        #    Fully observed tensor with shape 
+        #    (n_relations, n_entities, n_entities)
         all_ = []
         self.X = self._db.read_labels(all_)  # read all labels
 
@@ -565,15 +566,18 @@ class TensorPredictor(Predictor):
 
         # cur_obs[cur_obs.nonzero()] = 1
         self.obs_sum = numpy.sum(numpy.sum(obs_mask, 1), 1)
-        self.valid_relations = numpy.nonzero(numpy.sum(numpy.sum(self.X, 1), 1))[0]
+        self.valid_relations = \
+                numpy.nonzero(numpy.sum(numpy.sum(self.X, 1), 1))[0]
 
-        self.features = numpy.zeros([2 * self.n_entities * self.n_relations, self.n_dim])
+        self.features = numpy.zeros(
+            [2 * self.n_entities * self.n_relations, self.n_dim])
         self.xi = numpy.zeros([2 * self.n_entities * self.n_relations])
 
         # only consider the situation where one element is recommended each time
         next_idx = ids[-1]
 
-        self.p_weights *= self.compute_particle_weight(next_idx, cur_obs, obs_mask)
+        self.p_weights *= \
+                self.compute_particle_weight(next_idx, cur_obs, obs_mask)
         self.p_weights /= numpy.sum(self.p_weights)
 
         ESS = 1. / numpy.sum((self.p_weights ** 2))
@@ -582,13 +586,19 @@ class TensorPredictor(Predictor):
             self.resample()
 
         for p in range(self.n_particles):
-            #time_before_sample_relations = time.time()
-            self._sample_relations(cur_obs, obs_mask, self.E[p], self.R[p], self.var_r[p])
-            #time_after_sample_relations = time.time()
-            #logging.debug('Sample all relations took: {} s'.format(time_after_sample_relations - time_before_sample_relations))
-            self._sample_entities(cur_obs, obs_mask, self.E[p], self.R[p], self.var_e[p])
-            #time_after_sample_entities = time.time()
-            #logging.debug('Sample all entities took: {} s'.format(time_after_sample_entities - time_after_sample_relations))
+            self._sample_relations(
+                cur_obs, obs_mask,
+                self.E[p],
+                self.R[p],
+                self.var_r[p]
+                )
+            self._sample_entities(
+                cur_obs,
+                obs_mask,
+                self.E[p],
+                self.R[p],
+                self.var_e[p]
+                )
 
         if self.sample_prior and i != 0 and i % self.prior_sample_gap == 0:
             self._sample_prior()
@@ -669,7 +679,11 @@ class TensorPredictor(Predictor):
         log_weight = numpy.zeros(self.n_particles)
         for p in range(self.n_particles):
 
-            mean = numpy.dot(numpy.dot(self.E[p][e_i], self.R[p][r_k]), self.E[p][e_j])
+            mean = numpy.dot(
+                numpy.dot(self.E[p][e_i],
+                self.R[p][r_k]),
+                self.E[p][e_j]
+                )
             log_weight[p] = norm.logpdf(X[next_idx], mean, self.var_x)
 
         log_weight -= numpy.max(log_weight)
@@ -679,14 +693,16 @@ class TensorPredictor(Predictor):
 
     def _sample_var_r(self):
         for p in range(self.n_particles):
-            self.var_r[p] = 1. / gamma(0.5 * self.n_relations * self.n_dim * self.n_dim + self.r_alpha,
-                                       1. / (0.5 * numpy.sum(self.R[p] ** 2) + self.r_beta))
+            self.var_r[p] = 1. / gamma(
+                0.5 * self.n_relations * self.n_dim * self.n_dim + self.r_alpha,
+                1. / (0.5 * numpy.sum(self.R[p] ** 2) + self.r_beta))
         logging.debug("Sampled var_r %.3f", numpy.mean(self.var_r))
 
     def _sample_var_e(self):
         for p in range(self.n_particles):
-            self.var_e[p] = 1. / gamma(0.5 * self.n_entities * self.n_dim + self.e_alpha,
-                                       1. / (0.5 * numpy.sum(self.E[p] ** 2) + self.e_beta))
+            self.var_e[p] = 1. / gamma(
+                0.5 * self.n_entities * self.n_dim + self.e_alpha,
+                1. / (0.5 * numpy.sum(self.E[p] ** 2) + self.e_beta))
         logging.debug("Sampled var_e %.3f", numpy.mean(self.var_e))
 
     def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):
@@ -721,7 +737,9 @@ class TensorPredictor(Predictor):
         xi = numpy.sum(_xi, 1) / self.var_x
 
         _lambda = numpy.identity(self.n_dim) / var_e
-        _lambda += numpy.dot(self.features[:nnz_all].T, self.features[:nnz_all]) / self.var_x
+        _lambda += numpy.dot(
+            self.features[:nnz_all].T, 
+            self.features[:nnz_all]) / self.var_x
 
         # mu = numpy.linalg.solve(_lambda, xi)
         # E[i] = normal(mu, _lambda)
@@ -740,7 +758,8 @@ class TensorPredictor(Predictor):
             if self.obs_sum[k] != 0:
                 self._sample_relation(X, mask, E, R, k, EXE, var_r)
             else:
-                R[k] = numpy.random.normal(0, var_r, size=[self.n_dim, self.n_dim])
+                R[k] = numpy.random.normal(
+                    0, var_r, size=[self.n_dim, self.n_dim])
 
     def _sample_relation(self, X, mask, E, R, k, EXE, var_r):
         _lambda = numpy.identity(self.n_dim ** 2) / var_r
@@ -759,7 +778,8 @@ class TensorPredictor(Predictor):
         mu = numpy.dot(inv_lambda, xi) / self.var_x
         try:
             # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
-            R[k] = multivariate_normal(mu, inv_lambda).reshape([self.n_dim, self.n_dim])
+            R[k] = multivariate_normal(
+                mu, inv_lambda).reshape([self.n_dim, self.n_dim])
             numpy.mean(numpy.diag(inv_lambda))
             # logging.info('Mean variance R, %d, %f', k, mean_var)
         except:

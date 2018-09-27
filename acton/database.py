@@ -804,9 +804,11 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             self._h5_file['features_R'][id_, :, :] = feature
 
         logging.debug(
-            'New feature E array size: {}'.format(self._h5_file['features_E'].shape))
+            'New feature E array size: {}'.format(
+                    self._h5_file['features_E'].shape))
         logging.debug(
-            'New feature R array size: {}'.format(self._h5_file['features_R'].shape))
+            'New feature R array size: {}'.format(
+                    self._h5_file['features_R'].shape))
 
     def read_labels(self,
                     instance_ids: Sequence[tuple]) -> numpy.ndarray:
@@ -1514,8 +1516,10 @@ class LabelOnlyASCIIReader(ASCIIReader):
         if isinstance(self.obs_mask, type(None)):
             self.obs_mask = numpy.zeros_like(X)
         else:
-            logging.info("Initial Total, Positive, Negative Observation: %d / %d / %d", numpy.sum(self.obs_mask),
-                         numpy.sum(X[self.obs_mask == 1]), numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
+            logging.info("Initial Total, Positive, Negative Observation: "
+                + "%d / %d / %d", numpy.sum(self.obs_mask),
+                numpy.sum(X[self.obs_mask == 1]),
+                numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
 
         cur_obs = numpy.zeros_like(X)
         for k in range(self.n_relations):
@@ -1524,7 +1528,8 @@ class LabelOnlyASCIIReader(ASCIIReader):
         self.obs_sum = numpy.sum(numpy.sum(self.obs_mask, 1), 1)
         self.valid_relations = numpy.nonzero(numpy.sum(numpy.sum(X, 1), 1))[0]
 
-        self.features = numpy.zeros([2 * self.n_entities * self.n_relations, self.n_dim])
+        self.features = numpy.zeros(
+            [2 * self.n_entities * self.n_relations, self.n_dim])
         self.xi = numpy.zeros([2 * self.n_entities * self.n_relations])
 
         # cur_obs[cur_obs.nonzero()] = 1
@@ -1536,10 +1541,13 @@ class LabelOnlyASCIIReader(ASCIIReader):
             for gi in range(20):
                 tic = time.time()
                 if isinstance(self.givenR, type(None)):
-                    self._sample_relations(cur_obs, self.obs_mask, E, R, self._var_r)
-                    self._sample_entities(cur_obs, self.obs_mask, E, R, self._var_e)
+                    self._sample_relations(
+                        cur_obs, self.obs_mask, E, R, self._var_r)
+                    self._sample_entities(
+                        cur_obs, self.obs_mask, E, R, self._var_e)
                 else:
-                    self._sample_entities(cur_obs, self.obs_mask, E, R, self._var_e)
+                    self._sample_entities(
+                        cur_obs, self.obs_mask, E, R, self._var_e)
                 logging.info("Gibbs Init %d: %f", gi, time.time() - tic)
 
             for p in range(self.n_particles):
@@ -1548,8 +1556,10 @@ class LabelOnlyASCIIReader(ASCIIReader):
         else:
             # random initialization
             for p in range(self.n_particles):
-                self.E.append(numpy.random.random([self.n_entities, self.n_dim]))
-                self.R.append(numpy.random.random([self.n_relations, self.n_dim, self.n_dim]))
+                self.E.append(numpy.random.random(
+                    [self.n_entities, self.n_dim]))
+                self.R.append(numpy.random.random(
+                    [self.n_relations, self.n_dim, self.n_dim]))
 
         self.E = numpy.asarray(self.E)
         self.R = numpy.asarray(self.R)
@@ -1637,7 +1647,9 @@ class LabelOnlyASCIIReader(ASCIIReader):
         xi = numpy.sum(_xi, 1) / self.var_x
 
         _lambda = numpy.identity(self.n_dim) / var_e
-        _lambda += numpy.dot(self.features[:nnz_all].T, self.features[:nnz_all]) / self.var_x
+        _lambda += numpy.dot(
+            self.features[:nnz_all].T, 
+            self.features[:nnz_all]) / self.var_x
 
         # mu = numpy.linalg.solve(_lambda, xi)
         # E[i] = normal(mu, _lambda)
@@ -1656,7 +1668,8 @@ class LabelOnlyASCIIReader(ASCIIReader):
             if self.obs_sum[k] != 0:
                 self._sample_relation(X, mask, E, R, k, EXE, var_r)
             else:
-                R[k] = numpy.random.normal(0, var_r, size=[self.n_dim, self.n_dim])
+                R[k] = numpy.random.normal(
+                    0, var_r, size=[self.n_dim, self.n_dim])
 
     def _sample_relation(self, X, mask, E, R, k, EXE, var_r):
         _lambda = numpy.identity(self.n_dim ** 2) / var_r
@@ -1675,7 +1688,8 @@ class LabelOnlyASCIIReader(ASCIIReader):
         mu = numpy.dot(inv_lambda, xi) / self.var_x
         try:
             # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
-            R[k] = multivariate_normal(mu, inv_lambda).reshape([self.n_dim, self.n_dim])
+            R[k] = multivariate_normal(
+                mu, inv_lambda).reshape([self.n_dim, self.n_dim])
             numpy.mean(numpy.diag(inv_lambda))
             # logging.info('Mean variance R, %d, %f', k, mean_var)
         except:

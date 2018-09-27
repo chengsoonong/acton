@@ -19,7 +19,6 @@ import sklearn.preprocessing
 from sklearn.metrics import roc_auc_score
 
 T = TypeVar('T')
-budget = 100
 
 
 def draw(n: int, lst: List[T], replace: bool = True) -> List[T]:
@@ -247,13 +246,14 @@ def simulate_active_learning(
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         logging.debug('Making recommendations.')
-        recommendations = recommender.recommend(
-            unlabelled_ids, predictions, n=n_recommendations,
-            diversity=diversity, repreated_labelling=repeated_labelling)
-        logging.debug('Recommending: {}'.format(recommendations))
 
         if labeller_name == 'LabelOnlyDatabaseLabeller':
             true_labels = db.read_labels([])
+
+            recommendations = recommender.recommend(
+                unlabelled_ids, predictions, n=n_recommendations,
+                diversity=diversity, repreated_labelling=repeated_labelling)
+            logging.debug('Recommending: {}'.format(recommendations))
 
             # compute ROC_AUC_SCORE
             train_error = \
@@ -280,6 +280,10 @@ def simulate_active_learning(
 
             return train_error_list, test_error_list, gain_ts
         else:
+            recommendations = recommender.recommend(
+                unlabelled_ids, predictions, n=n_recommendations)
+            logging.debug('Recommending: {}'.format(recommendations))
+
             return 0
 
 

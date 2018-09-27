@@ -6,7 +6,7 @@ from typing import Sequence
 import warnings
 
 import acton.database
-import numpy 
+import numpy
 import scipy.stats
 
 _E_ALPHA = 1.

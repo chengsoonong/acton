@@ -31,16 +31,16 @@ with LabelOnlyASCIIReader(_path, n_dim) as reader:
 
     # TS
     TS_train_error_list, TS_test_error_list, TS_gain =  \
-            acton.acton.simulate_active_learning(ids, reader, {}, output_path, 
+            acton.acton.simulate_active_learning(ids, reader, {}, output_path,
                                                 n_epochs= N_EPOCHS,
                                                 recommender='ThompsonSamplingRecommender',
                                                 predictor= 'TensorPredictor',
                                                 labeller= 'LabelOnlyDatabaseLabeller',
-                                                diversity= TS, 
+                                                diversity= TS,
                                                 repeated_labelling = repeated_labelling)
     # Random
     RD_train_error_list, RD_test_error_list, RD_gain =  \
-            acton.acton.simulate_active_learning(ids, reader, {}, output_path, 
+            acton.acton.simulate_active_learning(ids, reader, {}, output_path,
                                                 n_epochs= N_EPOCHS,
                                                 recommender='ThompsonSamplingRecommender',
                                                 predictor= 'TensorPredictor',
@@ -48,6 +48,6 @@ with LabelOnlyASCIIReader(_path, n_dim) as reader:
                                                 diversity= RANDOM,
                                                 repeated_labelling = repeated_labelling)
 
-acton.acton.plot(TS_train_error_list, TS_test_error_list, TS_gain, 
+acton.acton.plot(TS_train_error_list, TS_test_error_list, TS_gain,
                  RD_train_error_list, RD_test_error_list, RD_gain)
 

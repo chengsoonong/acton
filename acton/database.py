@@ -625,7 +625,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         except OSError:
             with h5py.File(self.path, 'w') as h5_file:
                 self._setup_hdf5(h5_file)
-            self._h5_file = h5py.File(self.path, 'r+')       
+            self._h5_file = h5py.File(self.path, 'r+')
 
     def _setup_hdf5(self, h5_file: h5py.File):
         """Sets up an HDF5 file to work as a database.
@@ -636,13 +636,13 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             HDF5 file to set up. Must be opened in write mode.
         """
 
-        h5_file.create_dataset('features_E', 
+        h5_file.create_dataset('features_E',
                                shape=(0, 0, 0),
                                maxshape=(None, None, None))
-        h5_file.create_dataset('features_R', 
+        h5_file.create_dataset('features_R',
                                shape=(0, 0, 0, 0),
                                maxshape=(None, None, None, None))
-        h5_file.create_dataset('labels', 
+        h5_file.create_dataset('labels',
                                shape=(0, 0, 0),
                                maxshape=(None, None, None))
         h5_file.attrs['n_entities'] = -1
@@ -669,7 +669,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         except AssertionError:
             raise ValueError(
                 'File {} is not a valid database.'.format(self.path))
-    
+
     def write_labels(self,
                      labels: numpy.ndarray):
         """Writes label vectors to the database.
@@ -706,17 +706,17 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
                 labels.shape[1] > self._h5_file['labels'].shape[1] or
                 labels.shape[2] > self._h5_file['labels'].shape[2]):
             self._h5_file['labels'].resize(labels.shape)
-        
+
         # Store the labels.
-        # TODO(MatthewJA): Vectorise this. 
+        # TODO(MatthewJA): Vectorise this.
         for i in range(labels.shape[0]):
             self._h5_file['labels'][i,:]= labels[i,:]
 
         logging.debug(
             'New label array size: {}'.format(self._h5_file['labels'].shape))
-    
-    def write_features(self, 
-                       features_E: numpy.ndarray, 
+
+    def write_features(self,
+                       features_E: numpy.ndarray,
                        features_R: numpy.ndarray):
         """Writes feature vectors to the database.
 
@@ -780,10 +780,10 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             raise ValueError(
                 'Expected number of partibles {}, glot {}'.format(
                     self._h5_file.attrs['n_particles'], n_particles))
-        
+
 
         # Resize the feature array if we need to store more IDs than before.
-        
+
         if (features_E.shape[0] > self._h5_file['features_E'].shape[0] or
             features_E.shape[1] > self._h5_file['features_E'].shape[1] or
             features_E.shape[2] > self._h5_file['features_E'].shape[2]):
@@ -808,7 +808,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             'New feature E array size: {}'.format(self._h5_file['features_E'].shape))
         logging.debug(
             'New feature R array size: {}'.format(self._h5_file['features_R'].shape))
-    
+
     def read_labels(self,
                     instance_ids: Sequence[tuple]) -> numpy.ndarray:
         """Reads label vectors from the database.
@@ -839,9 +839,9 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             for tuple_ in instance_ids:
                 r_k, e_i, e_j = tuple_
                 labels.append(self._h5_file['labels'].value[r_k, e_i, e_j])
-            
+
             return numpy.asarray(labels)
-              
+
     def read_features(self) -> numpy.ndarray:
         """Reads feature vectors from the database.
 
@@ -864,7 +864,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             raise KeyError('No features stored in database.')
 
         # Allocate the features array.
-        features_E = numpy.zeros((self._h5_file.attrs['n_particles'], 
+        features_E = numpy.zeros((self._h5_file.attrs['n_particles'],
                                   self._h5_file.attrs['n_entities']),
                                   self._h5_file.attrs['n_dim'])
         features_R = numpy.zeros((self._h5_file.attrs['n_particles'],
@@ -878,7 +878,7 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
 
         features_E = numpy.asarray(features_E)
         features_R = numpy.asarray(features_R)
-       
+
         return features_E, features_R
 
 
@@ -1468,7 +1468,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
             kwarg = proto.kwarg.add()
             kwarg.key = key
             kwarg.value = json.dumps(value)
-        
+
         return proto
 
     def _db_from_ascii(self,
@@ -1490,11 +1490,11 @@ class LabelOnlyASCIIReader(ASCIIReader):
             ASCII table.
         """
 
-        # triples: relation_id  entity_id1  entity_id2 
+        # triples: relation_id  entity_id1  entity_id2
         # e.g. (0,2,4) represents entity 2 and 4 have relation 0
         triples = data.as_array()
         triples = triples.view(numpy.int).reshape((triples.shape[0],3))
-        
+
         self.n_relations = max(triples[:,0]) + 1
         self.n_entities = max(triples[:,1]) + 1
         assert self.n_entities == max(triples[:,-1]) + 1
@@ -1566,10 +1566,10 @@ class LabelOnlyASCIIReader(ASCIIReader):
         self._db_filepath = os.path.join(self._tempdir.name, 'db.h5')
 
         data = io_ascii.read(self.path)
-    
+
         self._db = LabelOnlyManagedHDF5Database(self._db_filepath)
         self._db.__enter__()
-        
+
         self._db_from_ascii(self._db, data)
 
         return self
@@ -1593,7 +1593,7 @@ class LabelOnlyASCIIReader(ASCIIReader):
         """
         return self._db.read_features()
 
-    def read_labels(self, 
+    def read_labels(self,
                     instance_ids: Sequence[tuple]) -> numpy.ndarray:
         """Reads label vectors from the database.
 

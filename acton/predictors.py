@@ -490,8 +490,8 @@ class TensorPredictor(Predictor):
         K x N x N labels
     """
 
-    def __init__(self, 
-                 db: acton.database.Database, 
+    def __init__(self,
+                 db: acton.database.Database,
                  n_particles : int = 5,
                  _var_r : int = 1, _var_e: int = 1,
                  var_x : float = 0.1,
@@ -532,7 +532,7 @@ class TensorPredictor(Predictor):
         all_ = []
         self.X = self._db.read_labels(all_) # read all labels
 
-        
+
     def fit(self, ids: Iterable[tuple]):
         """Update posteriors.
 
@@ -558,7 +558,7 @@ class TensorPredictor(Predictor):
         for _id in ids:
             r_k, e_i, e_j = _id
             obs_mask[r_k, e_i, e_j] = 1
-    
+
         cur_obs = numpy.zeros_like(self.X)
         for k in range(self.n_relations):
             cur_obs[k][obs_mask[k] == 1] = self.X[k][obs_mask[k] == 1]
@@ -581,19 +581,19 @@ class TensorPredictor(Predictor):
 
         if ESS < self.n_particles / 2.:
             self.resample()
- 
-        for p in range(self.n_particles): 
-            #time_before_sample_relations = time.time()    
+
+        for p in range(self.n_particles):
+            #time_before_sample_relations = time.time()
             self._sample_relations(cur_obs, obs_mask, self.E[p], self.R[p], self.var_r[p])
-            #time_after_sample_relations = time.time()   
-            #logging.debug('Sample all relations took: {} s'.format(time_after_sample_relations - time_before_sample_relations)) 
+            #time_after_sample_relations = time.time()
+            #logging.debug('Sample all relations took: {} s'.format(time_after_sample_relations - time_before_sample_relations))
             self._sample_entities(cur_obs, obs_mask, self.E[p], self.R[p], self.var_e[p])
-            #time_after_sample_entities = time.time()    
+            #time_after_sample_entities = time.time()
             #logging.debug('Sample all entities took: {} s'.format(time_after_sample_entities - time_after_sample_relations))
-        
+
         if self.sample_prior and i != 0 and i % self.prior_sample_gap == 0:
             self._sample_prior()
-        
+
     def predict(self, ids: Sequence[int] = None) -> (numpy.ndarray, None):
         """Predicts labels of instances.
 
@@ -624,7 +624,7 @@ class TensorPredictor(Predictor):
         #logging.critical('R[0, 2,4]: {}'.format(self.R[0,2,4]))
 
         return X, None
-        
+
 
     def reference_predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):
         """Predicts labels using the best possible method.
@@ -671,7 +671,7 @@ class TensorPredictor(Predictor):
 
         log_weight = numpy.zeros(self.n_particles)
         for p in range(self.n_particles):
-            
+
             mean = numpy.dot(numpy.dot(self.E[p][e_i], self.R[p][r_k]), self.E[p][e_j])
             log_weight[p] = norm.logpdf(X[next_idx], mean, self.var_x)
 

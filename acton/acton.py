@@ -193,8 +193,8 @@ def simulate_active_learning(
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')
 
-        if all(isinstance(x, int) for x in labelled_ids):
-            labelled_ids.sort()
+        # if all(isinstance(x, int) for x in labelled_ids):
+        labelled_ids.sort()
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
         # Here, we would write the labels to the database, but they're already
@@ -278,7 +278,8 @@ def simulate_active_learning(
             # regret_ts = compute_regret(true_labels, seq)
             # gain_ts = 1 - numpy.array(regret_ts)
 
-            return train_error_list, test_error_list, gain_ts
+            #return train_error_list, test_error_list, gain_ts
+            return 0
         else:
             recommendations = recommender.recommend(
                 unlabelled_ids, predictions, n=n_recommendations)

@@ -199,6 +199,7 @@ def simulate_active_learning(
 
         # Here, we would write the labels to the database, but they're already
         # there since we're just reading them from there anyway.
+        pass
 
         # Pass the labels to the predictor.
         logging.debug('Fitting predictor.')
@@ -227,10 +228,9 @@ def simulate_active_learning(
             writer.send(proto.proto)
 
         # Pass the predictions to the recommender.
-        # unlabelled_ids = list(set(ids) - set(labelled_ids))
+        unlabelled_ids = list(set(ids) - set(labelled_ids))
         # should only recommend train ids?
-
-        unlabelled_ids = list(set(train_ids) - set(labelled_ids))
+        # unlabelled_ids = list(set(train_ids) - set(labelled_ids))
         if not unlabelled_ids:
             logging.info('Labelled all instances.')
             break
@@ -278,14 +278,13 @@ def simulate_active_learning(
             # regret_ts = compute_regret(true_labels, seq)
             # gain_ts = 1 - numpy.array(regret_ts)
 
-            #return train_error_list, test_error_list, gain_ts
-            return 0
+            # return train_error_list, test_error_list, gain_ts
         else:
             recommendations = recommender.recommend(
                 unlabelled_ids, predictions, n=n_recommendations)
             logging.debug('Recommending: {}'.format(recommendations))
 
-            return 0
+    return 0
 
 
 def compute_regret(T, seq):

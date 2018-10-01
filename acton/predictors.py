@@ -497,7 +497,8 @@ class TensorPredictor(Predictor):
                  _var_r: int = 1, _var_e: int = 1,
                  var_x: float = 0.1,
                  sample_prior: bool = False,
-                 n_jobs: int=1):
+                 n_jobs: int=1
+                 ):
         """
         Arguments
         ---------
@@ -534,13 +535,16 @@ class TensorPredictor(Predictor):
         all_ = []
         self.X = self._db.read_labels(all_)  # read all labels
 
-    def fit(self, ids: Iterable[tuple]):
+    def fit(self, ids: Iterable[tuple],
+            sub_percent: float = 1.0):
         """Update posteriors.
 
         Parameters
         ----------
         ids
             List of IDs of labelled instances.
+        sub_percent
+            percent of entities/relations for subsampling
 
         Returns
         -------
@@ -548,11 +552,16 @@ class TensorPredictor(Predictor):
             Returns a updated posteriors for E and R.
         """
 
+        self.sub_percent = sub_percent
+
         assert self.n_particles == self.E.shape[0] == self.R.shape[0]
         self.n_relations = self.X.shape[0]
         self.n_entities = self.X.shape[1]
         self.n_dim = self.E.shape[2]
         assert self.E.shape[2] == self.R.shape[2]
+
+        self.subn_entities = round(self.n_entities * self.sub_percent)
+        self.subn_relations = round(self.n_relations * self.sub_percent)
 
         obs_mask = numpy.zeros_like(self.X)
 
@@ -585,19 +594,32 @@ class TensorPredictor(Predictor):
         if ESS < self.n_particles / 2.:
             self.resample()
 
+        if self.sub_percent == 1.0:
+            sub_relids = None
+            sub_entids = None
+        else:
+            logging.debug("Subsampling {} entities and {} relations".format(
+                self.subn_entities, self.subn_relations))
+            sub_relids = numpy.random.randint(
+                self.n_relations, size=self.subn_relations)
+            sub_entids = numpy.random.randint(
+                self.n_entities, size=self.subn_entities)
+
         for p in range(self.n_particles):
             self._sample_relations(
                 cur_obs, obs_mask,
                 self.E[p],
                 self.R[p],
-                self.var_r[p]
+                self.var_r[p],
+                sub_relids
                 )
             self._sample_entities(
                 cur_obs,
                 obs_mask,
                 self.E[p],
                 self.R[p],
-                self.var_e[p]
+                self.var_e[p],
+                sub_entids
                 )
 
         if self.sample_prior:
@@ -750,15 +772,19 @@ class TensorPredictor(Predictor):
         numpy.mean(numpy.diag(inv_lambda))
         # logging.info('Mean variance E, %d, %f', i, mean_var)
 
-    def _sample_relations(self, X, mask, E, R, var_r):
+    def _sample_relations(self, X, mask, E, R, var_r, sample_idx=None):
         EXE = numpy.kron(E, E)
 
+        if isinstance(sample_idx, type(None)):
+            sample_idx = range(self.n_relations)
+
         for k in self.valid_relations:
-            if self.obs_sum[k] != 0:
-                self._sample_relation(X, mask, E, R, k, EXE, var_r)
-            else:
-                R[k] = numpy.random.normal(
-                    0, var_r, size=[self.n_dim, self.n_dim])
+            if k in sample_idx:
+                if self.obs_sum[k] != 0:
+                    self._sample_relation(X, mask, E, R, k, EXE, var_r)
+                else:
+                    R[k] = numpy.random.normal(
+                        0, var_r, size=[self.n_dim, self.n_dim])
 
     def _sample_relation(self, X, mask, E, R, k, EXE, var_r):
         _lambda = numpy.identity(self.n_dim ** 2) / var_r

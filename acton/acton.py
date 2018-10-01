@@ -92,7 +92,8 @@ def simulate_active_learning(
         labeller: str = 'DatabaseLabeller',
         n_recommendations: int = 1,
         diversity: float = 0.5,
-        repeated_labelling: bool = True):
+        repeated_labelling: bool = True,
+        sub_percent: float = 1.0):
     """Simulates an active learning task.
 
     Parameters
@@ -121,6 +122,8 @@ def simulate_active_learning(
         Number of recommendations to make at once.
     repeated_labelling
         whether allow one instance to be labelled more than once
+    sub_percent
+        percent of relations and entities are labelling
     """
     validate_recommender(recommender)
     validate_predictor(predictor)
@@ -182,8 +185,10 @@ def simulate_active_learning(
     test_error_list = []
 
     gain_ts = []
+    run_time = []
 
     for epoch in range(n_epochs):
+        begin_epoch = time.time()
         logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))
         # Label the recommendations.
         logging.debug('Labelling recommendations.')
@@ -193,8 +198,9 @@ def simulate_active_learning(
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')
 
-        # if all(isinstance(x, int) for x in labelled_ids):
-        labelled_ids.sort()
+        if labeller_name != 'LabelOnlyDatabaseLabeller':
+            labelled_ids.sort()
+
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
         # Here, we would write the labels to the database, but they're already
@@ -204,7 +210,10 @@ def simulate_active_learning(
         # Pass the labels to the predictor.
         logging.debug('Fitting predictor.')
         then = time.time()
-        predictor.fit(labelled_ids)
+        if labeller_name == 'LabelOnlyDatabaseLabeller':
+            predictor.fit(labelled_ids, sub_percent=sub_percent)
+        else:
+            predictor.fit(labelled_ids)
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         # Evaluate the predictor.
@@ -228,9 +237,9 @@ def simulate_active_learning(
             writer.send(proto.proto)
 
         # Pass the predictions to the recommender.
-        unlabelled_ids = list(set(ids) - set(labelled_ids))
+        # unlabelled_ids = list(set(ids) - set(labelled_ids))
         # should only recommend train ids?
-        # unlabelled_ids = list(set(train_ids) - set(labelled_ids))
+        unlabelled_ids = list(set(train_ids) - set(labelled_ids))
         if not unlabelled_ids:
             logging.info('Labelled all instances.')
             break
@@ -249,6 +258,7 @@ def simulate_active_learning(
 
         if labeller_name == 'LabelOnlyDatabaseLabeller':
             true_labels = db.read_labels([])
+            # logging.debug(unlabelled_ids)
 
             recommendations = recommender.recommend(
                 unlabelled_ids, predictions, n=n_recommendations,
@@ -283,8 +293,14 @@ def simulate_active_learning(
             recommendations = recommender.recommend(
                 unlabelled_ids, predictions, n=n_recommendations)
             logging.debug('Recommending: {}'.format(recommendations))
+        end_epoch = time.time()
 
-    return 0
+        run_time.append(end_epoch - begin_epoch)
+
+    if labeller_name == 'LabelOnlyDatabaseLabeller':
+        return train_error_list, test_error_list, gain_ts, run_time
+    else:
+        return 0
 
 
 def compute_regret(T, seq):

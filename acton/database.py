@@ -595,7 +595,7 @@ class ManagedHDF5Database(HDF5Database):
                     attr, getattr(self, attr), self._h5_file.attrs[attr]))
 
 
-class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
+class GraphDatabase(HDF5Database):
     """Manage database handling knowledge graph factorization,
 
     Attributes
@@ -613,6 +613,28 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
             Path to HDF5 file.
         """
         self.path = path
+
+    def to_proto(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'ManagedHDF5Database'
+        db_kwargs = {
+            'label_dtype': self.label_dtype,
+            'feature_dtype': self.feature_dtype}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        # No encoder for a managed DB - assume that labels are encoded already.
+        # proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
+        return proto
 
     def _open_hdf5(self):
         """Opens the HDF5 file and creates it if it doesn't exist.
@@ -881,6 +903,28 @@ class LabelOnlyManagedHDF5Database(ManagedHDF5Database):
         features_R = numpy.asarray(features_R)
 
         return features_E, features_R
+
+    def get_known_instance_ids(self) -> List[int]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        self._assert_open()
+        return [id_ for id_ in self._h5_file['instance_ids']]
+
+    def get_known_labeller_ids(self) -> List[int]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        self._assert_open()
+        return [id_ for id_ in self._h5_file['labeller_ids']]
 
 
 class HDF5Reader(HDF5Database):
@@ -1365,7 +1409,7 @@ class ASCIIReader(Database):
         return self._db.get_known_labeller_ids()
 
 
-class LabelOnlyASCIIReader(ASCIIReader):
+class GraphReader(Database):
     """Reads ASCII databases for graph based structure
 
        Input file:
@@ -1403,22 +1447,22 @@ class LabelOnlyASCIIReader(ASCIIReader):
         Number of particles for Thompson sampling.
     gibbs_init
         Indicates how to sample features (gibbs/random).
-    _var_r
+    var_r
         variance of prior of R
-    _var_e
+    var_e
         variance of prior of E
     var_x
         variance of X
     obs_mask
         Mask tensor of observed triples.
-    giveR
-        Given features R if any
+    given_r
+        whether there is any R given for initialization
     """
 
     def __init__(self, path: str, n_dim: int, n_particles: int = 5,
-                 gibbs_init: bool = True, _var_r: int = 1, _var_e: int = 1,
+                 gibbs_init: bool = True, var_r: int = 1, var_e: int = 1,
                  var_x: float = 0.01, obs_mask: numpy.ndarray= None,
-                 givenR: numpy.ndarray = None):
+                 given_r: numpy.ndarray = None):
         """
         Parameters
         ----------
@@ -1430,26 +1474,26 @@ class LabelOnlyASCIIReader(ASCIIReader):
             Number of particles for Thompson sampling.
         gibbs_init
            Indicates how to sample features (gibbs/random).
-        _var_r
+        var_r
             variance of prior of R
-        _var_e
+        var_e
             variance of prior of E
         var_x
             variance of X
         obs_mask
             Mask tensor of observed triples.
-        giveR
+        given_r
             Given features R if any
         """
         self.path = path
         self.n_dim = n_dim
         self.n_particles = n_particles
         self.gibbs_init = gibbs_init
-        self._var_r = _var_r
-        self._var_e = _var_e
+        self.var_r = var_r
+        self.var_e = var_e
         self.var_x = var_x
         self.obs_mask = obs_mask
-        self.givenR = givenR
+        self.given_r = given_r
 
     def to_proto(self) -> DatabasePB:
         """Serialises this database as a protobuf.
@@ -1541,14 +1585,14 @@ class LabelOnlyASCIIReader(ASCIIReader):
 
             for gi in range(20):
                 tic = time.time()
-                if isinstance(self.givenR, type(None)):
+                if isinstance(self.given_r, type(None)):
                     self._sample_relations(
-                        cur_obs, self.obs_mask, E, R, self._var_r)
+                        cur_obs, self.obs_mask, E, R, self.var_r)
                     self._sample_entities(
-                        cur_obs, self.obs_mask, E, R, self._var_e)
+                        cur_obs, self.obs_mask, E, R, self.var_e)
                 else:
                     self._sample_entities(
-                        cur_obs, self.obs_mask, E, R, self._var_e)
+                        cur_obs, self.obs_mask, E, R, self.var_e)
                 logging.info("Gibbs Init %d: %f", gi, time.time() - tic)
 
             for p in range(self.n_particles):
@@ -1576,12 +1620,17 @@ class LabelOnlyASCIIReader(ASCIIReader):
 
         data = io_ascii.read(self.path)
 
-        self._db = LabelOnlyManagedHDF5Database(self._db_filepath)
+        self._db = GraphDatabase(self._db_filepath)
         self._db.__enter__()
 
         self._db_from_ascii(self._db, data)
 
         return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        self._db.__exit__(exc_type, exc_val, exc_tb)
+        self._tempdir.cleanup()
+        delattr(self, '_db')
 
     def read_features(self) -> numpy.ndarray:
         """Reads feature vectors from the database.
@@ -1616,6 +1665,15 @@ class LabelOnlyASCIIReader(ASCIIReader):
         """
         # N.B. Labels are encoded in _db_from_ascii.
         return self._db.read_labels(instance_ids)
+
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
+                     labels: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
 
     def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):
         RE = self.RE
@@ -1652,15 +1710,12 @@ class LabelOnlyASCIIReader(ASCIIReader):
             self.features[:nnz_all].T,
             self.features[:nnz_all]) / self.var_x
 
-        # mu = numpy.linalg.solve(_lambda, xi)
-        # E[i] = normal(mu, _lambda)
-
         inv_lambda = numpy.linalg.inv(_lambda)
         mu = numpy.dot(inv_lambda, xi)
         E[i] = multivariate_normal(mu, inv_lambda)
 
         numpy.mean(numpy.diag(inv_lambda))
-        # logging.info('Mean variance E, %d, %f', i, mean_var)
+        # logging.debug('Mean variance E, %d, %f', i, mean_var)
 
     def _sample_relations(self, X, mask, E, R, var_r):
         EXE = numpy.kron(E, E)
@@ -1693,6 +1748,26 @@ class LabelOnlyASCIIReader(ASCIIReader):
             mu, inv_lambda).reshape([self.n_dim, self.n_dim])
         numpy.mean(numpy.diag(inv_lambda))
         # logging.info('Mean variance R, %d, %f', k, mean_var)
+
+    def get_known_instance_ids(self) -> List[int]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        return self._db.get_known_instance_ids()
+
+    def get_known_labeller_ids(self) -> List[int]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        return self._db.get_known_labeller_ids()
 
 
 class PandasReader(Database):
@@ -2087,9 +2162,10 @@ class FITSReader(Database):
 # For safe string-based access to database classes.
 DATABASES = {
     'ASCIIReader': ASCIIReader,
-    'LabelOnlyASCIIReader': LabelOnlyASCIIReader,
+    'GraphReader': GraphReader,
     'HDF5Reader': HDF5Reader,
     'FITSReader': FITSReader,
     'ManagedHDF5Database': ManagedHDF5Database,
+    'GraphDatabase': GraphDatabase,
     'PandasReader': PandasReader,
 }

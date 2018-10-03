@@ -93,7 +93,8 @@ def simulate_active_learning(
         n_recommendations: int = 1,
         diversity: float = 0.5,
         repeated_labelling: bool = True,
-        sub_percent: float = 1.0):
+        subn_entities: int=0,
+        subn_relations: int=0):
     """Simulates an active learning task.
 
     Parameters
@@ -122,8 +123,10 @@ def simulate_active_learning(
         Number of recommendations to make at once.
     repeated_labelling
         whether allow one instance to be labelled more than once
-    sub_percent
-        percent of relations and entities are labelling
+    subn_entities
+        number of entities for subsampling
+    subn_relations
+        number of relations for subsampling
     """
     validate_recommender(recommender)
     validate_predictor(predictor)
@@ -153,7 +156,11 @@ def simulate_active_learning(
     logging.debug('Drawing initial labels.')
     recommendations = draw(n_initial_labels, train_ids, replace=False)
 
-    if labeller_name == 'LabelOnlyDatabaseLabeller':
+    if labeller_name == 'GraphDatabaseLabeller':
+
+        assert subn_entities > 0
+        assert subn_relations > 0
+
         tensor_ids = ids.reshape(
             (db.n_relations, db.n_entities, db.n_entities))
 
@@ -198,7 +205,7 @@ def simulate_active_learning(
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')
 
-        if labeller_name != 'LabelOnlyDatabaseLabeller':
+        if labeller_name != 'GraphDatabaseLabeller':
             labelled_ids.sort()
 
         labels = numpy.concatenate([labels, new_labels], axis=0)
@@ -210,8 +217,10 @@ def simulate_active_learning(
         # Pass the labels to the predictor.
         logging.debug('Fitting predictor.')
         then = time.time()
-        if labeller_name == 'LabelOnlyDatabaseLabeller':
-            predictor.fit(labelled_ids, sub_percent=sub_percent)
+        if labeller_name == 'GraphDatabaseLabeller':
+            predictor.fit(labelled_ids,
+                          subn_entities=subn_entities,
+                          subn_relations=subn_relations)
         else:
             predictor.fit(labelled_ids)
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
@@ -225,7 +234,7 @@ def simulate_active_learning(
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         # Construct a protobuf for outputting predictions.
-        if labeller_name != 'LabelOnlyDatabaseLabeller':
+        if labeller_name != 'GraphDatabaseLabeller':
             proto = acton.proto.wrappers.Predictions.make(
                 test_ids,
                 labelled_ids,
@@ -237,8 +246,7 @@ def simulate_active_learning(
             writer.send(proto.proto)
 
         # Pass the predictions to the recommender.
-        # unlabelled_ids = list(set(ids) - set(labelled_ids))
-        # should only recommend train ids?
+
         unlabelled_ids = list(set(train_ids) - set(labelled_ids))
         if not unlabelled_ids:
             logging.info('Labelled all instances.')
@@ -256,7 +264,7 @@ def simulate_active_learning(
 
         logging.debug('Making recommendations.')
 
-        if labeller_name == 'LabelOnlyDatabaseLabeller':
+        if labeller_name == 'GraphDatabaseLabeller':
             true_labels = db.read_labels([])
             # logging.debug(unlabelled_ids)
 
@@ -297,20 +305,10 @@ def simulate_active_learning(
 
         run_time.append(end_epoch - begin_epoch)
 
-    if labeller_name == 'LabelOnlyDatabaseLabeller':
+    if labeller_name == 'GraphDatabaseLabeller':
         return train_error_list, test_error_list, gain_ts, run_time
     else:
         return 0
-
-
-def compute_regret(T, seq):
-    mask = numpy.ones_like(T)
-    regret = list()
-    for s in seq:
-        best = numpy.max(T[mask == 1])
-        regret.append(best - T[s])
-        mask[s] = 0
-    return regret
 
 
 def try_pandas(data_path: str) -> bool:

@@ -475,9 +475,9 @@ class TensorPredictor(Predictor):
         Number of entities (N)
     n_dim
         Number of latent dimensions (D)
-    _var_r
+    var_r
         variance of prior of R
-    _var_e
+    var_e
         variance of prior of E
     var_x
         variance of X
@@ -494,7 +494,7 @@ class TensorPredictor(Predictor):
     def __init__(self,
                  db: acton.database.Database,
                  n_particles: int = 5,
-                 _var_r: int = 1, _var_e: int = 1,
+                 var_r: int = 1, var_e: int = 1,
                  var_x: float = 0.1,
                  sample_prior: bool = False,
                  n_jobs: int=1
@@ -506,9 +506,9 @@ class TensorPredictor(Predictor):
             Database storing features and labels.
         n_particles:
             Number of particles for Thompson sampling.
-        _var_r
+        var_r
             variance of prior of R
-        _var_e
+        var_e
             variance of prior of E
         var_x
             variance of X
@@ -517,12 +517,12 @@ class TensorPredictor(Predictor):
         """
         self._db = db
         self.n_particles = n_particles
-        self._var_r = _var_r
-        self._var_e = _var_e
+        self.var_r = var_r
+        self.var_e = var_e
         self.var_x = var_x
 
-        self.var_e = numpy.ones(self.n_particles) * self._var_e
-        self.var_r = numpy.ones(self.n_particles) * self._var_r
+        self.var_e = numpy.ones(self.n_particles) * self.var_e
+        self.var_r = numpy.ones(self.n_particles) * self.var_r
 
         self.p_weights = numpy.ones(self.n_particles) / self.n_particles
 
@@ -536,23 +536,28 @@ class TensorPredictor(Predictor):
         self.X = self._db.read_labels(all_)  # read all labels
 
     def fit(self, ids: Iterable[tuple],
-            sub_percent: float = 1.0):
+            subn_entities: int,
+            subn_relations: int):
         """Update posteriors.
 
         Parameters
         ----------
         ids
             List of IDs of labelled instances.
-        sub_percent
-            percent of entities/relations for subsampling
+        subn_entities
+            number of entities for subsampling
+        subn_relations
+            number of relations for subsampling
 
         Returns
         -------
         seq : (numpy.ndarray, numpy.ndarray)
             Returns a updated posteriors for E and R.
         """
-
-        self.sub_percent = sub_percent
+        # use certain number of subsampling, rather than percent
+        # self.sub_percent = sub_percent
+        # self.subn_entities = round(self.n_entities * self.sub_percent)
+        # self.subn_relations = round(self.n_relations * self.sub_percent)
 
         assert self.n_particles == self.E.shape[0] == self.R.shape[0]
         self.n_relations = self.X.shape[0]
@@ -560,8 +565,8 @@ class TensorPredictor(Predictor):
         self.n_dim = self.E.shape[2]
         assert self.E.shape[2] == self.R.shape[2]
 
-        self.subn_entities = round(self.n_entities * self.sub_percent)
-        self.subn_relations = round(self.n_relations * self.sub_percent)
+        self.subn_entities = int(subn_entities)
+        self.subn_relations = int(subn_relations)
 
         obs_mask = numpy.zeros_like(self.X)
 
@@ -594,16 +599,18 @@ class TensorPredictor(Predictor):
         if ESS < self.n_particles / 2.:
             self.resample()
 
-        if self.sub_percent == 1.0:
+        if self.subn_entities == self.n_entities \
+                and self.subn_relations == self.n_relations:
+            logging.debug("Sampling all.")
             sub_relids = None
             sub_entids = None
         else:
             logging.debug("Subsampling {} entities and {} relations".format(
                 self.subn_entities, self.subn_relations))
-            sub_relids = numpy.random.randint(
-                self.n_relations, size=self.subn_relations)
-            sub_entids = numpy.random.randint(
-                self.n_entities, size=self.subn_entities)
+            sub_relids = numpy.random.choice(
+                self.n_relations, self.subn_relations, replace=False)
+            sub_entids = numpy.random.choice(
+                self.n_entities, self.subn_entities, replace=False)
 
         for p in range(self.n_particles):
             self._sample_relations(
@@ -628,7 +635,7 @@ class TensorPredictor(Predictor):
     def predict(self, ids: Sequence[int] = None) -> (numpy.ndarray, None):
         """Predicts labels of instances.
 
-        Notess
+        Notes
         -----
             Unlike in scikit-learn, predictions are always real-valued.
             Predicted labels for a classification problem are represented by
@@ -674,8 +681,8 @@ class TensorPredictor(Predictor):
         return self.predict(ids)
 
     def _sample_prior(self):
-        self._sample_var_r()
-        self._sample_var_e()
+        self._samplevar_r()
+        self._samplevar_e()
 
     def resample(self):
         count = multinomial(self.n_particles, self.p_weights)
@@ -712,14 +719,14 @@ class TensorPredictor(Predictor):
         weight += 1e-10
         return weight / numpy.sum(weight)
 
-    def _sample_var_r(self):
+    def _samplevar_r(self):
         for p in range(self.n_particles):
             self.var_r[p] = 1. / gamma(
                 0.5 * self.n_relations * self.n_dim * self.n_dim + self.r_alpha,
                 1. / (0.5 * numpy.sum(self.R[p] ** 2) + self.r_beta))
         logging.debug("Sampled var_r %.3f", numpy.mean(self.var_r))
 
-    def _sample_var_e(self):
+    def _samplevar_e(self):
         for p in range(self.n_particles):
             self.var_e[p] = 1. / gamma(
                 0.5 * self.n_entities * self.n_dim + self.e_alpha,

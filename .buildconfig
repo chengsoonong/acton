@@ -1,0 +1,10 @@
+[default]
+name=Default
+runtime=host
+config-opts=
+run-opts=
+prefix=/home/admin-u6015325/.cache/gnome-builder/install/acton/host
+app-id=
+postbuild=
+prebuild=
+default=true

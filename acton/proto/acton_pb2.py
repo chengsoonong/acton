@@ -2,377 +2,373 @@
 # source: acton.proto
 
 import sys
-_b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+_b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode('latin1'))
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-
-
 DESCRIPTOR = _descriptor.FileDescriptor(
-  name='acton.proto',
-  package='acton',
-  syntax='proto3',
-  serialized_pb=_b('\n\x0b\x61\x63ton.proto\x12\x05\x61\x63ton\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xfc\x01\n\x08\x44\x61tabase\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x1c\n\x05kwarg\x18\x03 \x03(\x0b\x32\r.acton.KeyVal\x12\x33\n\rlabel_encoder\x18\x04 \x01(\x0b\x32\x1c.acton.Database.LabelEncoder\x1a{\n\x0cLabelEncoder\x12\x37\n\x08\x65ncoding\x18\x01 \x03(\x0b\x32%.acton.Database.LabelEncoder.Encoding\x1a\x32\n\x08\x45ncoding\x12\x13\n\x0b\x63lass_label\x18\x01 \x01(\t\x12\x11\n\tclass_int\x18\x02 \x01(\x05\"4\n\tLabelPool\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x1b\n\x02\x64\x62\x18\x02 \x01(\x0b\x32\x0f.acton.Database\"\xea\x01\n\x0bPredictions\x12\x31\n\nprediction\x18\x01 \x03(\x0b\x32\x1d.acton.Predictions.Prediction\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x14\n\x0cn_predictors\x18\x03 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x04 \x01(\x05\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x06 \x01(\x0b\x32\x0f.acton.Database\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\"p\n\x0fRecommendations\x12\x16\n\x0erecommended_id\x18\x01 \x03(\x03\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x13\n\x0brecommender\x18\x03 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x04 \x01(\x0b\x32\x0f.acton.Databaseb\x06proto3')
+    name='acton.proto',
+    package='acton',
+    syntax='proto3',
+    serialized_pb=_b(
+        '\n\x0b\x61\x63ton.proto\x12\x05\x61\x63ton\"$\n\x06KeyVal\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xfc\x01\n\x08\x44\x61tabase\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x1c\n\x05kwarg\x18\x03 \x03(\x0b\x32\r.acton.KeyVal\x12\x33\n\rlabel_encoder\x18\x04 \x01(\x0b\x32\x1c.acton.Database.LabelEncoder\x1a{\n\x0cLabelEncoder\x12\x37\n\x08\x65ncoding\x18\x01 \x03(\x0b\x32%.acton.Database.LabelEncoder.Encoding\x1a\x32\n\x08\x45ncoding\x12\x13\n\x0b\x63lass_label\x18\x01 \x01(\t\x12\x11\n\tclass_int\x18\x02 \x01(\x05\"4\n\tLabelPool\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x1b\n\x02\x64\x62\x18\x02 \x01(\x0b\x32\x0f.acton.Database\"\xea\x01\n\x0bPredictions\x12\x31\n\nprediction\x18\x01 \x03(\x0b\x32\x1d.acton.Predictions.Prediction\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x14\n\x0cn_predictors\x18\x03 \x01(\x05\x12\x1f\n\x17n_prediction_dimensions\x18\x04 \x01(\x05\x12\x11\n\tpredictor\x18\x05 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x06 \x01(\x0b\x32\x0f.acton.Database\x1a,\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x12\n\nprediction\x18\x02 \x03(\x01\"p\n\x0fRecommendations\x12\x16\n\x0erecommended_id\x18\x01 \x03(\x03\x12\x13\n\x0blabelled_id\x18\x02 \x03(\x03\x12\x13\n\x0brecommender\x18\x03 \x01(\t\x12\x1b\n\x02\x64\x62\x18\x04 \x01(\x0b\x32\x0f.acton.Databaseb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-
-
 _KEYVAL = _descriptor.Descriptor(
-  name='KeyVal',
-  full_name='acton.KeyVal',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='acton.KeyVal.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='acton.KeyVal.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=22,
-  serialized_end=58,
+    name='KeyVal',
+    full_name='acton.KeyVal',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='key', full_name='acton.KeyVal.key', index=0,
+            number=1, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='value', full_name='acton.KeyVal.value', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=22,
+    serialized_end=58,
 )
 
 
 _DATABASE_LABELENCODER_ENCODING = _descriptor.Descriptor(
-  name='Encoding',
-  full_name='acton.Database.LabelEncoder.Encoding',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='class_label', full_name='acton.Database.LabelEncoder.Encoding.class_label', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='class_int', full_name='acton.Database.LabelEncoder.Encoding.class_int', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=263,
-  serialized_end=313,
+    name='Encoding',
+    full_name='acton.Database.LabelEncoder.Encoding',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='class_label', full_name='acton.Database.LabelEncoder.Encoding.class_label', index=0,
+            number=1, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='class_int', full_name='acton.Database.LabelEncoder.Encoding.class_int', index=1,
+            number=2, type=5, cpp_type=1, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=263,
+    serialized_end=313,
 )
 
 _DATABASE_LABELENCODER = _descriptor.Descriptor(
-  name='LabelEncoder',
-  full_name='acton.Database.LabelEncoder',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='encoding', full_name='acton.Database.LabelEncoder.encoding', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_DATABASE_LABELENCODER_ENCODING, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=190,
-  serialized_end=313,
+    name='LabelEncoder',
+    full_name='acton.Database.LabelEncoder',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='encoding', full_name='acton.Database.LabelEncoder.encoding', index=0,
+            number=1, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[_DATABASE_LABELENCODER_ENCODING, ],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=190,
+    serialized_end=313,
 )
 
 _DATABASE = _descriptor.Descriptor(
-  name='Database',
-  full_name='acton.Database',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='path', full_name='acton.Database.path', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='class_name', full_name='acton.Database.class_name', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='kwarg', full_name='acton.Database.kwarg', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='label_encoder', full_name='acton.Database.label_encoder', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_DATABASE_LABELENCODER, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=61,
-  serialized_end=313,
+    name='Database',
+    full_name='acton.Database',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='path', full_name='acton.Database.path', index=0,
+            number=1, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='class_name', full_name='acton.Database.class_name', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='kwarg', full_name='acton.Database.kwarg', index=2,
+            number=3, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='label_encoder', full_name='acton.Database.label_encoder', index=3,
+            number=4, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[_DATABASE_LABELENCODER, ],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=61,
+    serialized_end=313,
 )
 
 
 _LABELPOOL = _descriptor.Descriptor(
-  name='LabelPool',
-  full_name='acton.LabelPool',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='id', full_name='acton.LabelPool.id', index=0,
-      number=1, type=3, cpp_type=2, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db', full_name='acton.LabelPool.db', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=315,
-  serialized_end=367,
+    name='LabelPool',
+    full_name='acton.LabelPool',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='id', full_name='acton.LabelPool.id', index=0,
+            number=1, type=3, cpp_type=2, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='db', full_name='acton.LabelPool.db', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=315,
+    serialized_end=367,
 )
 
 
 _PREDICTIONS_PREDICTION = _descriptor.Descriptor(
-  name='Prediction',
-  full_name='acton.Predictions.Prediction',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='id', full_name='acton.Predictions.Prediction.id', index=0,
-      number=1, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='prediction', full_name='acton.Predictions.Prediction.prediction', index=1,
-      number=2, type=1, cpp_type=5, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=560,
-  serialized_end=604,
+    name='Prediction',
+    full_name='acton.Predictions.Prediction',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='id', full_name='acton.Predictions.Prediction.id', index=0,
+            number=1, type=3, cpp_type=2, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='prediction', full_name='acton.Predictions.Prediction.prediction', index=1,
+            number=2, type=1, cpp_type=5, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=560,
+    serialized_end=604,
 )
 
 _PREDICTIONS = _descriptor.Descriptor(
-  name='Predictions',
-  full_name='acton.Predictions',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='prediction', full_name='acton.Predictions.prediction', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='labelled_id', full_name='acton.Predictions.labelled_id', index=1,
-      number=2, type=3, cpp_type=2, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_predictors', full_name='acton.Predictions.n_predictors', index=2,
-      number=3, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_prediction_dimensions', full_name='acton.Predictions.n_prediction_dimensions', index=3,
-      number=4, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='predictor', full_name='acton.Predictions.predictor', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db', full_name='acton.Predictions.db', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_PREDICTIONS_PREDICTION, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=370,
-  serialized_end=604,
+    name='Predictions',
+    full_name='acton.Predictions',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='prediction', full_name='acton.Predictions.prediction', index=0,
+            number=1, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='labelled_id', full_name='acton.Predictions.labelled_id', index=1,
+            number=2, type=3, cpp_type=2, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='n_predictors', full_name='acton.Predictions.n_predictors', index=2,
+            number=3, type=5, cpp_type=1, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='n_prediction_dimensions', full_name='acton.Predictions.n_prediction_dimensions', index=3,
+            number=4, type=5, cpp_type=1, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='predictor', full_name='acton.Predictions.predictor', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='db', full_name='acton.Predictions.db', index=5,
+            number=6, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[_PREDICTIONS_PREDICTION, ],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=370,
+    serialized_end=604,
 )
 
 
 _RECOMMENDATIONS = _descriptor.Descriptor(
-  name='Recommendations',
-  full_name='acton.Recommendations',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='recommended_id', full_name='acton.Recommendations.recommended_id', index=0,
-      number=1, type=3, cpp_type=2, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='labelled_id', full_name='acton.Recommendations.labelled_id', index=1,
-      number=2, type=3, cpp_type=2, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='recommender', full_name='acton.Recommendations.recommender', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='db', full_name='acton.Recommendations.db', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=606,
-  serialized_end=718,
+    name='Recommendations',
+    full_name='acton.Recommendations',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='recommended_id', full_name='acton.Recommendations.recommended_id', index=0,
+            number=1, type=3, cpp_type=2, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='labelled_id', full_name='acton.Recommendations.labelled_id', index=1,
+            number=2, type=3, cpp_type=2, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='recommender', full_name='acton.Recommendations.recommender', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=_b("").decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+        _descriptor.FieldDescriptor(
+            name='db', full_name='acton.Recommendations.db', index=3,
+            number=4, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            options=None),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=606,
+    serialized_end=718,
 )
 
 _DATABASE_LABELENCODER_ENCODING.containing_type = _DATABASE_LABELENCODER
@@ -392,62 +388,59 @@ DESCRIPTOR.message_types_by_name['Predictions'] = _PREDICTIONS
 DESCRIPTOR.message_types_by_name['Recommendations'] = _RECOMMENDATIONS
 
 KeyVal = _reflection.GeneratedProtocolMessageType('KeyVal', (_message.Message,), dict(
-  DESCRIPTOR = _KEYVAL,
-  __module__ = 'acton_pb2'
-  # @@protoc_insertion_point(class_scope:acton.KeyVal)
-  ))
+    DESCRIPTOR=_KEYVAL,
+    __module__='acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.KeyVal)
+))
 _sym_db.RegisterMessage(KeyVal)
 
 Database = _reflection.GeneratedProtocolMessageType('Database', (_message.Message,), dict(
 
-  LabelEncoder = _reflection.GeneratedProtocolMessageType('LabelEncoder', (_message.Message,), dict(
+    LabelEncoder=_reflection.GeneratedProtocolMessageType('LabelEncoder', (_message.Message,), dict(
 
-    Encoding = _reflection.GeneratedProtocolMessageType('Encoding', (_message.Message,), dict(
-      DESCRIPTOR = _DATABASE_LABELENCODER_ENCODING,
-      __module__ = 'acton_pb2'
-      # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder.Encoding)
-      ))
-    ,
-    DESCRIPTOR = _DATABASE_LABELENCODER,
-    __module__ = 'acton_pb2'
-    # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder)
-    ))
-  ,
-  DESCRIPTOR = _DATABASE,
-  __module__ = 'acton_pb2'
-  # @@protoc_insertion_point(class_scope:acton.Database)
-  ))
+        Encoding=_reflection.GeneratedProtocolMessageType('Encoding', (_message.Message,), dict(
+            DESCRIPTOR=_DATABASE_LABELENCODER_ENCODING,
+            __module__='acton_pb2'
+            # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder.Encoding)
+        )),
+        DESCRIPTOR=_DATABASE_LABELENCODER,
+        __module__='acton_pb2'
+        # @@protoc_insertion_point(class_scope:acton.Database.LabelEncoder)
+    )),
+    DESCRIPTOR=_DATABASE,
+    __module__='acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.Database)
+))
 _sym_db.RegisterMessage(Database)
 _sym_db.RegisterMessage(Database.LabelEncoder)
 _sym_db.RegisterMessage(Database.LabelEncoder.Encoding)
 
 LabelPool = _reflection.GeneratedProtocolMessageType('LabelPool', (_message.Message,), dict(
-  DESCRIPTOR = _LABELPOOL,
-  __module__ = 'acton_pb2'
-  # @@protoc_insertion_point(class_scope:acton.LabelPool)
-  ))
+    DESCRIPTOR=_LABELPOOL,
+    __module__='acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.LabelPool)
+))
 _sym_db.RegisterMessage(LabelPool)
 
 Predictions = _reflection.GeneratedProtocolMessageType('Predictions', (_message.Message,), dict(
 
-  Prediction = _reflection.GeneratedProtocolMessageType('Prediction', (_message.Message,), dict(
-    DESCRIPTOR = _PREDICTIONS_PREDICTION,
-    __module__ = 'acton_pb2'
-    # @@protoc_insertion_point(class_scope:acton.Predictions.Prediction)
-    ))
-  ,
-  DESCRIPTOR = _PREDICTIONS,
-  __module__ = 'acton_pb2'
-  # @@protoc_insertion_point(class_scope:acton.Predictions)
-  ))
+    Prediction=_reflection.GeneratedProtocolMessageType('Prediction', (_message.Message,), dict(
+        DESCRIPTOR=_PREDICTIONS_PREDICTION,
+        __module__='acton_pb2'
+        # @@protoc_insertion_point(class_scope:acton.Predictions.Prediction)
+    )),
+    DESCRIPTOR=_PREDICTIONS,
+    __module__='acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.Predictions)
+))
 _sym_db.RegisterMessage(Predictions)
 _sym_db.RegisterMessage(Predictions.Prediction)
 
 Recommendations = _reflection.GeneratedProtocolMessageType('Recommendations', (_message.Message,), dict(
-  DESCRIPTOR = _RECOMMENDATIONS,
-  __module__ = 'acton_pb2'
-  # @@protoc_insertion_point(class_scope:acton.Recommendations)
-  ))
+    DESCRIPTOR=_RECOMMENDATIONS,
+    __module__='acton_pb2'
+    # @@protoc_insertion_point(class_scope:acton.Recommendations)
+))
 _sym_db.RegisterMessage(Recommendations)
 
 

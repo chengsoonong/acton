@@ -1,0 +1,777 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ASCIIReader	../acton/database.py	/^class ASCIIReader(Database):$/;"	kind:class	line:1132
+ASCIITableLabeller	../acton/labellers.py	/^class ASCIITableLabeller(Labeller):$/;"	kind:class	line:33
+AveragePredictions	../acton/predictors.py	/^def AveragePredictions(predictor: Predictor) -> Predictor:$/;"	kind:function	line:331
+BaseEstimator	../docs/conf.py	/^class BaseEstimator:$/;"	kind:class	line:305
+ClassifierMixin	../docs/conf.py	/^class ClassifierMixin:$/;"	kind:class	line:313
+Committee	../acton/predictors.py	/^class Committee(Predictor):$/;"	kind:class	line:218
+DATABASES	../acton/database.py	/^DATABASES = {$/;"	kind:variable	line:2088
+DB	../acton/proto/wrappers.py	/^    def DB(self) -> acton.database.Database:$/;"	kind:member	line:122
+DB	../acton/proto/wrappers.py	/^    def DB(self) -> acton.database.Database:$/;"	kind:member	line:256
+DB	../acton/proto/wrappers.py	/^    def DB(self) -> acton.database.Database:$/;"	kind:member	line:487
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^            DESCRIPTOR=_DATABASE_LABELENCODER_ENCODING,$/;"	kind:variable	line:402
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^        DESCRIPTOR=_DATABASE_LABELENCODER,$/;"	kind:variable	line:406
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^        DESCRIPTOR=_PREDICTIONS_PREDICTION,$/;"	kind:variable	line:428
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^    DESCRIPTOR=_DATABASE,$/;"	kind:variable	line:410
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^    DESCRIPTOR=_KEYVAL,$/;"	kind:variable	line:391
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^    DESCRIPTOR=_LABELPOOL,$/;"	kind:variable	line:419
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^    DESCRIPTOR=_PREDICTIONS,$/;"	kind:variable	line:432
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^    DESCRIPTOR=_RECOMMENDATIONS,$/;"	kind:variable	line:440
+DESCRIPTOR	../acton/proto/acton_pb2.py	/^DESCRIPTOR = _descriptor.FileDescriptor($/;"	kind:variable	line:15
+Database	../acton/database.py	/^class Database(ABC):$/;"	kind:class	line:71
+Database	../acton/proto/acton_pb2.py	/^Database = _reflection.GeneratedProtocolMessageType('Database', (_message.Message,), dict($/;"	kind:variable	line:397
+DatabaseLabeller	../acton/labellers.py	/^class DatabaseLabeller(Labeller):$/;"	kind:class	line:85
+Encoding	../acton/proto/acton_pb2.py	/^        Encoding=_reflection.GeneratedProtocolMessageType('Encoding', (_message.Message,), dict($/;"	kind:variable	line:401
+EntropyRecommender	../acton/recommenders.py	/^class EntropyRecommender(Recommender):$/;"	kind:class	line:334
+FITSReader	../acton/database.py	/^class FITSReader(Database):$/;"	kind:class	line:1897
+GPClassifier	../acton/predictors.py	/^class GPClassifier(Predictor):$/;"	kind:class	line:361
+GeneratedProtocolMessageType	../docs/conf.py	/^def GeneratedProtocolMessageType(name, *args, **kwargs):$/;"	kind:function	line:346
+HDF5Database	../acton/database.py	/^class HDF5Database(Database):$/;"	kind:class	line:179
+HDF5Reader	../acton/database.py	/^class HDF5Reader(HDF5Database):$/;"	kind:class	line:886
+KDEClassifier	../acton/kde_predictor.py	/^class KDEClassifier(sklearn.base.BaseEstimator, sklearn.base.ClassifierMixin):$/;"	kind:class	line:10
+KeyVal	../acton/proto/acton_pb2.py	/^KeyVal = _reflection.GeneratedProtocolMessageType('KeyVal', (_message.Message,), dict($/;"	kind:variable	line:390
+LABELLERS	../acton/labellers.py	/^LABELLERS = {$/;"	kind:variable	line:150
+LabelEncoder	../acton/proto/acton_pb2.py	/^    LabelEncoder=_reflection.GeneratedProtocolMessageType('LabelEncoder', (_message.Message,), dict($/;"	kind:variable	line:399
+LabelEncoderPB	../acton/database.py	/^LabelEncoderPB = DatabasePB.LabelEncoder$/;"	kind:variable	line:24
+LabelOnlyASCIIReader	../acton/database.py	/^class LabelOnlyASCIIReader(ASCIIReader):$/;"	kind:class	line:1368
+LabelOnlyDatabaseLabeller	../acton/labellers.py	/^class LabelOnlyDatabaseLabeller(Labeller):$/;"	kind:class	line:117
+LabelOnlyManagedHDF5Database	../acton/database.py	/^class LabelOnlyManagedHDF5Database(ManagedHDF5Database):$/;"	kind:class	line:598
+LabelPool	../acton/proto/acton_pb2.py	/^LabelPool = _reflection.GeneratedProtocolMessageType('LabelPool', (_message.Message,), dict($/;"	kind:variable	line:418
+LabelPool	../acton/proto/wrappers.py	/^class LabelPool(object):$/;"	kind:class	line:61
+Labeller	../acton/labellers.py	/^class Labeller(ABC):$/;"	kind:class	line:10
+MIN_VAL	../acton/recommenders.py	/^MIN_VAL = numpy.iinfo(numpy.int32).min$/;"	kind:variable	line:38
+MOCK_MODULES	../docs/conf.py	/^MOCK_MODULES = [$/;"	kind:variable	line:364
+ManagedHDF5Database	../acton/database.py	/^class ManagedHDF5Database(HDF5Database):$/;"	kind:class	line:226
+MarginRecommender	../acton/recommenders.py	/^class MarginRecommender(Recommender):$/;"	kind:class	line:387
+Mock	../docs/conf.py	/^class Mock(MagicMock):$/;"	kind:class	line:355
+MockedClassAttributes	../docs/conf.py	/^class MockedClassAttributes(type):$/;"	kind:class	line:334
+N_EPOCHS	../examples/simulate_thompson_sampling.py	/^N_EPOCHS = 100$/;"	kind:variable	line:23
+PREDICTORS	../acton/predictors.py	/^PREDICTORS = {$/;"	kind:variable	line:806
+PandasReader	../acton/database.py	/^class PandasReader(Database):$/;"	kind:class	line:1698
+ParseFromString	../tests/test_proto_io.py	/^            def ParseFromString(self, string):$/;"	kind:member	line:31
+Prediction	../acton/proto/acton_pb2.py	/^    Prediction=_reflection.GeneratedProtocolMessageType('Prediction', (_message.Message,), dict($/;"	kind:variable	line:427
+Predictions	../acton/proto/acton_pb2.py	/^Predictions = _reflection.GeneratedProtocolMessageType('Predictions', (_message.Message,), dict($/;"	kind:variable	line:425
+Predictions	../acton/proto/wrappers.py	/^class Predictions(object):$/;"	kind:class	line:216
+Predictor	../acton/predictors.py	/^class Predictor(ABC):$/;"	kind:class	line:18
+Predictor_	../acton/predictors.py	/^    class Predictor_(_InstancePredictor):$/;"	kind:class	line:206
+Proto	../tests/test_proto_io.py	/^        class Proto:$/;"	kind:class	line:30
+QBCRecommender	../acton/recommenders.py	/^class QBCRecommender(Recommender):$/;"	kind:class	line:226
+RANDOM	../examples/simulate_thompson_sampling.py	/^RANDOM = 1.0$/;"	kind:variable	line:22
+RECOMMENDERS	../acton/recommenders.py	/^RECOMMENDERS = {$/;"	kind:variable	line:530
+RandomRecommender	../acton/recommenders.py	/^class RandomRecommender(Recommender):$/;"	kind:class	line:190
+Recommendations	../acton/proto/acton_pb2.py	/^Recommendations = _reflection.GeneratedProtocolMessageType('Recommendations', (_message.Message,), dict($/;"	kind:variable	line:439
+Recommendations	../acton/proto/wrappers.py	/^class Recommendations(object):$/;"	kind:class	line:424
+Recommender	../acton/recommenders.py	/^class Recommender(ABC):$/;"	kind:class	line:159
+T	../acton/acton.py	/^T = TypeVar('T')$/;"	kind:variable	line:21
+TS	../examples/simulate_thompson_sampling.py	/^TS = 0.0$/;"	kind:variable	line:21
+TensorPredictor	../acton/predictors.py	/^class TensorPredictor(Predictor):$/;"	kind:class	line:463
+TestASCIITableLabeller	../tests/test_labellers.py	/^class TestASCIITableLabeller(unittest.TestCase):$/;"	kind:class	line:18
+TestComponentCLI	../tests/test_integration.py	/^class TestComponentCLI(unittest.TestCase):$/;"	kind:class	line:346
+TestGPClassifier	../tests/test_predictors.py	/^class TestGPClassifier(unittest.TestCase):$/;"	kind:class	line:127
+TestIOMany	../tests/test_proto_io.py	/^class TestIOMany(unittest.TestCase):$/;"	kind:class	line:20
+TestIntegration	../tests/test_integration.py	/^class TestIntegration(unittest.TestCase):$/;"	kind:class	line:24
+TestIntegrationCommittee	../tests/test_predictors.py	/^class TestIntegrationCommittee(unittest.TestCase):$/;"	kind:class	line:23
+TestKDEClassifier	../tests/test_kde_predictor.py	/^class TestKDEClassifier(unittest.TestCase):$/;"	kind:class	line:10
+TestLabelPool	../tests/test_proto_wrappers.py	/^class TestLabelPool(unittest.TestCase):$/;"	kind:class	line:20
+TestManagedHDF5Database	../tests/test_database.py	/^class TestManagedHDF5Database(unittest.TestCase):$/;"	kind:class	line:18
+TestMarginRecommender	../tests/test_recommenders.py	/^class TestMarginRecommender(unittest.TestCase):$/;"	kind:class	line:33
+TestPredictions	../tests/test_proto_wrappers.py	/^class TestPredictions(unittest.TestCase):$/;"	kind:class	line:52
+TestRandomRecommender	../tests/test_recommenders.py	/^class TestRandomRecommender(unittest.TestCase):$/;"	kind:class	line:17
+TestRecommendations	../tests/test_proto_wrappers.py	/^class TestRecommendations(unittest.TestCase):$/;"	kind:class	line:88
+TestRegression	../tests/test_regression.py	/^class TestRegression(unittest.TestCase):$/;"	kind:class	line:13
+TestSklearnWrapper	../tests/test_predictors.py	/^class TestSklearnWrapper(unittest.TestCase):$/;"	kind:class	line:68
+ThompsonSamplingRecommender	../acton/recommenders.py	/^class ThompsonSamplingRecommender(Recommender):$/;"	kind:class	line:443
+UncertaintyRecommender	../acton/recommenders.py	/^class UncertaintyRecommender(Recommender):$/;"	kind:class	line:282
+_DATABASE	../acton/proto/acton_pb2.py	/^_DATABASE = _descriptor.Descriptor($/;"	kind:variable	line:130
+_DATABASE_LABELENCODER	../acton/proto/acton_pb2.py	/^_DATABASE_LABELENCODER = _descriptor.Descriptor($/;"	kind:variable	line:100
+_DATABASE_LABELENCODER_ENCODING	../acton/proto/acton_pb2.py	/^_DATABASE_LABELENCODER_ENCODING = _descriptor.Descriptor($/;"	kind:variable	line:63
+_DEST	../acton/recommenders.py	/^_DEST = ''$/;"	kind:variable	line:31
+_E_ALPHA	../acton/recommenders.py	/^_E_ALPHA = 1.$/;"	kind:variable	line:12
+_E_BETA	../acton/recommenders.py	/^_E_BETA = 1.$/;"	kind:variable	line:13
+_GIBBS_INIT	../acton/recommenders.py	/^_GIBBS_INIT = True$/;"	kind:variable	line:24
+_InstancePredictor	../acton/predictors.py	/^class _InstancePredictor(Predictor):$/;"	kind:class	line:80
+_KEYVAL	../acton/proto/acton_pb2.py	/^_KEYVAL = _descriptor.Descriptor($/;"	kind:variable	line:25
+_LABELPOOL	../acton/proto/acton_pb2.py	/^_LABELPOOL = _descriptor.Descriptor($/;"	kind:variable	line:182
+_LOG	../acton/recommenders.py	/^_LOG = ''$/;"	kind:variable	line:32
+_MAX_THREAD	../acton/recommenders.py	/^_MAX_THREAD = 4$/;"	kind:variable	line:19
+_MC_MOVE	../acton/recommenders.py	/^_MC_MOVE = 1$/;"	kind:variable	line:21
+_NMINI	../acton/recommenders.py	/^_NMINI = 1$/;"	kind:variable	line:23
+_PARALLEL	../acton/recommenders.py	/^_PARALLEL = False$/;"	kind:variable	line:18
+_POS_VAL	../acton/recommenders.py	/^_POS_VAL = 1$/;"	kind:variable	line:20
+_PREDICTIONS	../acton/proto/acton_pb2.py	/^_PREDICTIONS = _descriptor.Descriptor($/;"	kind:variable	line:257
+_PREDICTIONS_PREDICTION	../acton/proto/acton_pb2.py	/^_PREDICTIONS_PREDICTION = _descriptor.Descriptor($/;"	kind:variable	line:220
+_P_SAMPLE	../acton/recommenders.py	/^_P_SAMPLE = False$/;"	kind:variable	line:17
+_P_SAMPLE_GAP	../acton/recommenders.py	/^_P_SAMPLE_GAP = 5$/;"	kind:variable	line:16
+_RECOMMENDATIONS	../acton/proto/acton_pb2.py	/^_RECOMMENDATIONS = _descriptor.Descriptor($/;"	kind:variable	line:323
+_R_ALPHA	../acton/recommenders.py	/^_R_ALPHA = 1.$/;"	kind:variable	line:14
+_R_BETA	../acton/recommenders.py	/^_R_BETA = 1.$/;"	kind:variable	line:15
+_SAMPLE_ALL	../acton/recommenders.py	/^_SAMPLE_ALL = True$/;"	kind:variable	line:25
+_SGLD	../acton/recommenders.py	/^_SGLD = False$/;"	kind:variable	line:22
+_VAR_E	../acton/recommenders.py	/^_VAR_E = 1.$/;"	kind:variable	line:27
+_VAR_R	../acton/recommenders.py	/^_VAR_R = 1.$/;"	kind:variable	line:28
+_VAR_X	../acton/recommenders.py	/^_VAR_X = 0.01$/;"	kind:variable	line:29
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:1272
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:1572
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:1789
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:193
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:1987
+__enter__	../acton/database.py	/^    def __enter__(self):$/;"	kind:member	line:75
+__exit__	../acton/database.py	/^    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):$/;"	kind:member	line:1298
+__exit__	../acton/database.py	/^    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):$/;"	kind:member	line:1792
+__exit__	../acton/database.py	/^    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):$/;"	kind:member	line:197
+__exit__	../acton/database.py	/^    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):$/;"	kind:member	line:2001
+__exit__	../acton/database.py	/^    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):$/;"	kind:member	line:79
+__getattr__	../docs/conf.py	/^    def __getattr__(cls, key):$/;"	kind:member	line:335
+__getattr__	../docs/conf.py	/^    def __getattr__(cls, name):$/;"	kind:member	line:357
+__getattr__	../docs/conf.py	/^    def __getattr__(self, name):$/;"	kind:member	line:309
+__getattr__	../docs/conf.py	/^    def __getattr__(self, name):$/;"	kind:member	line:317
+__init__	../acton/database.py	/^    def __init__(self, path: str):$/;"	kind:member	line:190
+__init__	../acton/database.py	/^    def __init__(self, path: str):$/;"	kind:member	line:608
+__init__	../acton/database.py	/^    def __init__(self, path: str, feature_cols: List[str], label_col: str,$/;"	kind:member	line:1163
+__init__	../acton/database.py	/^    def __init__(self, path: str, feature_cols: List[str], label_col: str,$/;"	kind:member	line:1723
+__init__	../acton/database.py	/^    def __init__(self, path: str, feature_cols: List[str], label_col: str,$/;"	kind:member	line:1924
+__init__	../acton/database.py	/^    def __init__(self, path: str, feature_cols: List[str], label_col: str,$/;"	kind:member	line:913
+__init__	../acton/database.py	/^    def __init__(self, path: str, label_dtype: str=None,$/;"	kind:member	line:248
+__init__	../acton/database.py	/^    def __init__(self, path: str, n_dim: int, n_particles: int = 5,$/;"	kind:member	line:1418
+__init__	../acton/kde_predictor.py	/^    def __init__(self, bandwidth=1.0):$/;"	kind:member	line:13
+__init__	../acton/labellers.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:126
+__init__	../acton/labellers.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:94
+__init__	../acton/labellers.py	/^    def __init__(self, path: str, id_col: str, label_col: str):$/;"	kind:member	line:48
+__init__	../acton/predictors.py	/^        def __init__(self, db, **kwargs):$/;"	kind:member	line:208
+__init__	../acton/predictors.py	/^    def __init__(self, Predictor: type, db: acton.database.Database,$/;"	kind:member	line:236
+__init__	../acton/predictors.py	/^    def __init__(self, db: acton.database.Database, max_iters: int=50000,$/;"	kind:member	line:376
+__init__	../acton/predictors.py	/^    def __init__(self, instance: sklearn.base.BaseEstimator,$/;"	kind:member	line:91
+__init__	../acton/predictors.py	/^    def __init__(self,$/;"	kind:member	line:494
+__init__	../acton/proto/wrappers.py	/^    def __init__(self, proto: Union[str, acton_pb.LabelPool]):$/;"	kind:member	line:74
+__init__	../acton/proto/wrappers.py	/^    def __init__(self, proto: Union[str, acton_pb.Predictions]):$/;"	kind:member	line:229
+__init__	../acton/proto/wrappers.py	/^    def __init__(self, proto: Union[str, acton_pb.Recommendations]):$/;"	kind:member	line:437
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:193
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:229
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:285
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:337
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:390
+__init__	../acton/recommenders.py	/^    def __init__(self, db: acton.database.Database):$/;"	kind:member	line:459
+__init__	../docs/conf.py	/^    def __init__(self, *args, **kwargs):$/;"	kind:member	line:306
+__init__	../docs/conf.py	/^    def __init__(self, *args, **kwargs):$/;"	kind:member	line:314
+__init__.py	../acton/__init__.py	1;"	kind:file	line:1
+__init__.py	../acton/proto/__init__.py	1;"	kind:file	line:1
+__init__.py	../tests/__init__.py	1;"	kind:file	line:1
+__module__	../acton/proto/acton_pb2.py	/^            __module__='acton_pb2'$/;"	kind:variable	line:403
+__module__	../acton/proto/acton_pb2.py	/^        __module__='acton_pb2'$/;"	kind:variable	line:407
+__module__	../acton/proto/acton_pb2.py	/^        __module__='acton_pb2'$/;"	kind:variable	line:429
+__module__	../acton/proto/acton_pb2.py	/^    __module__='acton_pb2'$/;"	kind:variable	line:392
+__module__	../acton/proto/acton_pb2.py	/^    __module__='acton_pb2'$/;"	kind:variable	line:411
+__module__	../acton/proto/acton_pb2.py	/^    __module__='acton_pb2'$/;"	kind:variable	line:420
+__module__	../acton/proto/acton_pb2.py	/^    __module__='acton_pb2'$/;"	kind:variable	line:433
+__module__	../acton/proto/acton_pb2.py	/^    __module__='acton_pb2'$/;"	kind:variable	line:441
+__version__	../acton/__init__.py	/^__version__ = '0.3.3'$/;"	kind:variable	line:1
+_assert_open	../acton/database.py	/^    def _assert_open(self):$/;"	kind:member	line:201
+_b	../acton/proto/acton_pb2.py	/^_b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode('latin1'))$/;"	kind:variable	line:5
+_db_from_ascii	../acton/database.py	/^    def _db_from_ascii(self,$/;"	kind:member	line:1216
+_db_from_ascii	../acton/database.py	/^    def _db_from_ascii(self,$/;"	kind:member	line:1475
+_kde	../acton/predictors.py	/^def _kde() -> type:$/;"	kind:function	line:802
+_linear_regression	../acton/predictors.py	/^def _linear_regression() -> type:$/;"	kind:function	line:791
+_logistic_regression	../acton/predictors.py	/^def _logistic_regression() -> type:$/;"	kind:function	line:787
+_logistic_regression_committee	../acton/predictors.py	/^def _logistic_regression_committee() -> type:$/;"	kind:function	line:795
+_open_hdf5	../acton/database.py	/^    def _open_hdf5(self):$/;"	kind:member	line:211
+_open_hdf5	../acton/database.py	/^    def _open_hdf5(self):$/;"	kind:member	line:295
+_open_hdf5	../acton/database.py	/^    def _open_hdf5(self):$/;"	kind:member	line:617
+_path	../examples/simulate_thompson_sampling.py	/^_path = 'acton\/tests\/kg-data\/nation\/triples.txt'$/;"	kind:variable	line:11
+_plot	../acton/plot.py	/^def _plot(predictions: Iterable[BinaryIO]):$/;"	kind:function	line:67
+_read_metadata	../acton/proto/io.py	/^def _read_metadata(proto_file: BinaryIO) -> bytes:$/;"	kind:function	line:87
+_read_protos	../acton/proto/io.py	/^def _read_protos($/;"	kind:function	line:130
+_sample_entities	../acton/database.py	/^    def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):$/;"	kind:member	line:1620
+_sample_entities	../acton/predictors.py	/^    def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):$/;"	kind:member	line:707
+_sample_entity	../acton/database.py	/^    def _sample_entity(self, X, mask, E, R, i, var_e, RE=None, RTE=None):$/;"	kind:member	line:1636
+_sample_entity	../acton/predictors.py	/^    def _sample_entity(self, X, mask, E, R, i, var_e, RE=None, RTE=None):$/;"	kind:member	line:724
+_sample_prior	../acton/predictors.py	/^    def _sample_prior(self):$/;"	kind:member	line:654
+_sample_relation	../acton/database.py	/^    def _sample_relation(self, X, mask, E, R, k, EXE, var_r):$/;"	kind:member	line:1675
+_sample_relation	../acton/predictors.py	/^    def _sample_relation(self, X, mask, E, R, k, EXE, var_r):$/;"	kind:member	line:763
+_sample_relations	../acton/database.py	/^    def _sample_relations(self, X, mask, E, R, var_r):$/;"	kind:member	line:1665
+_sample_relations	../acton/predictors.py	/^    def _sample_relations(self, X, mask, E, R, var_r):$/;"	kind:member	line:753
+_sample_var_e	../acton/predictors.py	/^    def _sample_var_e(self):$/;"	kind:member	line:700
+_sample_var_r	../acton/predictors.py	/^    def _sample_var_r(self):$/;"	kind:member	line:693
+_set_default	../acton/proto/wrappers.py	/^    def _set_default(self):$/;"	kind:member	line:183
+_set_default	../acton/proto/wrappers.py	/^    def _set_default(self):$/;"	kind:member	line:345
+_set_default	../acton/proto/wrappers.py	/^    def _set_default(self):$/;"	kind:member	line:542
+_setup_hdf5	../acton/database.py	/^    def _setup_hdf5(self, h5_file: h5py.File):$/;"	kind:member	line:544
+_setup_hdf5	../acton/database.py	/^    def _setup_hdf5(self, h5_file: h5py.File):$/;"	kind:member	line:631
+_softmax	../acton/kde_predictor.py	/^    def _softmax(data, axis=0):$/;"	kind:member	line:66
+_sym_db	../acton/proto/acton_pb2.py	/^_sym_db = _symbol_database.Default()$/;"	kind:variable	line:12
+_validate_hdf5	../acton/database.py	/^    def _validate_hdf5(self):$/;"	kind:member	line:571
+_validate_hdf5	../acton/database.py	/^    def _validate_hdf5(self):$/;"	kind:member	line:654
+_validate_proto	../acton/proto/wrappers.py	/^    def _validate_proto(self):$/;"	kind:member	line:174
+_validate_proto	../acton/proto/wrappers.py	/^    def _validate_proto(self):$/;"	kind:member	line:330
+_validate_proto	../acton/proto/wrappers.py	/^    def _validate_proto(self):$/;"	kind:member	line:533
+a	../acton/recommenders.py	/^a = 0.001$/;"	kind:variable	line:34
+acton.py	../acton/acton.py	1;"	kind:file	line:1
+acton_pb2.py	../acton/proto/acton_pb2.py	1;"	kind:file	line:1
+author	../docs/conf.py	/^author = 'Matthew Alger & Cheng Soon Ong'$/;"	kind:variable	line:56
+author	../setup.py	/^    author='Cheng Soon Ong',$/;"	kind:variable	line:55
+author_email	../setup.py	/^    author_email='chengsoon.ong@anu.edu.au',$/;"	kind:variable	line:56
+b	../acton/recommenders.py	/^b = 0.01$/;"	kind:variable	line:35
+choose_boltzmann	../acton/recommenders.py	/^def choose_boltzmann(features: numpy.ndarray, scores: numpy.ndarray, n: int,$/;"	kind:function	line:107
+choose_mmr	../acton/recommenders.py	/^def choose_mmr(features: numpy.ndarray, scores: numpy.ndarray, n: int,$/;"	kind:function	line:41
+classification.py	../examples/classification.py	1;"	kind:file	line:1
+classifiers	../setup.py	/^    classifiers=[$/;"	kind:variable	line:76
+cli.py	../acton/cli.py	1;"	kind:file	line:1
+compute_particle_weight	../acton/predictors.py	/^    def compute_particle_weight(self, next_idx, X, mask):$/;"	kind:member	line:675
+compute_regret	../acton/acton.py	/^def compute_regret(T, seq):$/;"	kind:function	line:291
+conf.py	../docs/conf.py	1;"	kind:file	line:1
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:105
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:135
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:187
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:225
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:262
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:30
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:328
+containing_type	../acton/proto/acton_pb2.py	/^    containing_type=None,$/;"	kind:variable	line:68
+copyright	../docs/conf.py	/^copyright = '2017, Matthew Alger & Cheng Soon Ong'$/;"	kind:variable	line:55
+data_path	../examples/classification.py	/^        data_path=input_filename,$/;"	kind:variable	line:41
+data_path	../examples/classification.py	/^        data_path=input_filename,$/;"	kind:variable	line:50
+data_path	../examples/multiclass_classification.py	/^        data_path=input_filename,$/;"	kind:variable	line:41
+data_path	../examples/multiclass_classification.py	/^        data_path=input_filename,$/;"	kind:variable	line:50
+database.py	../acton/database.py	1;"	kind:file	line:1
+dataset_response	../examples/classification.py	/^    dataset_response = requests.get($/;"	kind:variable	line:19
+dataset_response	../examples/multiclass_classification.py	/^    dataset_response = requests.get($/;"	kind:variable	line:19
+db	../examples/simulate_active_learning.py	/^        db=db)$/;"	kind:variable	line:19
+default	../acton/cli.py	/^              default='',$/;"	kind:variable	line:125
+default	../acton/cli.py	/^              default='',$/;"	kind:variable	line:266
+default	../acton/cli.py	/^              default='LogisticRegression',$/;"	kind:variable	line:117
+default	../acton/cli.py	/^              default='LogisticRegression',$/;"	kind:variable	line:169
+default	../acton/cli.py	/^              default='RandomRecommender',$/;"	kind:variable	line:121
+default	../acton/cli.py	/^              default='RandomRecommender',$/;"	kind:variable	line:206
+default	../acton/cli.py	/^              default=0.0)$/;"	kind:variable	line:102
+default	../acton/cli.py	/^              default=0.0)$/;"	kind:variable	line:199
+default	../acton/cli.py	/^              default=1)$/;"	kind:variable	line:106
+default	../acton/cli.py	/^              default=1)$/;"	kind:variable	line:203
+default	../acton/cli.py	/^              default=1.0)$/;"	kind:variable	line:110
+default	../acton/cli.py	/^              default=1.0)$/;"	kind:variable	line:263
+default	../acton/cli.py	/^              default=10)$/;"	kind:variable	line:114
+default	../acton/cli.py	/^              default=100)$/;"	kind:variable	line:95
+description	../setup.py	/^    description="A scientific research assistant",$/;"	kind:variable	line:50
+deserialise	../acton/proto/wrappers.py	/^    def deserialise(cls, proto: bytes, json: bool=False) -> 'LabelPool':$/;"	kind:member	line:100
+deserialise	../acton/proto/wrappers.py	/^    def deserialise(cls, proto: bytes, json: bool=False) -> 'Predictions':$/;"	kind:member	line:402
+deserialise	../acton/proto/wrappers.py	/^    def deserialise(cls, proto: bytes, json: bool=False) -> 'Recommendations':$/;"	kind:member	line:465
+deserialise_encoder	../acton/proto/wrappers.py	/^def deserialise_encoder($/;"	kind:function	line:35
+diversity	../examples/simulate_thompson_sampling.py	/^                                             diversity=RANDOM,$/;"	kind:variable	line:48
+diversity	../examples/simulate_thompson_sampling.py	/^                                             diversity=TS,$/;"	kind:variable	line:39
+draw	../acton/acton.py	/^def draw(n: int, lst: List[T], replace: bool = True) -> List[T]:$/;"	kind:function	line:24
+entry_points	../setup.py	/^    entry_points={$/;"	kind:variable	line:63
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:118
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:169
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:207
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:245
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:310
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:362
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:50
+enum_types	../acton/proto/acton_pb2.py	/^    enum_types=[$/;"	kind:variable	line:88
+exclude_patterns	../docs/conf.py	/^exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']$/;"	kind:variable	line:83
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:123
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:174
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:212
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:250
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:315
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:367
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:55
+extension_ranges	../acton/proto/acton_pb2.py	/^    extension_ranges=[],$/;"	kind:variable	line:93
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:115
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:166
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:204
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:242
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:307
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:359
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:47
+extensions	../acton/proto/acton_pb2.py	/^    extensions=[$/;"	kind:variable	line:85
+extensions	../docs/conf.py	/^extensions = [$/;"	kind:variable	line:33
+feature_cols	../examples/classification.py	/^        feature_cols=['features'],$/;"	kind:variable	line:42
+feature_cols	../examples/classification.py	/^        feature_cols=['features'],$/;"	kind:variable	line:51
+feature_cols	../examples/multiclass_classification.py	/^        feature_cols=['features'],$/;"	kind:variable	line:42
+feature_cols	../examples/multiclass_classification.py	/^        feature_cols=['features'],$/;"	kind:variable	line:51
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:106
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:136
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:188
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:226
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:263
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:31
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:329
+fields	../acton/proto/acton_pb2.py	/^    fields=[$/;"	kind:variable	line:69
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:104
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:134
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:186
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:224
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:261
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:29
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:327
+file	../acton/proto/acton_pb2.py	/^    file=DESCRIPTOR,$/;"	kind:variable	line:67
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:103
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:133
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:185
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:223
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:260
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:28
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:326
+filename	../acton/proto/acton_pb2.py	/^    filename=None,$/;"	kind:variable	line:66
+fit	../acton/kde_predictor.py	/^    def fit(self, X, y):$/;"	kind:member	line:25
+fit	../acton/predictors.py	/^    def fit(self, ids: Iterable[int]):$/;"	kind:member	line:104
+fit	../acton/predictors.py	/^    def fit(self, ids: Iterable[int]):$/;"	kind:member	line:261
+fit	../acton/predictors.py	/^    def fit(self, ids: Iterable[int]):$/;"	kind:member	line:29
+fit	../acton/predictors.py	/^    def fit(self, ids: Iterable[int]):$/;"	kind:member	line:391
+fit	../acton/predictors.py	/^    def fit(self, ids: Iterable[tuple]):$/;"	kind:member	line:537
+from_class	../acton/predictors.py	/^def from_class(Predictor: type, regression: bool=False) -> type:$/;"	kind:function	line:191
+from_instance	../acton/predictors.py	/^def from_instance(predictor: sklearn.base.BaseEstimator,$/;"	kind:function	line:166
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Database',$/;"	kind:variable	line:132
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Database.LabelEncoder',$/;"	kind:variable	line:102
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Database.LabelEncoder.Encoding',$/;"	kind:variable	line:65
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.KeyVal',$/;"	kind:variable	line:27
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.LabelPool',$/;"	kind:variable	line:184
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Predictions',$/;"	kind:variable	line:259
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Predictions.Prediction',$/;"	kind:variable	line:222
+full_name	../acton/proto/acton_pb2.py	/^    full_name='acton.Recommendations',$/;"	kind:variable	line:325
+get_DB	../acton/acton.py	/^def get_DB($/;"	kind:function	line:322
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:1110
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:1347
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:149
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:1876
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:2066
+get_known_instance_ids	../acton/database.py	/^    def get_known_instance_ids(self) -> List[int]:$/;"	kind:member	line:522
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:1121
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:1357
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:159
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:1886
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:2076
+get_known_labeller_ids	../acton/database.py	/^    def get_known_labeller_ids(self) -> List[int]:$/;"	kind:member	line:533
+get_mock_type	../docs/conf.py	/^def get_mock_type(name):$/;"	kind:function	line:339
+get_ndarray	../acton/proto/io.py	/^def get_ndarray(data: list, shape: tuple, dtype: str) -> numpy.ndarray:$/;"	kind:function	line:194
+gp	../docs/conf.py	/^gp = MagicMock()$/;"	kind:variable	line:350
+help	../acton/cli.py	/^              help='Accuracy of simulated labellers',$/;"	kind:variable	line:109
+help	../acton/cli.py	/^              help='Accuracy of simulated labellers',$/;"	kind:variable	line:262
+help	../acton/cli.py	/^              help='Column name of IDs')$/;"	kind:variable	line:98
+help	../acton/cli.py	/^              help='Column name of labels',$/;"	kind:variable	line:254
+help	../acton/cli.py	/^              help='Column name of labels',$/;"	kind:variable	line:82
+help	../acton/cli.py	/^              help='Column names of features')$/;"	kind:variable	line:259
+help	../acton/cli.py	/^              help='Column names of features')$/;"	kind:variable	line:91
+help	../acton/cli.py	/^              help='Diversity of recommendations',$/;"	kind:variable	line:101
+help	../acton/cli.py	/^              help='Diversity of recommendations',$/;"	kind:variable	line:198
+help	../acton/cli.py	/^              help='Key for pandas HDF5')$/;"	kind:variable	line:126
+help	../acton/cli.py	/^              help='Key for pandas HDF5')$/;"	kind:variable	line:267
+help	../acton/cli.py	/^              help='Number of epochs to run active learning for',$/;"	kind:variable	line:94
+help	../acton/cli.py	/^              help='Number of random instances to label initially',$/;"	kind:variable	line:113
+help	../acton/cli.py	/^              help='Number of recommendations to make',$/;"	kind:variable	line:105
+help	../acton/cli.py	/^              help='Number of recommendations to make',$/;"	kind:variable	line:202
+help	../acton/cli.py	/^              help='Path to features\/labels file',$/;"	kind:variable	line:78
+help	../acton/cli.py	/^              help='Path to labels file',$/;"	kind:variable	line:250
+help	../acton/cli.py	/^              help='Path to output file',$/;"	kind:variable	line:86
+help	../acton/cli.py	/^              help='Predictor to use')$/;"	kind:variable	line:118
+help	../acton/cli.py	/^              help='Predictor to use')$/;"	kind:variable	line:170
+help	../acton/cli.py	/^              help='Recommender to use')$/;"	kind:variable	line:122
+help	../acton/cli.py	/^              help='Recommender to use')$/;"	kind:variable	line:207
+help	../acton/cli.py	/^              help='Verbose output')$/;"	kind:variable	line:129
+help	../acton/cli.py	/^              help='Verbose output')$/;"	kind:variable	line:173
+help	../acton/cli.py	/^              help='Verbose output')$/;"	kind:variable	line:210
+help	../acton/cli.py	/^              help='Verbose output')$/;"	kind:variable	line:270
+html_static_path	../docs/conf.py	/^html_static_path = ['_static']$/;"	kind:variable	line:151
+html_theme	../docs/conf.py	/^    html_theme = 'sphinx_rtd_theme'$/;"	kind:variable	line:121
+html_theme_path	../docs/conf.py	/^    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]$/;"	kind:variable	line:122
+htmlhelp_basename	../docs/conf.py	/^htmlhelp_basename = 'Actondoc'$/;"	kind:variable	line:216
+ids	../acton/proto/wrappers.py	/^    def ids(self) -> List[int]:$/;"	kind:member	line:139
+ids	../examples/simulate_thompson_sampling.py	/^    ids = np.arange(totoal_size)$/;"	kind:variable	line:30
+include_package_data	../setup.py	/^    include_package_data=True,$/;"	kind:variable	line:71
+initial_count	../examples/classification.py	/^        initial_count=100,$/;"	kind:variable	line:46
+initial_count	../examples/classification.py	/^        initial_count=100,$/;"	kind:variable	line:55
+initial_count	../examples/multiclass_classification.py	/^        initial_count=10,$/;"	kind:variable	line:46
+initial_count	../examples/multiclass_classification.py	/^        initial_count=10,$/;"	kind:variable	line:55
+input_filename	../examples/classification.py	/^    input_filename = os.path.join(tempdir, 'australian.h5')$/;"	kind:variable	line:29
+input_filename	../examples/multiclass_classification.py	/^    input_filename = os.path.join(tempdir, 'iris.h5')$/;"	kind:variable	line:29
+install_requires	../setup.py	/^    install_requires=requirements,$/;"	kind:variable	line:72
+io.py	../acton/proto/io.py	1;"	kind:file	line:1
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:121
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:172
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:210
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:248
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:313
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:365
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:53
+is_extendable	../acton/proto/acton_pb2.py	/^    is_extendable=False,$/;"	kind:variable	line:91
+is_flag	../acton/cli.py	/^              is_flag=True,$/;"	kind:variable	line:128
+is_flag	../acton/cli.py	/^              is_flag=True,$/;"	kind:variable	line:172
+is_flag	../acton/cli.py	/^              is_flag=True,$/;"	kind:variable	line:209
+is_flag	../acton/cli.py	/^              is_flag=True,$/;"	kind:variable	line:269
+kde_predictor.py	../acton/kde_predictor.py	1;"	kind:file	line:1
+keywords	../setup.py	/^    keywords='machine-learning active-learning classification regression',$/;"	kind:variable	line:75
+label	../acton/acton.py	/^def label(recommendations: acton.proto.wrappers.Recommendations$/;"	kind:function	line:498
+label	../acton/cli.py	/^def label($/;"	kind:function	line:271
+label_col	../examples/classification.py	/^        label_col='labels',$/;"	kind:variable	line:43
+label_col	../examples/classification.py	/^        label_col='labels',$/;"	kind:variable	line:52
+label_col	../examples/multiclass_classification.py	/^        label_col='labels',$/;"	kind:variable	line:43
+label_col	../examples/multiclass_classification.py	/^        label_col='labels',$/;"	kind:variable	line:52
+labelled_ids	../acton/proto/wrappers.py	/^    def labelled_ids(self) -> List[int]:$/;"	kind:member	line:289
+labelled_ids	../acton/proto/wrappers.py	/^    def labelled_ids(self) -> List[int]:$/;"	kind:member	line:519
+labelled_ids	../examples/simulate_active_learning.py	/^        labelled_ids=[],$/;"	kind:variable	line:17
+labeller	../examples/simulate_thompson_sampling.py	/^                                             labeller='LabelOnlyDatabaseLabeller',$/;"	kind:variable	line:38
+labeller	../examples/simulate_thompson_sampling.py	/^                                             labeller='LabelOnlyDatabaseLabeller',$/;"	kind:variable	line:47
+labellers.py	../acton/labellers.py	1;"	kind:file	line:1
+labels	../acton/proto/wrappers.py	/^    def labels(self) -> numpy.ndarray:$/;"	kind:member	line:154
+labels	../examples/simulate_active_learning.py	/^    labels = label($/;"	kind:variable	line:25
+labels	../examples/simulate_active_learning.py	/^labels = label(recommendations)$/;"	kind:variable	line:20
+language	../docs/conf.py	/^language = None$/;"	kind:variable	line:72
+latex_documents	../docs/conf.py	/^latex_documents = [$/;"	kind:variable	line:237
+latex_elements	../docs/conf.py	/^latex_elements = {$/;"	kind:variable	line:220
+license	../setup.py	/^    license="BSD license",$/;"	kind:variable	line:73
+lines_from_stdin	../acton/cli.py	/^def lines_from_stdin() -> Iterable[str]:$/;"	kind:function	line:238
+long_description	../setup.py	/^    long_description=readme,  # + '\\n\\n' + history,$/;"	kind:variable	line:51
+main	../acton/acton.py	/^def main(data_path: str, feature_cols: List[str], label_col: str,$/;"	kind:function	line:365
+main	../acton/cli.py	/^def main($/;"	kind:function	line:130
+make	../acton/proto/wrappers.py	/^    def make($/;"	kind:member	line:187
+make	../acton/proto/wrappers.py	/^    def make($/;"	kind:member	line:349
+make	../acton/proto/wrappers.py	/^    def make($/;"	kind:member	line:546
+make_committee	../acton/predictors.py	/^    def make_committee(db, *args, **kwargs):$/;"	kind:function	line:796
+make_protobufs	../tests/test_proto_io.py	/^    def make_protobufs(n: int=10) -> List[bytes]:$/;"	kind:member	line:41
+man_pages	../docs/conf.py	/^man_pages = [$/;"	kind:variable	line:267
+master_doc	../docs/conf.py	/^master_doc = 'index'$/;"	kind:variable	line:51
+multiclass_classification.py	../examples/multiclass_classification.py	1;"	kind:file	line:1
+multiple	../acton/cli.py	/^              multiple=True,$/;"	kind:variable	line:258
+multiple	../acton/cli.py	/^              multiple=True,$/;"	kind:variable	line:90
+n_dim	../examples/simulate_thompson_sampling.py	/^n_dim = 10$/;"	kind:variable	line:13
+n_entities	../examples/simulate_thompson_sampling.py	/^    n_entities = reader.n_entities$/;"	kind:variable	line:28
+n_epochs	../examples/classification.py	/^        n_epochs=500,$/;"	kind:variable	line:45
+n_epochs	../examples/classification.py	/^        n_epochs=500,$/;"	kind:variable	line:54
+n_epochs	../examples/multiclass_classification.py	/^        n_epochs=200,$/;"	kind:variable	line:45
+n_epochs	../examples/multiclass_classification.py	/^        n_epochs=200,$/;"	kind:variable	line:54
+n_epochs	../examples/simulate_thompson_sampling.py	/^                                             n_epochs=N_EPOCHS,$/;"	kind:variable	line:35
+n_epochs	../examples/simulate_thompson_sampling.py	/^                                             n_epochs=N_EPOCHS,$/;"	kind:variable	line:44
+n_relations	../examples/simulate_thompson_sampling.py	/^    n_relations = reader.n_relations$/;"	kind:variable	line:27
+name	../acton/proto/acton_pb2.py	/^    name='Database',$/;"	kind:variable	line:131
+name	../acton/proto/acton_pb2.py	/^    name='Encoding',$/;"	kind:variable	line:64
+name	../acton/proto/acton_pb2.py	/^    name='KeyVal',$/;"	kind:variable	line:26
+name	../acton/proto/acton_pb2.py	/^    name='LabelEncoder',$/;"	kind:variable	line:101
+name	../acton/proto/acton_pb2.py	/^    name='LabelPool',$/;"	kind:variable	line:183
+name	../acton/proto/acton_pb2.py	/^    name='Prediction',$/;"	kind:variable	line:221
+name	../acton/proto/acton_pb2.py	/^    name='Predictions',$/;"	kind:variable	line:258
+name	../acton/proto/acton_pb2.py	/^    name='Recommendations',$/;"	kind:variable	line:324
+name	../acton/proto/acton_pb2.py	/^    name='acton.proto',$/;"	kind:variable	line:16
+name	../setup.py	/^    name='acton',$/;"	kind:variable	line:48
+nargs	../acton/plot.py	/^                nargs=-1,$/;"	kind:variable	line:65
+needs_sphinx	../docs/conf.py	/^needs_sphinx = '1.3'$/;"	kind:variable	line:28
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[],$/;"	kind:variable	line:206
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[],$/;"	kind:variable	line:244
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[],$/;"	kind:variable	line:361
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[],$/;"	kind:variable	line:49
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[],$/;"	kind:variable	line:87
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[_DATABASE_LABELENCODER, ],$/;"	kind:variable	line:168
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[_DATABASE_LABELENCODER_ENCODING, ],$/;"	kind:variable	line:117
+nested_types	../acton/proto/acton_pb2.py	/^    nested_types=[_PREDICTIONS_PREDICTION, ],$/;"	kind:variable	line:309
+on_rtd	../docs/conf.py	/^on_rtd = os.environ.get('READTHEDOCS', None) == 'True'$/;"	kind:variable	line:117
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:124
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:175
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:213
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:251
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:316
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:368
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:56
+oneofs	../acton/proto/acton_pb2.py	/^    oneofs=[$/;"	kind:variable	line:94
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:113
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:143
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:150
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:157
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:164
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:195
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:202
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:233
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:240
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:270
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:277
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:284
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:291
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:298
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:305
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:336
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:343
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:350
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:357
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:38
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:45
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:76
+options	../acton/proto/acton_pb2.py	/^            options=None),$/;"	kind:variable	line:83
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:120
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:171
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:209
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:247
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:312
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:364
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:52
+options	../acton/proto/acton_pb2.py	/^    options=None,$/;"	kind:variable	line:90
+output_base_filename	../examples/classification.py	/^    output_base_filename = os.path.join(tempdir, 'australian_base.out')$/;"	kind:variable	line:35
+output_base_filename	../examples/multiclass_classification.py	/^    output_base_filename = os.path.join(tempdir, 'iris_base.out')$/;"	kind:variable	line:35
+output_path	../examples/classification.py	/^        output_path=output_base_filename,$/;"	kind:variable	line:44
+output_path	../examples/classification.py	/^        output_path=output_unct_filename,$/;"	kind:variable	line:53
+output_path	../examples/multiclass_classification.py	/^        output_path=output_base_filename,$/;"	kind:variable	line:44
+output_path	../examples/multiclass_classification.py	/^        output_path=output_unct_filename,$/;"	kind:variable	line:53
+output_path	../examples/simulate_thompson_sampling.py	/^output_path = 'acton\/acton\/acton.proto'$/;"	kind:variable	line:12
+output_unct_filename	../examples/classification.py	/^    output_unct_filename = os.path.join(tempdir, 'australian_unct.out')$/;"	kind:variable	line:36
+output_unct_filename	../examples/multiclass_classification.py	/^    output_unct_filename = os.path.join(tempdir, 'iris_unct.out')$/;"	kind:variable	line:36
+package	../acton/proto/acton_pb2.py	/^    package='acton',$/;"	kind:variable	line:17
+packages	../setup.py	/^    packages=[$/;"	kind:variable	line:57
+plot	../acton/plot.py	/^def plot(predictions: Iterable[BinaryIO]):$/;"	kind:function	line:16
+plot.py	../acton/plot.py	1;"	kind:file	line:1
+predict	../acton/acton.py	/^def predict($/;"	kind:function	line:414
+predict	../acton/cli.py	/^def predict($/;"	kind:function	line:174
+predict	../acton/kde_predictor.py	/^    def predict(self, X):$/;"	kind:member	line:46
+predict	../acton/predictors.py	/^    def predict(features: numpy.ndarray) -> (numpy.ndarray, numpy.ndarray):$/;"	kind:function	line:350
+predict	../acton/predictors.py	/^    def predict(self, ids: Sequence[int] = None) -> (numpy.ndarray, None):$/;"	kind:member	line:606
+predict	../acton/predictors.py	/^    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):$/;"	kind:member	line:116
+predict	../acton/predictors.py	/^    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):$/;"	kind:member	line:282
+predict	../acton/predictors.py	/^    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):$/;"	kind:member	line:39
+predict	../acton/predictors.py	/^    def predict(self, ids: Sequence[int]) -> (numpy.ndarray, numpy.ndarray):$/;"	kind:member	line:409
+predict_proba	../acton/kde_predictor.py	/^    def predict_proba(self, X):$/;"	kind:member	line:85
+predicted_ids	../acton/proto/wrappers.py	/^    def predicted_ids(self) -> List[int]:$/;"	kind:member	line:273
+prediction_type	../acton/predictors.py	/^    prediction_type = 'classification'$/;"	kind:variable	line:26
+predictions	../acton/proto/wrappers.py	/^    def predictions(self) -> numpy.ndarray:$/;"	kind:member	line:304
+predictor	../examples/classification.py	/^        predictor='LogisticRegression')$/;"	kind:variable	line:48
+predictor	../examples/classification.py	/^        predictor='LogisticRegression')$/;"	kind:variable	line:57
+predictor	../examples/multiclass_classification.py	/^        predictor='LogisticRegression')$/;"	kind:variable	line:48
+predictor	../examples/multiclass_classification.py	/^        predictor='LogisticRegression')$/;"	kind:variable	line:57
+predictor	../examples/simulate_thompson_sampling.py	/^                                             predictor='TensorPredictor',$/;"	kind:variable	line:37
+predictor	../examples/simulate_thompson_sampling.py	/^                                             predictor='TensorPredictor',$/;"	kind:variable	line:46
+predictors.py	../acton/predictors.py	1;"	kind:file	line:1
+product	../acton/database.py	/^def product(seq: Iterable[int]):$/;"	kind:function	line:27
+project	../docs/conf.py	/^project = 'Acton'$/;"	kind:variable	line:54
+pygments_style	../docs/conf.py	/^pygments_style = 'sphinx'$/;"	kind:variable	line:101
+query	../acton/labellers.py	/^    def query(self, id_: int) -> numpy.ndarray:$/;"	kind:member	line:101
+query	../acton/labellers.py	/^    def query(self, id_: int) -> numpy.ndarray:$/;"	kind:member	line:18
+query	../acton/labellers.py	/^    def query(self, id_: int) -> numpy.ndarray:$/;"	kind:member	line:66
+query	../acton/labellers.py	/^    def query(self, id_: tuple) -> numpy.ndarray:$/;"	kind:member	line:133
+raw_filename	../examples/classification.py	/^    raw_filename = os.path.join(tempdir, 'australian.dat')$/;"	kind:variable	line:18
+raw_filename	../examples/multiclass_classification.py	/^    raw_filename = os.path.join(tempdir, 'iris.dat')$/;"	kind:variable	line:18
+read_binary	../acton/cli.py	/^def read_binary() -> bytes:$/;"	kind:function	line:37
+read_bytes_from_buffer	../acton/cli.py	/^def read_bytes_from_buffer(n: int, buffer: BinaryIO) -> bytes:$/;"	kind:function	line:15
+read_features	../acton/database.py	/^    def read_features(self) -> numpy.ndarray:$/;"	kind:member	line:1586
+read_features	../acton/database.py	/^    def read_features(self) -> numpy.ndarray:$/;"	kind:member	line:846
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:1303
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:1795
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:2005
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:372
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:83
+read_features	../acton/database.py	/^    def read_features(self, ids: Sequence[int]) -> numpy.ndarray:$/;"	kind:member	line:996
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:1041
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:1318
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:1605
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:1820
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:2027
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:494
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:813
+read_labels	../acton/database.py	/^    def read_labels(self,$/;"	kind:member	line:98
+read_metadata	../acton/proto/io.py	/^def read_metadata(file: Union[str, BinaryIO]) -> bytes:$/;"	kind:function	line:109
+read_proto	../acton/proto/io.py	/^def read_proto($/;"	kind:function	line:11
+read_protos	../acton/proto/io.py	/^def read_protos($/;"	kind:function	line:168
+readme	../setup.py	/^    readme = readme_file.read()$/;"	kind:variable	line:8
+recommend	../acton/acton.py	/^def recommend($/;"	kind:function	line:450
+recommend	../acton/cli.py	/^def recommend($/;"	kind:function	line:211
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:167
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:202
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:238
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:294
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:346
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[int],$/;"	kind:member	line:399
+recommend	../acton/recommenders.py	/^    def recommend(self, ids: Sequence[tuple],$/;"	kind:member	line:468
+recommendation_indices	../examples/simulate_active_learning.py	/^recommendation_indices = list(range(10))$/;"	kind:variable	line:11
+recommendations	../acton/proto/wrappers.py	/^    def recommendations(self) -> List[int]:$/;"	kind:member	line:504
+recommendations	../examples/simulate_active_learning.py	/^    recommendations = Recommendations.make($/;"	kind:variable	line:15
+recommended_ids	../examples/simulate_active_learning.py	/^        recommended_ids=recommendation_indices,$/;"	kind:variable	line:16
+recommender	../examples/classification.py	/^        recommender='RandomRecommender',$/;"	kind:variable	line:47
+recommender	../examples/classification.py	/^        recommender='UncertaintyRecommender',$/;"	kind:variable	line:56
+recommender	../examples/multiclass_classification.py	/^        recommender='RandomRecommender',$/;"	kind:variable	line:47
+recommender	../examples/multiclass_classification.py	/^        recommender='UncertaintyRecommender',$/;"	kind:variable	line:56
+recommender	../examples/simulate_active_learning.py	/^        recommender='None',$/;"	kind:variable	line:18
+recommender	../examples/simulate_thompson_sampling.py	/^                                             recommender='ThompsonSamplingRecommender',$/;"	kind:variable	line:36
+recommender	../examples/simulate_thompson_sampling.py	/^                                             recommender='ThompsonSamplingRecommender',$/;"	kind:variable	line:45
+recommenders.py	../acton/recommenders.py	1;"	kind:file	line:1
+reference_predict	../acton/predictors.py	/^    def reference_predict($/;"	kind:member	line:311
+reference_predict	../acton/predictors.py	/^    def reference_predict($/;"	kind:member	line:444
+reference_predict	../acton/predictors.py	/^    def reference_predict($/;"	kind:member	line:62
+reference_predict	../acton/predictors.py	/^    def reference_predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):$/;"	kind:member	line:148
+reference_predict	../acton/predictors.py	/^    def reference_predict(self, ids: Sequence[int]) -> (numpy.ndarray, None):$/;"	kind:member	line:637
+release	../docs/conf.py	/^release = version$/;"	kind:variable	line:65
+repeated_labelling	../examples/simulate_thompson_sampling.py	/^                                             repeated_labelling=repeated_labelling)$/;"	kind:variable	line:40
+repeated_labelling	../examples/simulate_thompson_sampling.py	/^                                             repeated_labelling=repeated_labelling)$/;"	kind:variable	line:49
+repeated_labelling	../examples/simulate_thompson_sampling.py	/^repeated_labelling = False$/;"	kind:variable	line:24
+required	../acton/cli.py	/^              required=False)$/;"	kind:variable	line:251
+required	../acton/cli.py	/^              required=False)$/;"	kind:variable	line:255
+required	../acton/cli.py	/^              required=True)$/;"	kind:variable	line:79
+required	../acton/cli.py	/^              required=True)$/;"	kind:variable	line:83
+required	../acton/cli.py	/^              required=True)$/;"	kind:variable	line:87
+required	../acton/plot.py	/^                required=True)$/;"	kind:variable	line:66
+requirements	../setup.py	/^requirements = [$/;"	kind:variable	line:13
+resample	../acton/predictors.py	/^    def resample(self):$/;"	kind:member	line:658
+serialise_encoder	../acton/database.py	/^def serialise_encoder($/;"	kind:function	line:46
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=313,$/;"	kind:variable	line:127
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=313,$/;"	kind:variable	line:178
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=313,$/;"	kind:variable	line:97
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=367,$/;"	kind:variable	line:216
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=58,$/;"	kind:variable	line:59
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=604,$/;"	kind:variable	line:254
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=604,$/;"	kind:variable	line:319
+serialized_end	../acton/proto/acton_pb2.py	/^    serialized_end=718,$/;"	kind:variable	line:371
+serialized_pb	../acton/proto/acton_pb2.py	/^    serialized_pb=_b($/;"	kind:variable	line:19
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=190,$/;"	kind:variable	line:126
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=22,$/;"	kind:variable	line:58
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=263,$/;"	kind:variable	line:96
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=315,$/;"	kind:variable	line:215
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=370,$/;"	kind:variable	line:318
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=560,$/;"	kind:variable	line:253
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=606,$/;"	kind:variable	line:370
+serialized_start	../acton/proto/acton_pb2.py	/^    serialized_start=61,$/;"	kind:variable	line:177
+setUp	../tests/test_database.py	/^    def setUp(self):$/;"	kind:member	line:21
+setUp	../tests/test_integration.py	/^    def setUp(self):$/;"	kind:member	line:26
+setUp	../tests/test_integration.py	/^    def setUp(self):$/;"	kind:member	line:349
+setUp	../tests/test_labellers.py	/^    def setUp(self):$/;"	kind:member	line:20
+setUp	../tests/test_predictors.py	/^    def setUp(self):$/;"	kind:member	line:130
+setUp	../tests/test_predictors.py	/^    def setUp(self):$/;"	kind:member	line:26
+setUp	../tests/test_predictors.py	/^    def setUp(self):$/;"	kind:member	line:71
+setUp	../tests/test_proto_io.py	/^    def setUp(self):$/;"	kind:member	line:23
+setUp	../tests/test_proto_wrappers.py	/^    def setUp(self):$/;"	kind:member	line:23
+setUp	../tests/test_proto_wrappers.py	/^    def setUp(self):$/;"	kind:member	line:55
+setUp	../tests/test_proto_wrappers.py	/^    def setUp(self):$/;"	kind:member	line:91
+setUp	../tests/test_recommenders.py	/^    def setUp(self):$/;"	kind:member	line:19
+setUp	../tests/test_recommenders.py	/^    def setUp(self):$/;"	kind:member	line:35
+setUp	../tests/test_regression.py	/^    def setUp(self):$/;"	kind:member	line:16
+setup.py	../setup.py	1;"	kind:file	line:1
+simulate_active_learning	../acton/acton.py	/^def simulate_active_learning($/;"	kind:function	line:82
+simulate_active_learning.py	../examples/simulate_active_learning.py	1;"	kind:file	line:1
+simulate_thompson_sampling.py	../examples/simulate_thompson_sampling.py	1;"	kind:file	line:1
+skbm	../docs/conf.py	/^skbm = MagicMock()$/;"	kind:variable	line:321
+source_suffix	../docs/conf.py	/^source_suffix = '.rst'$/;"	kind:variable	line:45
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:122
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:173
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:18
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:211
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:249
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:314
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:366
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:54
+syntax	../acton/proto/acton_pb2.py	/^    syntax='proto3',$/;"	kind:variable	line:92
+tau	../acton/recommenders.py	/^tau = -0.55$/;"	kind:variable	line:36
+tearDown	../tests/test_database.py	/^    def tearDown(self):$/;"	kind:member	line:24
+tearDown	../tests/test_integration.py	/^    def tearDown(self):$/;"	kind:member	line:29
+tearDown	../tests/test_labellers.py	/^    def tearDown(self):$/;"	kind:function	line:38
+tearDown	../tests/test_predictors.py	/^    def tearDown(self):$/;"	kind:member	line:133
+tearDown	../tests/test_predictors.py	/^    def tearDown(self):$/;"	kind:member	line:51
+tearDown	../tests/test_predictors.py	/^    def tearDown(self):$/;"	kind:member	line:96
+tearDown	../tests/test_proto_io.py	/^    def tearDown(self):$/;"	kind:member	line:37
+tearDown	../tests/test_proto_wrappers.py	/^    def tearDown(self):$/;"	kind:member	line:106
+tearDown	../tests/test_proto_wrappers.py	/^    def tearDown(self):$/;"	kind:member	line:37
+tearDown	../tests/test_proto_wrappers.py	/^    def tearDown(self):$/;"	kind:member	line:69
+tearDown	../tests/test_recommenders.py	/^    def tearDown(self):$/;"	kind:member	line:22
+tearDown	../tests/test_recommenders.py	/^    def tearDown(self):$/;"	kind:member	line:38
+tearDown	../tests/test_regression.py	/^    def tearDown(self):$/;"	kind:member	line:20
+temp_path	../tests/test_database.py	/^    def temp_path(self, filename: str) -> str:$/;"	kind:member	line:27
+templates_path	../docs/conf.py	/^templates_path = ['_templates']$/;"	kind:variable	line:40
+testAll	../tests/test_predictors.py	/^    def testAll(self):$/;"	kind:member	line:54
+testFromClass	../tests/test_predictors.py	/^    def testFromClass(self):$/;"	kind:member	line:112
+testFromInstance	../tests/test_predictors.py	/^    def testFromInstance(self):$/;"	kind:member	line:99
+test_classification_ascii_non_integer_labels	../tests/test_integration.py	/^    def test_classification_ascii_non_integer_labels(self):$/;"	kind:member	line:63
+test_classification_gpc_non_integer_labels	../tests/test_integration.py	/^    def test_classification_gpc_non_integer_labels(self):$/;"	kind:member	line:94
+test_classification_h5_non_integer_labels	../tests/test_integration.py	/^    def test_classification_h5_non_integer_labels(self):$/;"	kind:member	line:188
+test_classification_pandas_non_integer_labels	../tests/test_integration.py	/^    def test_classification_pandas_non_integer_labels(self):$/;"	kind:member	line:156
+test_classification_passive_fits	../tests/test_integration.py	/^    def test_classification_passive_fits(self):$/;"	kind:member	line:252
+test_classification_passive_pandas	../tests/test_integration.py	/^    def test_classification_passive_pandas(self):$/;"	kind:member	line:220
+test_classification_passive_txt	../tests/test_integration.py	/^    def test_classification_passive_txt(self):$/;"	kind:member	line:32
+test_classification_qbc	../tests/test_integration.py	/^    def test_classification_qbc(self):$/;"	kind:member	line:314
+test_classification_uncertainty	../tests/test_integration.py	/^    def test_classification_uncertainty(self):$/;"	kind:member	line:283
+test_classification_uncrt_non_integer_labels	../tests/test_integration.py	/^    def test_classification_uncrt_non_integer_labels(self):$/;"	kind:member	line:125
+test_database.py	../tests/test_database.py	1;"	kind:file	line:1
+test_integration	../tests/test_proto_wrappers.py	/^    def test_integration(self):$/;"	kind:member	line:109
+test_integration	../tests/test_proto_wrappers.py	/^    def test_integration(self):$/;"	kind:member	line:40
+test_integration	../tests/test_proto_wrappers.py	/^    def test_integration(self):$/;"	kind:member	line:72
+test_integration.py	../tests/test_integration.py	1;"	kind:file	line:1
+test_io_features	../tests/test_database.py	/^    def test_io_features(self):$/;"	kind:member	line:42
+test_kde_predictor.py	../tests/test_kde_predictor.py	1;"	kind:file	line:1
+test_label_args	../tests/test_integration.py	/^    def test_label_args(self):$/;"	kind:member	line:352
+test_label_protobuf	../tests/test_integration.py	/^    def test_label_protobuf(self):$/;"	kind:member	line:385
+test_labellers.py	../tests/test_labellers.py	1;"	kind:file	line:1
+test_linear_regression	../tests/test_regression.py	/^    def test_linear_regression(self):$/;"	kind:member	line:23
+test_predict	../tests/test_integration.py	/^    def test_predict(self):$/;"	kind:member	line:427
+test_predictors.py	../tests/test_predictors.py	1;"	kind:file	line:1
+test_proto_io.py	../tests/test_proto_io.py	1;"	kind:file	line:1
+test_proto_wrappers.py	../tests/test_proto_wrappers.py	1;"	kind:file	line:1
+test_query	../tests/test_labellers.py	/^    def test_query(self):$/;"	kind:function	line:41
+test_read_write_labels	../tests/test_database.py	/^    def test_read_write_labels(self):$/;"	kind:member	line:78
+test_recommend	../tests/test_integration.py	/^    def test_recommend(self):$/;"	kind:member	line:470
+test_recommend	../tests/test_recommenders.py	/^    def test_recommend(self):$/;"	kind:member	line:25
+test_recommend	../tests/test_recommenders.py	/^    def test_recommend(self):$/;"	kind:member	line:41
+test_recommenders.py	../tests/test_recommenders.py	1;"	kind:file	line:1
+test_regression.py	../tests/test_regression.py	1;"	kind:file	line:1
+test_requirements	../setup.py	/^test_requirements = [$/;"	kind:variable	line:41
+test_sklearn_interface	../tests/test_kde_predictor.py	/^    def test_sklearn_interface(self):$/;"	kind:member	line:12
+test_softmax	../tests/test_kde_predictor.py	/^    def test_softmax(self):$/;"	kind:member	line:17
+test_str_labels	../tests/test_predictors.py	/^    def test_str_labels(self):$/;"	kind:member	line:136
+test_suite	../setup.py	/^    test_suite='tests',$/;"	kind:variable	line:86
+test_write_read	../tests/test_proto_io.py	/^    def test_write_read(self):$/;"	kind:member	line:60
+test_write_read_file	../tests/test_proto_io.py	/^    def test_write_read_file(self):$/;"	kind:member	line:80
+tests_require	../setup.py	/^    tests_require=test_requirements$/;"	kind:variable	line:87
+texinfo_documents	../docs/conf.py	/^texinfo_documents = [$/;"	kind:variable	line:281
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:1194
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:1454
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:169
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:1766
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:1964
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:273
+to_proto	../acton/database.py	/^    def to_proto(self) -> DatabasePB:$/;"	kind:member	line:974
+todo_include_todos	../docs/conf.py	/^todo_include_todos = False$/;"	kind:variable	line:110
+totoal_size	../examples/simulate_thompson_sampling.py	/^    totoal_size = n_relations * n_entities * n_entities$/;"	kind:variable	line:29
+try_pandas	../acton/acton.py	/^def try_pandas(data_path: str) -> bool:$/;"	kind:function	line:301
+type	../acton/cli.py	/^              type=click.Choice(acton.predictors.PREDICTORS.keys()),$/;"	kind:variable	line:116
+type	../acton/cli.py	/^              type=click.Choice(acton.predictors.PREDICTORS.keys()),$/;"	kind:variable	line:168
+type	../acton/cli.py	/^              type=click.Choice(acton.recommenders.RECOMMENDERS.keys()),$/;"	kind:variable	line:120
+type	../acton/cli.py	/^              type=click.Choice(acton.recommenders.RECOMMENDERS.keys()),$/;"	kind:variable	line:205
+type	../acton/cli.py	/^              type=click.Path(dir_okay=False),$/;"	kind:variable	line:85
+type	../acton/cli.py	/^              type=click.Path(exists=True, dir_okay=False),$/;"	kind:variable	line:249
+type	../acton/cli.py	/^              type=click.Path(exists=True, dir_okay=False),$/;"	kind:variable	line:77
+type	../acton/cli.py	/^              type=float,$/;"	kind:variable	line:100
+type	../acton/cli.py	/^              type=float,$/;"	kind:variable	line:108
+type	../acton/cli.py	/^              type=float,$/;"	kind:variable	line:197
+type	../acton/cli.py	/^              type=float,$/;"	kind:variable	line:261
+type	../acton/cli.py	/^              type=int,$/;"	kind:variable	line:104
+type	../acton/cli.py	/^              type=int,$/;"	kind:variable	line:112
+type	../acton/cli.py	/^              type=int,$/;"	kind:variable	line:201
+type	../acton/cli.py	/^              type=int,$/;"	kind:variable	line:93
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:124
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:253
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:257
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:265
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:81
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:89
+type	../acton/cli.py	/^              type=str,$/;"	kind:variable	line:97
+type	../acton/plot.py	/^                type=click.File('rb'),$/;"	kind:variable	line:64
+url	../setup.py	/^    url='https:\/\/github.com\/chengsoonong\/acton',$/;"	kind:variable	line:52
+validate_db	../acton/proto/wrappers.py	/^def validate_db(db: acton_pb.Database):$/;"	kind:function	line:15
+validate_predictor	../acton/acton.py	/^def validate_predictor(predictor: str):$/;"	kind:function	line:46
+validate_recommender	../acton/acton.py	/^def validate_recommender(recommender: str):$/;"	kind:function	line:64
+version	../docs/conf.py	/^version = '0.3.3'$/;"	kind:variable	line:63
+version	../setup.py	/^    version=__version__,$/;"	kind:variable	line:49
+wrappers.py	../acton/proto/wrappers.py	1;"	kind:file	line:1
+write_binary	../acton/cli.py	/^def write_binary(string: bytes):$/;"	kind:function	line:57
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:1101
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:117
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:1338
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:1867
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:2057
+write_features	../acton/database.py	/^    def write_features(self, ids: Sequence[int], features: numpy.ndarray):$/;"	kind:member	line:311
+write_features	../acton/database.py	/^    def write_features(self,$/;"	kind:member	line:718
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:1104
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:130
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:1341
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:1870
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:2060
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:400
+write_labels	../acton/database.py	/^    def write_labels(self,$/;"	kind:member	line:673
+write_proto	../acton/proto/io.py	/^def write_proto(path: str, proto: 'Protobuf'):$/;"	kind:function	line:72
+write_protos	../acton/proto/io.py	/^def write_protos(path: str, metadata: bytes=b''):$/;"	kind:function	line:36
+y	../examples/classification.py	/^    y = sklearn.preprocessing.LabelEncoder().fit_transform(y)$/;"	kind:variable	line:27
+y	../examples/multiclass_classification.py	/^    y = sklearn.preprocessing.LabelEncoder().fit_transform(y)$/;"	kind:variable	line:27
+zip_safe	../setup.py	/^    zip_safe=False,$/;"	kind:variable	line:74

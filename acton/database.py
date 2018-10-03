@@ -8,6 +8,7 @@ import os.path
 import tempfile
 from typing import Iterable, List, Sequence
 import warnings
+import time
 
 from acton.proto.acton_pb2 import Database as DatabasePB
 import astropy.io.ascii as io_ascii
@@ -17,6 +18,7 @@ import h5py
 import numpy
 import pandas
 import sklearn.preprocessing
+from numpy.random import multivariate_normal
 
 
 LabelEncoderPB = DatabasePB.LabelEncoder
@@ -593,6 +595,338 @@ class ManagedHDF5Database(HDF5Database):
                     attr, getattr(self, attr), self._h5_file.attrs[attr]))
 
 
+class GraphDatabase(HDF5Database):
+    """Manage database handling knowledge graph factorization,
+
+    Attributes
+    -----------
+    path: str
+        Path to HDF5 file.
+
+    """
+
+    def __init__(self, path: str):
+        """
+        Parameters
+        ----------
+        path
+            Path to HDF5 file.
+        """
+        self.path = path
+
+    def to_proto(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'ManagedHDF5Database'
+        db_kwargs = {
+            'label_dtype': self.label_dtype,
+            'feature_dtype': self.feature_dtype}
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+        # No encoder for a managed DB - assume that labels are encoded already.
+        # proto.label_encoder.CopyFrom(serialise_encoder(self.label_encoder))
+        return proto
+
+    def _open_hdf5(self):
+        """Opens the HDF5 file and creates it if it doesn't exist.
+
+        Notes
+        -----
+        The HDF5 file will be stored in self._h5_file.
+        """
+        try:
+            self._h5_file = h5py.File(self.path, 'r+')
+        except OSError:
+            with h5py.File(self.path, 'w') as h5_file:
+                self._setup_hdf5(h5_file)
+            self._h5_file = h5py.File(self.path, 'r+')
+
+    def _setup_hdf5(self, h5_file: h5py.File):
+        """Sets up an HDF5 file to work as a database.
+
+        Parameters
+        ----------
+        h5_file
+            HDF5 file to set up. Must be opened in write mode.
+        """
+
+        h5_file.create_dataset('features_E',
+                               shape=(0, 0, 0),
+                               maxshape=(None, None, None))
+        h5_file.create_dataset('features_R',
+                               shape=(0, 0, 0, 0),
+                               maxshape=(None, None, None, None))
+        h5_file.create_dataset('labels',
+                               shape=(0, 0, 0),
+                               maxshape=(None, None, None))
+        h5_file.attrs['n_entities'] = -1
+        h5_file.attrs['n_relations'] = -1
+        h5_file.attrs['n_dim'] = -1
+        h5_file.attrs['n_particles'] = -1
+
+    def _validate_hdf5(self):
+        """Checks that self._h5_file has the correct schema.
+
+        Raises
+        ------
+        ValueError
+
+        """
+        try:
+            assert 'features_E' in self._h5_file
+            assert 'features_R' in self._h5_file
+            assert 'labels' in self._h5_file
+            assert len(self._h5_file['features_E'].shape) == 3
+            assert len(self._h5_file['features_R'].shape) == 4
+            assert len(self._h5_file['labels'].shape) == 3
+        except AssertionError:
+            raise ValueError(
+                'File {} is not a valid database.'.format(self.path))
+
+    def write_labels(self,
+                     labels: numpy.ndarray):
+        """Writes label vectors to the database.
+
+        Parameters
+        ----------
+        labels
+            K x N x N array of label vectors.
+            K is the number of relations, N is the number of entities.
+        """
+        self._assert_open()
+
+        # Input validation.
+        if self._h5_file.attrs['n_relations'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_relations'] = labels.shape[0]
+        elif self._h5_file.attrs['n_relations'] != labels.shape[0]:
+            raise ValueError(
+                'Expected number of relations {}, glot {}'.format(
+                    self._h5_file.attrs['n_relations'], labels.shape[0]))
+
+        if self._h5_file.attrs['n_entities'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_entities'] = labels.shape[1]
+        elif self._h5_file.attrs['n_entities'] != labels.shape[1]:
+            raise ValueError(
+                'Expected number of entities {}, glot {}'.format(
+                    self._h5_file.attrs['n_entities'], labels.shape[1]))
+
+        # Resize the label array if necessary.
+        if (labels.shape[0] > self._h5_file['labels'].shape[0] or
+                labels.shape[1] > self._h5_file['labels'].shape[1] or
+                labels.shape[2] > self._h5_file['labels'].shape[2]):
+            self._h5_file['labels'].resize(labels.shape)
+
+        # Store the labels.
+        # TODO(MatthewJA): Vectorise this.
+        for i in range(labels.shape[0]):
+            self._h5_file['labels'][i, :] = labels[i, :]
+
+        logging.debug(
+            'New label array size: {}'.format(self._h5_file['labels'].shape))
+
+    def write_features(self,
+                       features_E: numpy.ndarray,
+                       features_R: numpy.ndarray):
+        """Writes feature vectors to the database.
+
+        Parameters
+        ----------
+        features_E:
+            P x N x D array of entity feature vectors.
+            P is the number of particles.
+            N is the number of entities.
+            D is the number of latent variable dimensions.
+
+        features_R:
+            P x K x D x D array of relation feature vectors.
+            P is the number of particles.
+            K is the number of relations.
+            D is the number of latent variable dimensions.
+        """
+        self._assert_open()
+
+        n_particles = features_E.shape[0]
+        assert features_E.shape[0] == features_R.shape[0]
+
+        n_entities = features_E.shape[1]
+        n_relations = features_R.shape[1]
+        n_dim = features_E.shape[2]
+        assert features_E.shape[2] == features_R.shape[2] == features_R.shape[3]
+
+        # Input validation.
+        if self._h5_file.attrs['n_relations'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_relations'] = n_relations
+        elif self._h5_file.attrs['n_relations'] != n_relations:
+            raise ValueError(
+                'Expected number of relations {}, glot {}'.format(
+                    self._h5_file.attrs['n_relations'], n_relations))
+
+        if self._h5_file.attrs['n_entities'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_entities'] = n_entities
+        elif self._h5_file.attrs['n_entities'] != n_entities:
+            raise ValueError(
+                'Expected number of entities {}, glot {}'.format(
+                    self._h5_file.attrs['n_entities'], n_entities))
+
+        if self._h5_file.attrs['n_dim'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_dim'] = n_dim
+        elif self._h5_file.attrs['n_dim'] != n_dim:
+            raise ValueError(
+                'Expected number of latent dimensions {}, glot {}'.format(
+                    self._h5_file.attrs['n_dim'], n_dim))
+
+        if self._h5_file.attrs['n_particles'] == -1:
+            # This is the first time we've stored labels, so make a record of
+            # the dimensionality.
+            self._h5_file.attrs['n_particles'] = n_particles
+        elif self._h5_file.attrs['n_particles'] != n_particles:
+            raise ValueError(
+                'Expected number of partibles {}, glot {}'.format(
+                    self._h5_file.attrs['n_particles'], n_particles))
+
+        # Resize the feature array if we need to store more IDs than before.
+
+        if (features_E.shape[0] > self._h5_file['features_E'].shape[0] or
+            features_E.shape[1] > self._h5_file['features_E'].shape[1] or
+                features_E.shape[2] > self._h5_file['features_E'].shape[2]):
+            self._h5_file['features_E'].resize(features_E.shape)
+
+        if (features_R.shape[0] > self._h5_file['features_R'].shape[0] or
+            features_R.shape[1] > self._h5_file['features_R'].shape[1] or
+                features_R.shape[2] > self._h5_file['features_R'].shape[2]):
+            self._h5_file['features_R'].resize(features_R.shape)
+
+        # Store the feature vectors.
+        # TODO(MatthewJA): Vectorise this. This could be tricky as HDF5 doesn't
+        # fully support NumPy's fancy indexing.
+
+        for id_, feature in enumerate(features_E):
+            self._h5_file['features_E'][id_, :] = feature
+
+        for id_, feature in enumerate(features_R):
+            self._h5_file['features_R'][id_, :, :] = feature
+
+        logging.debug(
+            'New feature E array size: {}'.format(
+                    self._h5_file['features_E'].shape))
+        logging.debug(
+            'New feature R array size: {}'.format(
+                    self._h5_file['features_R'].shape))
+
+    def read_labels(self,
+                    instance_ids: Sequence[tuple]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+        instance_ids
+            sequence of ids to be read labels
+            empty list indicates reading all labels in once
+
+        Returns
+        -------
+        numpy.ndarray
+            array of label vectors.
+        """
+        self._assert_open()
+
+        n_entities = self._h5_file.attrs['n_entities']
+        n_relations = self._h5_file.attrs['n_relations']
+
+        if (n_entities == -1 or n_relations == -1):
+            raise KeyError('No labels stored in database.')
+
+        if len(instance_ids) == 0:
+            return numpy.asarray(self._h5_file['labels'].value)
+        else:
+            labels = []
+            for tuple_ in instance_ids:
+                r_k, e_i, e_j = tuple_
+                labels.append(self._h5_file['labels'].value[r_k, e_i, e_j])
+
+            return numpy.asarray(labels)
+
+    def read_features(self) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        E
+            numpy.ndarray
+            P x N x D array of feature vectors.
+        R
+            list
+            each element is numpy.ndarray
+            P x K x D x D array of feature vectors.
+        """
+        self._assert_open()
+
+        if self._h5_file.attrs['n_particles'] == -1:
+            raise KeyError('No features stored in database.')
+
+        # Allocate the features array.
+        features_E = numpy.zeros((self._h5_file.attrs['n_particles'],
+                                  self._h5_file.attrs['n_entities']),
+                                 self._h5_file.attrs['n_dim'])
+        features_R = numpy.zeros((self._h5_file.attrs['n_particles'],
+                                  self._h5_file.attrs['n_relations'],
+                                  self._h5_file.attrs['n_dim'],
+                                  self._h5_file.attrs['n_dim']))
+        # Loop through each ID we want to query and put the associated feature
+        # into the features array.
+        features_E = self._h5_file['features_E'].value
+        features_R = self._h5_file['features_R'].value
+
+        features_E = numpy.asarray(features_E)
+        features_R = numpy.asarray(features_R)
+
+        return features_E, features_R
+
+    def get_known_instance_ids(self) -> List[int]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        self._assert_open()
+        return [id_ for id_ in self._h5_file['instance_ids']]
+
+    def get_known_labeller_ids(self) -> List[int]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        self._assert_open()
+        return [id_ for id_ in self._h5_file['labeller_ids']]
+
+
 class HDF5Reader(HDF5Database):
     """Reads HDF5 databases.
 
@@ -804,7 +1138,7 @@ class HDF5Reader(HDF5Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 
@@ -973,7 +1307,7 @@ class ASCIIReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         # Write to database.
         db.write_features(ids, features)
@@ -1053,6 +1387,367 @@ class ASCIIReader(Database):
                      instance_ids: Sequence[int],
                      labels: numpy.ndarray):
         raise NotImplementedError('Cannot write to read-only database.')
+
+    def get_known_instance_ids(self) -> List[int]:
+        """Returns a list of known instance IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known instance IDs.
+        """
+        return self._db.get_known_instance_ids()
+
+    def get_known_labeller_ids(self) -> List[int]:
+        """Returns a list of known labeller IDs.
+
+        Returns
+        -------
+        List[str]
+            A list of known labeller IDs.
+        """
+        return self._db.get_known_labeller_ids()
+
+
+class GraphReader(Database):
+    """Reads ASCII databases for graph based structure
+
+       Input file:
+       List of known facts,
+       formatted as relation_id \tab entity_id1 \tab entity_id2,
+       means entity_id1 has relation_id relation with entity_id2,
+       Both entity-id and relation-id start from 0.
+
+       Output labels:
+       K x N x N ndarrays,
+       where K is the number of relations,
+       N is the number of entities.
+       0 represents invalid facts, 1 represents valid facts.
+
+       Output features:
+       E is N x D latent features of the entities.
+       R is K x D x D latent features of the relations.
+       Features are initially random/gibbs sampled,
+       will be sequentially updated after getting labels
+
+
+    Attributes
+    ----------
+    path : str
+        Path to ASCII file.
+    _db : Database
+        Underlying ManagedHDF5Database.
+    _db_filepath : str
+        Path of underlying HDF5 database.
+    _tempdir : str
+        Temporary directory where the underlying HDF5 database is stored.
+    n_dim
+        Number of latent features (size of latent dimension).
+    n_particles:
+        Number of particles for Thompson sampling.
+    gibbs_init
+        Indicates how to sample features (gibbs/random).
+    var_r
+        variance of prior of R
+    var_e
+        variance of prior of E
+    var_x
+        variance of X
+    obs_mask
+        Mask tensor of observed triples.
+    given_r
+        whether there is any R given for initialization
+    """
+
+    def __init__(self, path: str, n_dim: int, n_particles: int = 5,
+                 gibbs_init: bool = True, var_r: int = 1, var_e: int = 1,
+                 var_x: float = 0.01, obs_mask: numpy.ndarray= None,
+                 given_r: numpy.ndarray = None):
+        """
+        Parameters
+        ----------
+        path
+            Path to ASCII file.
+        n_dim
+            Number of latent features (size of latent dimension).
+        n_particles:
+            Number of particles for Thompson sampling.
+        gibbs_init
+           Indicates how to sample features (gibbs/random).
+        var_r
+            variance of prior of R
+        var_e
+            variance of prior of E
+        var_x
+            variance of X
+        obs_mask
+            Mask tensor of observed triples.
+        given_r
+            Given features R if any
+        """
+        self.path = path
+        self.n_dim = n_dim
+        self.n_particles = n_particles
+        self.gibbs_init = gibbs_init
+        self.var_r = var_r
+        self.var_e = var_e
+        self.var_x = var_x
+        self.obs_mask = obs_mask
+        self.given_r = given_r
+
+    def to_proto(self) -> DatabasePB:
+        """Serialises this database as a protobuf.
+
+        Returns
+        -------
+        DatabasePB
+            Protobuf representing this database.
+        """
+        proto = DatabasePB()
+        proto.path = self.path
+        proto.class_name = 'LabelOnlyASCIIReader'
+        db_kwargs = {
+            'n_dim': self.n_dim,
+            'n_particles': self.n_particles, }
+        for key, value in db_kwargs.items():
+            kwarg = proto.kwarg.add()
+            kwarg.key = key
+            kwarg.value = json.dumps(value)
+
+        return proto
+
+    def _db_from_ascii(self,
+                       db: Database,
+                       data: astropy.table.Table,
+                       ):
+        """Reads an ASCII table into a database.
+
+        Notes
+        -----
+        The entire file is copied into memory.
+
+        Arguments
+        ---------
+        db
+            Database.
+        data
+            ASCII table.
+        """
+
+        # triples: relation_id  entity_id1  entity_id2
+        # e.g. (0,2,4) represents entity 2 and 4 have relation 0
+        triples = data.as_array()
+        triples = triples.view(numpy.int).reshape((triples.shape[0], 3))
+
+        self.n_relations = max(triples[:, 0]) + 1
+        self.n_entities = max(triples[:, 1]) + 1
+        assert self.n_entities == max(triples[:, -1]) + 1
+
+        # only support one labeller
+
+        # construct label tensor X = {0,1}^{K x N x N}
+        X = numpy.zeros((self.n_relations, self.n_entities, self.n_entities))
+        for i in triples:
+            X[i[0], i[1], i[2]] = 1
+
+        # Initailize features E,R
+        self.E = list()
+        self.R = list()
+
+        self.RE = numpy.zeros([self.n_relations, self.n_entities, self.n_dim])
+        self.RTE = numpy.zeros([self.n_relations, self.n_entities, self.n_dim])
+
+        if isinstance(self.obs_mask, type(None)):
+            self.obs_mask = numpy.zeros_like(X)
+        else:
+            logging.info(
+                "Initial Total, Positive, Negative Obs : %d / %d / %d",
+                numpy.sum(self.obs_mask),
+                numpy.sum(X[self.obs_mask == 1]),
+                numpy.sum(self.obs_mask) - numpy.sum(X[self.obs_mask == 1]))
+
+        cur_obs = numpy.zeros_like(X)
+        for k in range(self.n_relations):
+            cur_obs[k][self.obs_mask[k] == 1] = X[k][self.obs_mask[k] == 1]
+
+        self.obs_sum = numpy.sum(numpy.sum(self.obs_mask, 1), 1)
+        self.valid_relations = numpy.nonzero(numpy.sum(numpy.sum(X, 1), 1))[0]
+
+        self.features = numpy.zeros(
+            [2 * self.n_entities * self.n_relations, self.n_dim])
+        self.xi = numpy.zeros([2 * self.n_entities * self.n_relations])
+
+        # cur_obs[cur_obs.nonzero()] = 1
+        if self.gibbs_init and numpy.sum(self.obs_sum) != 0:
+            # initialize latent variables with gibbs sampling
+            E = numpy.random.random([self.n_entities, self.n_dim])
+            R = numpy.random.random([self.n_relations, self.n_dim, self.n_dim])
+
+            for gi in range(20):
+                tic = time.time()
+                if isinstance(self.given_r, type(None)):
+                    self._sample_relations(
+                        cur_obs, self.obs_mask, E, R, self.var_r)
+                    self._sample_entities(
+                        cur_obs, self.obs_mask, E, R, self.var_e)
+                else:
+                    self._sample_entities(
+                        cur_obs, self.obs_mask, E, R, self.var_e)
+                logging.info("Gibbs Init %d: %f", gi, time.time() - tic)
+
+            for p in range(self.n_particles):
+                self.E.append(E.copy())
+                self.R.append(R.copy())
+        else:
+            # random initialization
+            for p in range(self.n_particles):
+                self.E.append(numpy.random.random(
+                    [self.n_entities, self.n_dim]))
+                self.R.append(numpy.random.random(
+                    [self.n_relations, self.n_dim, self.n_dim]))
+
+        self.E = numpy.asarray(self.E)
+        self.R = numpy.asarray(self.R)
+
+        # Write to database.
+        db.write_features(self.E, self.R)
+        db.write_labels(X)
+
+    def __enter__(self):
+        self._tempdir = tempfile.TemporaryDirectory(prefix='acton')
+        # Read the whole file into a DB.
+        self._db_filepath = os.path.join(self._tempdir.name, 'db.h5')
+
+        data = io_ascii.read(self.path)
+
+        self._db = GraphDatabase(self._db_filepath)
+        self._db.__enter__()
+
+        self._db_from_ascii(self._db, data)
+
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_val: object, exc_tb: Traceback):
+        self._db.__exit__(exc_type, exc_val, exc_tb)
+        self._tempdir.cleanup()
+        delattr(self, '_db')
+
+    def read_features(self) -> numpy.ndarray:
+        """Reads feature vectors from the database.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        E
+            numpy.ndarray
+            P x N x D array of feature vectors.
+        R
+            list
+            each element is numpy.ndarray
+            P x K x D x D array of feature vectors.
+            N x D array of feature vectors.
+        """
+        return self._db.read_features()
+
+    def read_labels(self,
+                    instance_ids: Sequence[tuple]) -> numpy.ndarray:
+        """Reads label vectors from the database.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        numpy.ndarray
+            array of label vectors.
+        """
+        # N.B. Labels are encoded in _db_from_ascii.
+        return self._db.read_labels(instance_ids)
+
+    def write_features(self, ids: Sequence[int], features: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
+
+    def write_labels(self,
+                     labeller_ids: Sequence[int],
+                     instance_ids: Sequence[int],
+                     labels: numpy.ndarray):
+        raise NotImplementedError('Cannot write to read-only database.')
+
+    def _sample_entities(self, X, mask, E, R, var_e, sample_idx=None):
+        RE = self.RE
+        RTE = self.RTE
+        for k in range(self.n_relations):
+            RE[k] = numpy.dot(R[k], E.T).T
+            RTE[k] = numpy.dot(R[k].T, E.T).T
+
+        if isinstance(sample_idx, type(None)):
+            sample_idx = range(self.n_entities)
+
+        for i in sample_idx:
+            self._sample_entity(X, mask, E, R, i, var_e, RE, RTE)
+            for k in range(self.n_relations):
+                RE[k][i] = numpy.dot(R[k], E[i])
+                RTE[k][i] = numpy.dot(R[k].T, E[i])
+
+    def _sample_entity(self, X, mask, E, R, i, var_e, RE=None, RTE=None):
+        nz_r = mask[:, i, :].nonzero()
+        nz_c = mask[:, :, i].nonzero()
+        nnz_r = nz_r[0].size
+        nnz_c = nz_c[0].size
+        nnz_all = nnz_r + nnz_c
+
+        self.features[:nnz_r] = RE[nz_r]
+        self.features[nnz_r:nnz_all] = RTE[nz_c]
+        self.xi[:nnz_r] = X[:, i, :][nz_r]
+        self.xi[nnz_r:nnz_all] = X[:, :, i][nz_c]
+        _xi = self.xi[:nnz_all] * self.features[:nnz_all].T
+        xi = numpy.sum(_xi, 1) / self.var_x
+
+        _lambda = numpy.identity(self.n_dim) / var_e
+        _lambda += numpy.dot(
+            self.features[:nnz_all].T,
+            self.features[:nnz_all]) / self.var_x
+
+        inv_lambda = numpy.linalg.inv(_lambda)
+        mu = numpy.dot(inv_lambda, xi)
+        E[i] = multivariate_normal(mu, inv_lambda)
+
+        numpy.mean(numpy.diag(inv_lambda))
+        # logging.debug('Mean variance E, %d, %f', i, mean_var)
+
+    def _sample_relations(self, X, mask, E, R, var_r):
+        EXE = numpy.kron(E, E)
+
+        for k in self.valid_relations:
+            if self.obs_sum[k] != 0:
+                self._sample_relation(X, mask, E, R, k, EXE, var_r)
+            else:
+                R[k] = numpy.random.normal(
+                    0, var_r, size=[self.n_dim, self.n_dim])
+
+    def _sample_relation(self, X, mask, E, R, k, EXE, var_r):
+        _lambda = numpy.identity(self.n_dim ** 2) / var_r
+        xi = numpy.zeros(self.n_dim ** 2)
+
+        kron = EXE[mask[k].flatten() == 1]
+
+        if kron.shape[0] != 0:
+            _lambda += numpy.dot(kron.T, kron)
+            xi += numpy.sum(X[k, mask[k] == 1].flatten() * kron.T, 1)
+
+        _lambda /= self.var_x
+        # mu = numpy.linalg.solve(_lambda, xi) / self.var_x
+
+        inv_lambda = numpy.linalg.inv(_lambda)
+        mu = numpy.dot(inv_lambda, xi) / self.var_x
+
+        # R[k] = normal(mu, _lambda).reshape([self.n_dim, self.n_dim])
+        R[k] = multivariate_normal(
+            mu, inv_lambda).reshape([self.n_dim, self.n_dim])
+        numpy.mean(numpy.diag(inv_lambda))
+        # logging.info('Mean variance R, %d, %f', k, mean_var)
 
     def get_known_instance_ids(self) -> List[int]:
         """Returns a list of known instance IDs.
@@ -1240,7 +1935,7 @@ class PandasReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 
@@ -1430,7 +2125,7 @@ class FITSReader(Database):
                 self.label_encoder.fit_transform,
                 axis=1,
                 arr=labels.reshape(labels.shape[:2])
-                ).reshape(labels.shape)
+            ).reshape(labels.shape)
 
         return labels
 
@@ -1467,8 +2162,10 @@ class FITSReader(Database):
 # For safe string-based access to database classes.
 DATABASES = {
     'ASCIIReader': ASCIIReader,
+    'GraphReader': GraphReader,
     'HDF5Reader': HDF5Reader,
     'FITSReader': FITSReader,
     'ManagedHDF5Database': ManagedHDF5Database,
+    'GraphDatabase': GraphDatabase,
     'PandasReader': PandasReader,
 }

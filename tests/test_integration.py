@@ -7,6 +7,10 @@ test_integration
 Integration tests.
 """
 
+import sys
+sys.path.append("..")
+
+
 import os.path
 import struct
 import unittest

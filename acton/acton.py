@@ -16,11 +16,12 @@ import sklearn.linear_model
 import sklearn.metrics
 import sklearn.model_selection
 import sklearn.preprocessing
+from sklearn.metrics import roc_auc_score
 
 T = TypeVar('T')
 
 
-def draw(n: int, lst: List[T], replace: bool=True) -> List[T]:
+def draw(n: int, lst: List[T], replace: bool = True) -> List[T]:
     """Draws n random elements from a list.
 
     Parameters
@@ -83,12 +84,17 @@ def simulate_active_learning(
         db: acton.database.Database,
         db_kwargs: dict,
         output_path: str,
-        n_initial_labels: int=10,
-        n_epochs: int=10,
-        test_size: int=0.2,
-        recommender: str='RandomRecommender',
-        predictor: str='LogisticRegression',
-        n_recommendations: int=1):
+        n_initial_labels: int = 10,
+        n_epochs: int = 10,
+        test_size: int = 0.2,
+        recommender: str = 'RandomRecommender',
+        predictor: str = 'LogisticRegression',
+        labeller: str = 'DatabaseLabeller',
+        n_recommendations: int = 1,
+        diversity: float = 0.5,
+        repeated_labelling: bool = True,
+        subn_entities: int=0,
+        subn_relations: int=0):
     """Simulates an active learning task.
 
     Parameters
@@ -109,10 +115,18 @@ def simulate_active_learning(
         Percentage size of testing set.
     recommender
         Name of recommender to make recommendations.
+    labeller
+        Name of labeller to label
     predictor
         Name of predictor to make predictions.
     n_recommendations
         Number of recommendations to make at once.
+    repeated_labelling
+        whether allow one instance to be labelled more than once
+    subn_entities
+        number of entities for subsampling
+    subn_relations
+        number of relations for subsampling
     """
     validate_recommender(recommender)
     validate_predictor(predictor)
@@ -134,13 +148,34 @@ def simulate_active_learning(
     # TODO(MatthewJA): Handle multiple labellers better than just averaging.
     predictor_name = predictor  # For saving.
     predictor = acton.predictors.PREDICTORS[predictor](db=db, n_jobs=-1)
-
-    labeller = acton.labellers.DatabaseLabeller(db)
+    labeller_name = labeller
+    labeller = acton.labellers.LABELLERS[labeller](db)
     recommender = acton.recommenders.RECOMMENDERS[recommender](db=db)
 
     # Draw some initial labels.
     logging.debug('Drawing initial labels.')
     recommendations = draw(n_initial_labels, train_ids, replace=False)
+
+    if labeller_name == 'GraphDatabaseLabeller':
+
+        assert subn_entities > 0
+        assert subn_relations > 0
+
+        tensor_ids = ids.reshape(
+            (db.n_relations, db.n_entities, db.n_entities))
+
+        rec_x, rec_y, rec_z = \
+            numpy.unravel_index(recommendations, tensor_ids.shape)
+        recommendations = list(zip(rec_x, rec_y, rec_z))
+
+        train_x, train_y, train_z = \
+            numpy.unravel_index(ids[train_ids], tensor_ids.shape)
+        train_ids = list(zip(train_x, train_y, train_z))
+
+        test_x, test_y, test_z = \
+            numpy.unravel_index(ids[test_ids], tensor_ids.shape)
+        test_ids = list(zip(test_x, test_y, test_z))
+
     logging.debug('Recommending: {}'.format(recommendations))
 
     # This will store all IDs of things we have already labelled.
@@ -152,7 +187,15 @@ def simulate_active_learning(
     logging.debug('Writing protobufs to {}.'.format(output_path))
     writer = acton.proto.io.write_protos(output_path, metadata=metadata)
     next(writer)  # Prime the coroutine.
+
+    train_error_list = []
+    test_error_list = []
+
+    gain_ts = []
+    run_time = []
+
     for epoch in range(n_epochs):
+        begin_epoch = time.time()
         logging.info('Epoch {}/{}'.format(epoch + 1, n_epochs))
         # Label the recommendations.
         logging.debug('Labelling recommendations.')
@@ -161,7 +204,10 @@ def simulate_active_learning(
 
         labelled_ids.extend(recommendations)
         logging.debug('Sorting label IDs.')
-        labelled_ids.sort()
+
+        if labeller_name != 'GraphDatabaseLabeller':
+            labelled_ids.sort()
+
         labels = numpy.concatenate([labels, new_labels], axis=0)
 
         # Here, we would write the labels to the database, but they're already
@@ -171,7 +217,12 @@ def simulate_active_learning(
         # Pass the labels to the predictor.
         logging.debug('Fitting predictor.')
         then = time.time()
-        predictor.fit(labelled_ids)
+        if labeller_name == 'GraphDatabaseLabeller':
+            predictor.fit(labelled_ids,
+                          subn_entities=subn_entities,
+                          subn_relations=subn_relations)
+        else:
+            predictor.fit(labelled_ids)
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
         # Evaluate the predictor.
@@ -179,23 +230,24 @@ def simulate_active_learning(
             'Making predictions (reference, n = {}).'.format(len(test_ids)))
         then = time.time()
         test_pred, _test_var = predictor.reference_predict(test_ids)
+
         logging.debug('(Took {:.02} s.)'.format(time.time() - then))
 
-        logging.debug(test_pred)
-
         # Construct a protobuf for outputting predictions.
-        proto = acton.proto.wrappers.Predictions.make(
-            test_ids,
-            labelled_ids,
-            test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
-            predictor=predictor_name,
-            db=db)
-        # Then write them to a file.
-        logging.debug('Writing predictions.')
-        writer.send(proto.proto)
+        if labeller_name != 'GraphDatabaseLabeller':
+            proto = acton.proto.wrappers.Predictions.make(
+                test_ids,
+                labelled_ids,
+                test_pred.transpose([1, 0, 2]),  # T x N x C -> N x T x C
+                predictor=predictor_name,
+                db=db)
+            # Then write them to a file.
+            logging.debug('Writing predictions.')
+            writer.send(proto.proto)
 
         # Pass the predictions to the recommender.
-        unlabelled_ids = list(set(ids) - set(labelled_ids))
+
+        unlabelled_ids = list(set(train_ids) - set(labelled_ids))
         if not unlabelled_ids:
             logging.info('Labelled all instances.')
             break
@@ -207,13 +259,56 @@ def simulate_active_learning(
                 len(unlabelled_ids)))
         then = time.time()
         predictions, _variances = predictor.predict(unlabelled_ids)
-        logging.debug('(Took {:.02} s.)'.format(time.time() - then))
-        logging.debug('Making recommendations.')
-        recommendations = recommender.recommend(
-            unlabelled_ids, predictions, n=n_recommendations)
-        logging.debug('Recommending: {}'.format(recommendations))
 
-    return 0
+        logging.debug('(Took {:.02} s.)'.format(time.time() - then))
+
+        logging.debug('Making recommendations.')
+
+        if labeller_name == 'GraphDatabaseLabeller':
+            true_labels = db.read_labels([])
+            # logging.debug(unlabelled_ids)
+
+            recommendations = recommender.recommend(
+                unlabelled_ids, predictions, n=n_recommendations,
+                diversity=diversity, repreated_labelling=repeated_labelling)
+            logging.debug('Recommending: {}'.format(recommendations))
+
+            # compute ROC_AUC_SCORE
+            train_error = \
+                roc_auc_score(true_labels[train_x, train_y, train_z].flatten(),
+                              predictions[train_x, train_y, train_z].flatten())
+            test_error = \
+                roc_auc_score(true_labels[test_x, test_y, test_z].flatten(),
+                              predictions[test_x, test_y, test_z].flatten())
+
+            train_error_list.append(train_error)
+            test_error_list.append(test_error)
+
+            # compute cumulative gain
+            idx = numpy.unravel_index(
+                predictions.argmax(),
+                predictions.shape
+            )
+            if true_labels[idx] == 1:
+                gain_ts.append(1)
+            else:
+                gain_ts.append(0)
+            # regret_ts = compute_regret(true_labels, seq)
+            # gain_ts = 1 - numpy.array(regret_ts)
+
+            # return train_error_list, test_error_list, gain_ts
+        else:
+            recommendations = recommender.recommend(
+                unlabelled_ids, predictions, n=n_recommendations)
+            logging.debug('Recommending: {}'.format(recommendations))
+        end_epoch = time.time()
+
+        run_time.append(end_epoch - begin_epoch)
+
+    if labeller_name == 'GraphDatabaseLabeller':
+        return train_error_list, test_error_list, gain_ts, run_time
+    else:
+        return 0
 
 
 def try_pandas(data_path: str) -> bool:
@@ -239,7 +334,7 @@ def try_pandas(data_path: str) -> bool:
 
 def get_DB(
         data_path: str,
-        pandas_key: str=None) -> (acton.database.Database, dict):
+        pandas_key: str = None) -> (acton.database.Database, dict):
     """Gets a Database that will handle the given data table.
 
     Parameters
@@ -281,10 +376,10 @@ def get_DB(
 
 
 def main(data_path: str, feature_cols: List[str], label_col: str,
-         output_path: str, n_epochs: int=10, initial_count: int=10,
-         recommender: str='RandomRecommender',
-         predictor: str='LogisticRegression', pandas_key: str='',
-         n_recommendations: int=1):
+         output_path: str, n_epochs: int = 10, initial_count: int = 10,
+         recommender: str = 'RandomRecommender',
+         predictor: str = 'LogisticRegression', pandas_key: str = '',
+         n_recommendations: int = 1):
     """Simulate an active learning experiment.
 
     Parameters
@@ -317,13 +412,16 @@ def main(data_path: str, feature_cols: List[str], label_col: str,
     db_kwargs['label_col'] = label_col
 
     with DB(data_path, **db_kwargs) as reader:
-        return simulate_active_learning(reader.get_known_instance_ids(), reader,
-                                        db_kwargs, output_path,
-                                        n_epochs=n_epochs,
-                                        n_initial_labels=initial_count,
-                                        recommender=recommender,
-                                        predictor=predictor,
-                                        n_recommendations=n_recommendations)
+        return simulate_active_learning(
+            reader.get_known_instance_ids(),
+            reader,
+            db_kwargs,
+            output_path,
+            n_epochs=n_epochs,
+            n_initial_labels=initial_count,
+            recommender=recommender,
+            predictor=predictor,
+            n_recommendations=n_recommendations)
 
 
 def predict(
@@ -364,8 +462,8 @@ def predict(
 
 def recommend(
         predictions: acton.proto.wrappers.Predictions,
-        recommender: str='RandomRecommender',
-        n_recommendations: int=1) -> acton.proto.wrappers.Recommendations:
+        recommender: str = 'RandomRecommender',
+        n_recommendations: int = 1) -> acton.proto.wrappers.Recommendations:
     """Recommends instances to label based on predictions.
 
     Parameters

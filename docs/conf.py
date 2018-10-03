@@ -218,17 +218,17 @@ htmlhelp_basename = 'Actondoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    # 'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    # 'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    # 'preamble': '',
 
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+    # Latex figure (float) alignment
+    # 'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -300,6 +300,8 @@ from mock import MagicMock
 
 # These blank classes are needed to mock sklearn's base classes without hitting
 # metaclass errors.
+
+
 class BaseEstimator:
     def __init__(self, *args, **kwargs):
         pass
@@ -307,12 +309,14 @@ class BaseEstimator:
     def __getattr__(self, name):
         return MagicMock()
 
+
 class ClassifierMixin:
     def __init__(self, *args, **kwargs):
         pass
 
     def __getattr__(self, name):
         return MagicMock()
+
 
 skbm = MagicMock()
 skbm.BaseEstimator = BaseEstimator
@@ -325,17 +329,23 @@ skbm.ClassifierMixin = ClassifierMixin
 # and Union. Finally, mocking individual protobuf modules is difficult and
 # fragile. Thus this hack: A subclass of MagicMock that has class attributes
 # that are also subclasses of MagicMock (and so on).
+
+
 class MockedClassAttributes(type):
     def __getattr__(cls, key):
         return get_mock_type(key)
+
 
 def get_mock_type(name):
     newtype = MockedClassAttributes(name, (MagicMock,), {})
     return newtype
 
 # This hooks the mock into the protobuf library.
+
+
 def GeneratedProtocolMessageType(name, *args, **kwargs):
     return get_mock_type(name)
+
 
 gp = MagicMock()
 gp.reflection = gpr = MagicMock()

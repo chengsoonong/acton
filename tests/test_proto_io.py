@@ -26,6 +26,7 @@ class TestIOMany(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tempdir.name, 'testiomany.proto')
         # And a mock class for deserialisation.
+
         class Proto:
             def ParseFromString(self, string):
                 self.proto = string
@@ -73,7 +74,7 @@ class TestIOMany(unittest.TestCase):
 
         # Read the protobufs.
         read_protobufs = [i.proto
-            for i in acton.proto.io.read_protos(self.path, self.Proto)]
+                          for i in acton.proto.io.read_protos(self.path, self.Proto)]
         self.assertEqual(serialised_protos, read_protobufs)
 
     def test_write_read_file(self):

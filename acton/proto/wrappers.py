@@ -33,8 +33,8 @@ def validate_db(db: acton_pb.Database):
 
 
 def deserialise_encoder(
-            encoder: acton_pb.Database.LabelEncoder
-        ) -> sklearn.preprocessing.LabelEncoder:
+    encoder: acton_pb.Database.LabelEncoder
+) -> sklearn.preprocessing.LabelEncoder:
     """Deserialises a LabelEncoder protobuf.
 
     Parameters
@@ -182,7 +182,6 @@ class LabelPool(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(
@@ -345,7 +344,6 @@ class Predictions(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(
@@ -543,7 +541,6 @@ class Recommendations(object):
 
     def _set_default(self):
         """Adds default parameters to the protobuf."""
-        pass
 
     @classmethod
     def make(

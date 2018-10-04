@@ -536,6 +536,7 @@ class TensorPredictor(Predictor):
         self.X = self._db.read_labels(all_)  # read all labels
 
     def fit(self, ids: Iterable[tuple],
+            inc_sub: bool,
             subn_entities: int,
             subn_relations: int):
         """Update posteriors.
@@ -544,6 +545,8 @@ class TensorPredictor(Predictor):
         ----------
         ids
             List of IDs of labelled instances.
+        inc_sub
+            indicates whether increasing subsampling size when gets more labels
         subn_entities
             number of entities for subsampling
         subn_relations
@@ -565,9 +568,6 @@ class TensorPredictor(Predictor):
         self.n_dim = self.E.shape[2]
         assert self.E.shape[2] == self.R.shape[2]
 
-        self.subn_entities = int(subn_entities)
-        self.subn_relations = int(subn_relations)
-
         obs_mask = numpy.zeros_like(self.X)
 
         for _id in ids:
@@ -582,6 +582,14 @@ class TensorPredictor(Predictor):
         self.obs_sum = numpy.sum(numpy.sum(obs_mask, 1), 1)
         self.valid_relations = \
             numpy.nonzero(numpy.sum(numpy.sum(self.X, 1), 1))[0]
+        # totoal_size = self.n_relations * self.n_entities * self.n_dim
+
+        if numpy.sum(self.obs_sum) > 1000:
+            self.subn_entities = 10
+            self.subn_relations = 10
+        else:
+            self.subn_entities = int(subn_entities)
+            self.subn_relations = int(subn_relations)
 
         self.features = numpy.zeros(
             [2 * self.n_entities * self.n_relations, self.n_dim])

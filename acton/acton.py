@@ -93,6 +93,7 @@ def simulate_active_learning(
         n_recommendations: int = 1,
         diversity: float = 0.5,
         repeated_labelling: bool = True,
+        inc_sub: bool = False,
         subn_entities: int=0,
         subn_relations: int=0):
     """Simulates an active learning task.
@@ -123,6 +124,8 @@ def simulate_active_learning(
         Number of recommendations to make at once.
     repeated_labelling
         whether allow one instance to be labelled more than once
+    inc_sub
+        indicates whether increasing subsampling size when gets more labels
     subn_entities
         number of entities for subsampling
     subn_relations
@@ -219,6 +222,7 @@ def simulate_active_learning(
         then = time.time()
         if labeller_name == 'GraphDatabaseLabeller':
             predictor.fit(labelled_ids,
+                          inc_sub=inc_sub,
                           subn_entities=subn_entities,
                           subn_relations=subn_relations)
         else:
